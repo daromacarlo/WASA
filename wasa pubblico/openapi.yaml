@@ -1,0 +1,315 @@
+openapi: 3.0.3
+info:
+  title: WASAtext API specification
+  description: |-
+    Questo documento OpenApi descrive le api necessarie a WASAText.
+  version: "1"
+paths:
+  /WASAchat:
+    post:
+      tags: ["login"]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Maria
+                  pattern: 'ˆ.*?$'
+                  minLength: 3
+                  maxLength: 16
+        required: true
+      responses:
+        '201':
+          description: User log-in action successful
+          content:  
+            application/json:
+              schema:
+                type: object
+                properties:
+                  identifier:
+                    type: string
+                    example: "abcdef012345"
+    get:
+      tags: ["Schermata principale"]
+      summary: visualizza conversazioni
+      description: |-
+        Restituisce al client la lista delle sue conversazioni
+        in ordine cronologico inverso.
+      operationId: getMyConversation
+      responses:
+        "200":
+          description: schermata principale visualizzata correttamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    foto:
+                      type: string
+                      format: binary
+                      description: foto profilo utente/ foto gruppo
+                    nome:
+                      type: string
+                      example: "informatica 2024-2025"
+                    ultimoMessaggio:
+                      type: object
+                      properties:
+                        dataOra:
+                          type: string
+                          format: date-time
+                          description: "Data e ora dell'ultimo messaggio, nel formato ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)"
+                        spunta:
+                          type: string
+                          enum:
+                            - "ricevuto"
+                            - "letto"
+                        contenuto:
+                          oneOf:
+                            - type: string
+                              description: "Il contenuto del messaggio come testo"
+                              example: "AO"
+                            - type: string
+                              format: binary
+                              description: "Il contenuto del messaggio come immagine (in formato binario)"
+  /WASAchat/impostazioni/username:
+    put:
+      tags: ["Modifica Profilo utente"]
+      summary: settare user name
+      description: |-
+        Se l'user name non esiste, viene creato. Se esiste già un user name, viene sovrascritto se diverso dal precedente.
+      operationId: setMyUserName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  minLength: 3
+                  example: "daromacarlo"
+      responses:
+        "200":
+          description: Il nuovo username è uguale al vecchio, nessuna modifica applicata.
+        "201":
+          description: Il nuovo username è stato settato.
+        "400":
+          description: Errore lato client.
+        "500":
+          description: Errore lato server.
+  /WASAchat/impostazioni/immagineProfilo:
+    put:
+      tags: ["Modifica Profilo utente"]
+      summary: settare foto profilo
+      description: |-
+        Se l'utente ha già una foto profilo, questa viene aggiornata con quella nuova fornita, altrimenti viene settata la nuova foto.
+      operationId: setMyPhoto
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                foto:
+                  type: string
+                  format: binary
+                  description: La nuova foto profilo in formato binario.
+      responses:
+        "201":
+          description: Foto profilo settata.
+        "400":
+          description: Errore lato client.
+        "500":
+          description: Errore lato server.
+  /WASAchat/{chatid}:
+    parameters:
+      - name: chatid
+        in: path
+        required: true
+        description: è l'id della chat
+        schema:
+          type: number
+          example: 131
+    get:
+      tags: ["Chat"]
+      summary:
+        restituisce i messaggi della chat
+      description: |-
+        restituisce i messaggi scambiati nella chat in ordine 
+        cronologico inverso
+      operationId:
+        getConversation
+      responses:
+        "200":
+          description: chat restituita correttamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    messaggio:
+                      type: object
+                      properties:
+                        dataOra:
+                          type: string
+                          format: date-time
+                          description: "Data e ora dell'ultimo messaggio, nel formato ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)"
+                        spunta:
+                          type: string
+                          enum:
+                            - "ricevuto"
+                            - "letto"
+                        contenuto:
+                          oneOf:
+                            - type: string
+                              description: "Il contenuto del messaggio come testo"
+                              example: "AO"
+                            - type: string
+                              format: binary
+                              description: "Il contenuto del messaggio come immagine (in formato binario)"
+    post:
+      tags: ["Chat"]
+      summary:
+        invia il messaggio 
+      description: |-
+        invia nella chat selezionata il messaggio scritto
+      operationId:
+        sendMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messaggio:
+                  oneOf:
+                    - type: string
+                      description: "Il contenuto del messaggio come testo"
+                      example: "ti va di uscire insieme questo venerdì?"
+                    - type: string
+                      format: binary
+                      description: "Il contenuto del messaggio come immagine (in formato binario)"
+      responses:
+        "200": 
+          description: 
+            messaggio inviato
+        "400": 
+          description:
+            messaggio non inviato causa problematiche lato client
+        "500":
+          description:
+            messaggio non inviato causa problematiche lato server
+  /WASAchat/{chatid}/messaggio:
+    parameters:
+      - name: chatid
+        in: path
+        required: true
+        description: è l'id della chat
+        schema:
+          type: number
+          example: 421
+    post:
+      tags: ["Chat"]
+      summary:
+        inoltra il messaggio 
+      description: |-
+        invia nella chat selezionata il messaggio selezionato
+      operationId:
+        forwardMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: number
+                  example: 12
+      responses:
+        "200": 
+          description: 
+            messaggio inoltrato
+        "400": 
+          description:
+            messaggio non inoltrato causa problematiche lato client
+        "500":
+          description:
+            messaggio non inoltrato causa problematiche lato server
+  /WASAchat/{groupid}:
+  /WASAchat/{groupid}/impostazioni/nomeGruppo:
+    parameters:
+      - name: groupid
+        in: path
+        required: true
+        description: è l'id del gruppo
+        schema:
+          type: number
+          example: 2
+    put:
+      tags: ["Modifica gruppo"]
+      summary: Settare nome gruppo
+      description: |-
+        Se il gruppo ha già un nome, questo viene aggiornato con quello nuovo se il nome è differente dal precedente, altrimenti viene settato il nuovo nome.
+      operationId: setGroupName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  example: "informatica 2024-2025"
+      responses:
+        "200":
+          description: Nome gruppo settato.
+        "400":
+          description: Errore lato client.
+        "500":
+          description: Errore lato server.
+  /WASAchat/{groupid}/impostazioni/immagineGruppo:  
+    parameters:
+    - name: groupid
+      in: path
+      required: true
+      description: è l'id del gruppo
+      schema:
+        type: number
+        example: 2
+    put:
+      tags: ["Modifica gruppo"]
+      summary: Settare foto gruppo
+      description: |-
+        Se il gruppo ha già una foto profilo, questa viene aggiornata con quella nuova fornita, altrimenti viene settata la nuova foto.
+      operationId: setGroupPhoto
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                foto:
+                  type: string
+                  format: binary
+                  description: La nuova foto del gruppo in formato binario.
+      responses:
+        "200":
+          description: Foto gruppo settata.
+        "400":
+          description: Errore lato client.
+        "500":
+          description: Errore lato server.

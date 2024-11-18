@@ -7,7 +7,7 @@ info:
 paths:
   /WASAchat:
     post:
-      tags: ["login"]
+      tags: ["Login"]
       summary: Logs in the user
       description: |-
         If the user does not exist, it will be created,
@@ -279,6 +279,17 @@ paths:
         "500":
           description:
             messaggio non inoltrato causa problematiche lato server
+    delete:
+      tags: ["Chat"]
+      summary:
+        elimina il messaggio
+      description:
+        elimina il messaggio selezionato
+      operationId: 
+        deleteMessage
+      responses:
+        "200":
+          description: messaggio eliminato correttamente
   /WASAchat/{groupid}:
     parameters:
       - name: groupid
@@ -312,7 +323,7 @@ paths:
           description: messaggio commentato
     delete:
       tags: ["Chat"]
-      summary: decommentare messaggio
+      summary: rimuovere commento messaggio
       description: elimina il commento sul messaggio selezionato
       operationId: deleteComment
       responses:
@@ -339,7 +350,8 @@ paths:
       tags: ["Modifica gruppo"]
       summary: Settare nome gruppo
       description: |-
-        Se il gruppo ha già un nome, questo viene aggiornato con quello nuovo se il nome è differente dal precedente, altrimenti viene settato il nuovo nome.
+        Se il gruppo ha già un nome, questo viene aggiornato con quello nuovo se il nome è differente dal precedente, 
+        altrimenti viene settato il nuovo nome.
       operationId: setGroupName
       requestBody:
         content:

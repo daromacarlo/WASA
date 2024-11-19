@@ -4,8 +4,26 @@ info:
   description: |-
     Questo documento OpenApi descrive le API necessarie a WASAText.
   version: "1"
+tags:
+  - name:  "Login"
+    description:
+      parte della api che gestisce il login degli utenti
+  - name: "Schermata principale"
+    description: |-
+      parte della api che gestisce la schermata principale dell'app,
+      nella schermata principale sono visualizzate le chat in ordine cronologico
+      inverso.
+  - name: "Chat"
+    description: |-
+      parte della api che gestisce le chat
+  - name: "Modifica Profilo utente"
+    description: |-
+      sezione della api che gestisce le impostazioni utente
+  - name: "Modifica gruppo"
+    description: 
+      sezione della api che gestisce le impostazioni dei gruppi
 paths:
-  /WASAchat:
+  /wasachat:
     post:
       tags: ["Login"]
       summary: Logs in the user
@@ -23,10 +41,14 @@ paths:
               properties:
                 name:
                   type: string
-                  example: Maria
+                  example: "Maria.3"
                   pattern: 'ˆ.*?$'
                   minLength: 3
                   maxLength: 16
+                  description:
+                    nome utente
+              description:
+                oggetto nome utente
         required: true
       responses:
         '201':
@@ -39,51 +61,11 @@ paths:
                   identifier:
                     type: string
                     example: "abcdef012345"
-    get:
-      tags: ["Schermata principale"]
-      summary: visualizza conversazioni
-      description: |-
-        Restituisce al client la lista delle sue conversazioni
-        in ordine cronologico inverso.
-      operationId: getMyConversation
-      responses:
-        "200":
-          description: schermata principale visualizzata correttamente
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    foto:
-                      type: string
-                      format: binary
-                      description: foto profilo utente/ foto gruppo
-                    nome:
-                      type: string
-                      example: "informatica 2024-2025"
-                    ultimoMessaggio:
-                      type: object
-                      properties:
-                        dataOra:
-                          type: string
-                          format: date-time
-                          description: "Data e ora dell'ultimo messaggio, nel formato ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)"
-                        spunta:
-                          type: string
-                          enum:
-                            - "ricevuto"
-                            - "letto"
-                        contenuto:
-                          oneOf:
-                            - type: string
-                              description: "Il contenuto del messaggio come testo"
-                              example: "AO"
-                            - type: string
-                              format: binary
-                              description: "Il contenuto del messaggio come immagine (in formato binario)"
-  /WASAchat/impostazioni/username:
+                    description: 
+                      identificatore
+                description:
+                  identificatore in forma di stringa alfanumerica
+  /wasachat/impostazioni/username:
     put:
       tags: ["Modifica Profilo utente"]
       summary: settare user name
@@ -109,7 +91,7 @@ paths:
           description: Errore lato client.
         "500":
           description: Errore lato server.
-  /WASAchat/impostazioni/immagineProfilo:
+  /wasachat/impostazioni/immagineprofilo:
     put:
       tags: ["Modifica Profilo utente"]
       summary: settare foto profilo
@@ -133,7 +115,7 @@ paths:
           description: Errore lato client.
         "500":
           description: Errore lato server.
-  /WASAchat/{userid}:
+  /wasachat/persone/{userid}:
     parameters:
     - name: userid
       in: path
@@ -163,7 +145,61 @@ paths:
         "200": 
           description:
             utente aggiunto correttamente al gruppo
-  /WASAchat/{chatid}:
+  /wasachat/chats:
+    get:
+      tags: ["Schermata principale"]
+      summary: "Visualizza conversazioni"
+      description: |-
+        Restituisce al client la lista delle sue conversazioni
+        in ordine cronologico inverso.
+      operationId: getMyConversation
+      responses:
+        "200":
+          description: Schermata principale visualizzata correttamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    minItems: 1  # Garantisce che l'array non sia vuoto
+                    items:
+                      type: object
+                      properties:
+                        foto:
+                          type: string
+                          format: binary
+                          description: "Foto profilo utente/foto gruppo"
+                        nome:
+                          type: string
+                          example: "informatica 2024-2025"
+                        ultimoMessaggio:
+                          type: object
+                          properties:
+                            dataOra:
+                              type: string
+                              format: date-time
+                              description: "Data e ora dell'ultimo messaggio"
+                            spunta:
+                              type: string
+                              enum:
+                                - "ricevuto"
+                                - "letto"
+                            contenuto:
+                              oneOf:
+                                - type: string
+                                  description: "Il contenuto del messaggio come testo"
+                                - type: string
+                                  format: binary
+                                  description: "Il contenuto del messaggio come immagine (in formato binario)"
+                          required:
+                            - spunta
+                required:
+                  - messages  # Rende obbligatorio l'array "messages"
+        "400":
+          description: Errore lato client; dice che l'array non deve essere opzionale
+  /wasachat/chats/{chatid}:
     parameters:
       - name: chatid
         in: path
@@ -183,26 +219,29 @@ paths:
         getConversation
       responses:
         "200":
-          description: chat restituita correttamente
+          description: Chat restituita correttamente
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    messaggio:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
                       type: object
                       properties:
                         dataOra:
                           type: string
                           format: date-time
-                          description: "Data e ora dell'ultimo messaggio, nel formato ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)"
+                          description:
+                            data in cui viene inviato il messaggio
                         spunta:
                           type: string
                           enum:
                             - "ricevuto"
                             - "letto"
+                          description: 
+                            stato del messaggio
                         contenuto:
                           oneOf:
                             - type: string
@@ -210,7 +249,14 @@ paths:
                               example: "AO"
                             - type: string
                               format: binary
-                              description: "Il contenuto del messaggio come immagine (in formato binario)"
+                              description: "Il contenuto del messaggio come immagine"
+                      required:
+                        - spunta
+                required:
+                  - messages  # Rende obbligatorio l'array "messages"
+        "400":
+          description:
+            errore lato client
     post:
       tags: ["Chat"]
       summary:
@@ -243,7 +289,7 @@ paths:
         "500":
           description:
             messaggio non inviato causa problematiche lato server
-  /WASAchat/{chatid}/messaggio:
+  /wasachat/chats/{chatid}/messaggio:
     parameters:
       - name: chatid
         in: path
@@ -266,9 +312,11 @@ paths:
             schema:
               type: object
               properties:
-                name:
+                messageid:
                   type: number
                   example: 12
+                  description: id del messaggio
+              description: lo schema contiene un oggetto che rappresenta l'id del messaggio
       responses:
         "200": 
           description: 
@@ -290,7 +338,7 @@ paths:
       responses:
         "200":
           description: messaggio eliminato correttamente
-  /WASAchat/{groupid}:
+  /wasachat/{groupid}:
     parameters:
       - name: groupid
         in: path
@@ -318,6 +366,10 @@ paths:
                   - type: string
                     format: binary
                     description: "Il contenuto del messaggio come immagine (in formato binario)"
+                  description: il mesasggio può essere un messaggio testuale o una foto
+              description: |-
+                Lo schema contiene il messaggio, questo può essere
+                una immagine o un messaggio testuale
       responses:
         "200": 
           description: messaggio commentato
@@ -337,7 +389,7 @@ paths:
       responses:
         "200":
           description: sei uscito correttamente dal gruppo
-  /WASAchat/{groupid}/impostazioni/nomeGruppo:
+  /wasachat/{groupid}/impostazioni/nomegruppo:
     parameters:
       - name: groupid
         in: path
@@ -362,6 +414,8 @@ paths:
                 nome:
                   type: string
                   example: "informatica 2024-2025"
+                  description: il nome del gruppo
+              description: lo schema contiene il nome del gruppo
       responses:
         "200":
           description: Nome gruppo settato.
@@ -369,7 +423,7 @@ paths:
           description: Errore lato client.
         "500":
           description: Errore lato server.
-  /WASAchat/{groupid}/impostazioni/immagineGruppo:  
+  /wasachat/{groupid}/impostazioni/immaginegruppo:  
     parameters:
     - name: groupid
       in: path
@@ -394,6 +448,7 @@ paths:
                   type: string
                   format: binary
                   description: La nuova foto del gruppo in formato binario.
+              description: lo schema contiene il campo foto
       responses:
         "200":
           description: Foto gruppo settata.

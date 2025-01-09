@@ -6,26 +6,27 @@ import (
 
 // Handler returns an instance of httprouter.Router that handle APIs registered here
 func (rt *_router) Handler() http.Handler {
-	//route speciali
+	// Register routes
 	rt.router.GET("/context", rt.wrap(rt.getContextReply))
 	rt.router.GET("/liveness", rt.liveness)
+	rt.router.POST("/wasachat/:utente/gruppi", rt.CreaGruppo)
+	rt.router.POST("/wasachat", rt.Registrazione)
+	rt.router.POST("/wasachat/:utente/chats/gruppi/:chat", rt.InviaMessaggioGruppo)
+	rt.router.POST("/wasachat/:utente/chats/chatprivate/:destinatario", rt.InviaMessaggioPrivato)
+	rt.router.PUT("/wasachat/:utente/chats/gruppi/:chat/aggiungi", rt.AggiungiAGruppo)
+	rt.router.GET("/wasachat/:utente/chats/chatprivate/:destinatario", rt.GetConversazionePrivata)
+	rt.router.GET("/wasachat/:utente/chats/gruppi/:gruppo", rt.GetConversazioneGruppo)
+	rt.router.DELETE("/wasachat/:utente/chats/:chat", rt.LasciaGruppo)
+	rt.router.DELETE("/wasachat/:utente/chats/:chat/messaggi/:messaggio", rt.EliminaMessaggio)
+	rt.router.PUT("/wasachat/:utente/gruppi/:chat/foto", rt.ImpostaFotoGruppo)
+	rt.router.PUT("/wasachat/:utente/gruppi/:chat/nome", rt.ImpostaNomeGruppo)
+	rt.router.PUT("/wasachat/:utente/foto", rt.ImpostaFotoProfilo)
+	rt.router.PUT("/wasachat/:utente/nome", rt.ImpostaNome)
+	rt.router.GET("/wasachat/:utente/utenti", rt.VediProfili)
+	rt.router.GET("/wasachat/:utente/chats", rt.GetConversazioni)
+	rt.router.DELETE("/wasachat/:utente/messaggi/:commento", rt.EliminaCommento)
+	rt.router.POST("/wasachat/:utente/messaggi/:messaggio", rt.AggiungiCommento)
 
-	//funzione di login e registrazione
-	rt.router.POST("/wasachat", rt.Login)
-
-	//fuzione per cambiare nickname (vedi esempio 1 di example-list per esempio di utilizzo)
-	rt.router.PUT("/wasachat/:nickname/impostazioni/impostazioninickname", rt.SetMyUsername)
-
-	//funzione per cambiare o aggiungere la propria foto profilo
-	rt.router.PUT("/wasachat/:nickname/impostazioni/impostazioniimmagineprofilo", rt.SetMyPhoto)
-
-	//funzione per inviare messaggi in una chat privata
-	rt.router.POST("/wasachat/:nickname", rt.SendPrivateMessage)
-
-	rt.router.GET("/wasachat/:nickname/chats", rt.GetMyConversation)
-
-	//funzioni di test
-	rt.router.GET("/wasachat/:nickname/test/user", rt.GetAllUsers)
-	rt.router.GET("/wasachat/:nickname/test/messaggi", rt.GetAllMessaggi)
+	//rt.router.POST("/wasachat/test/:utente/conversazioniprivate", rt.CreaConversazionePrivata)
 	return rt.router
 }

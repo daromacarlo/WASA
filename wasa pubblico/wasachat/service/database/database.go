@@ -1,37 +1,99 @@
+/*
+Package database is the middleware between the app database and the code. All data (de)serialization (save/load) from a
+persistent database are handled here. Database specific logic should never escape this package.
+
+To use this package you need to apply migrations to the database if needed/wanted, connect to it (using the database
+data source name from config), and then initialize an instance of AppDatabase from the DB connection.
+
+For example, this code adds a parameter in `webapi` executable for the database data source name (add it to the
+main.WebAPIConfiguration structure):
+
+	DB struct {
+		Filename string `conf:""`
+	}
+
+This is an example on how to migrate the DB and connect to it:
+
+	// Start Database
+	logger.Println("initializing database support")
+	db, err := sql.Open("sqlite3", "./foo.db")
+	if err != nil {
+		logger.WithError(err).Error("error opening SQLite DB")
+		return fmt.Errorf("opening SQLite: %w", err)
+	}
+	defer func() {
+		logger.Debug("database stopping")
+		_ = db.Close()
+	}()
+
+Then you can initialize the AppDatabase and pass it to the api package.
+*/
 package database
 
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 )
 
-// AppDatabase è l'interfaccia di alto livello per il DB
+// AppDatabase is the high level interface for the DB
 type AppDatabase interface {
-	//preesistenti
-	GetName() (string, error)
-	SetName(name string) error
 
-	//creazione tabelle
-	CreateUser(nick string) error
-	StartConversazionePrivata(id_utente1 int, id_utente2 int) (interoNullabile, error)
-	CreateMessaggioPrivato(nickmittente string, nickdestinatario string, messaggio string) error
+	//impostazioni
+	ImpostaFotoProfilo(nicknamePassato string, idfotoPassata int) error
+	ImpostaNome(nicknamePassato string, nuovoNickPassato string) error
+	ImpostaFotoGruppo(UtenteChiamante string, id_foto_Passata int, id_gruppo_passato int) error
+	ImpostaNomeGruppo(UtenteChiamante string, nomeGruppo_Passato string, id_gruppo_passato int) error
 
-	//ricerca
-	SearchUser(nick string) (bool, error)
-	Get_IdFromNick_Persona(nick string) (interoNullabile, error)
-	Get_NickFromId_Persona(id int) (stringaNullabile, error)
-	SearchConversazionePrivata(id_utente1 int, id_utente2 int) (interoNullabile, error)
-	GetChats(nickname string) ([]Chat, error)
+	//utente
+	CreaUtente(nicknamePassato string, idfotoPassata int) error
+	IdUtenteDaNickname(nickname_Passato string) (int, error)
+	NicknameUtenteDaId(id_passato int) (string, error)
+	VediProfili(nickname_Passato string) ([]Profilo, error)
 
-	//modifica
-	ChangeNickname(newnickname string, nickname string) error
-	ChangePhoto(photo []byte, nickname string) error
+	//foto
+	CreaFoto(percorso_Passato string, foto_Passata []byte) (int, error)
+
+	//messaggi
+	CreaMessaggioFotoDBPrivato(utente_Passato string, destinatario_Passato string, foto_Passata int) error
+	CreaMessaggioTestualeDBPrivato(utente_Passato string, destinatario_Passato string, testo_Passato string) error
+	CreaMessaggioFotoDBGruppo(utente_Passato string, conversazione_Passata int, foto_Passata int) error
+	CreaMessaggioTestualeDBGruppo(utente_Passato string, conversazione_Passata int, testo_Passato string) error
+	CreaStatoMessaggioPrivato(id_messaggio_Passato int) error
+	LeggiMessaggiPrivati(utente1_Passato string, utente2_Passato string, conversazioneID int) error
+	CreaStatoMessaggioGruppo(id_messaggio_Passato int) error
+	LeggiMessaggiGruppo(utente1_Passato string, conversazioneID int) error
+	CheckLetturaMessaggiGruppo(conversazioneID int) error
+	EliminaMessaggio(utente_Passato string, id_messaggio int, id_chat int) error
+
+	//commenti
+	EliminaCommento(utente_Passato string, id_commento int) error
+	AggiungiCommento(utente_Passato string, messaggio_Passato int, reazione_Passata string) error
+
+	//conversazione
+	CreaConversazioneDB() (int, error)
+	CreaGruppoDB(UtenteChiamante string, nomeGruppo_Passato string, idfoto_Passata int) error
+	CreaConversazionePrivataDB(utente1_Passato string, utente2_Passato string) (int, error)
+	AggiungiAGruppoDB(idConversazione int, UtenteChiamante string, UtenteDaAggiungere string) error
+	GetConversazionePrivata(utente1_Passato string, utente2_Passato string) ([]MessageData, error)
+	GetConversazioneGruppo(utente1_Passato string, id_conversazione int) ([]MessageData, error)
+	LasciaGruppo(idConversazione int, UtenteChiamante string) error
+	GetConversazioni(utente_Passato string) ([]Conversazione, error)
+
+	//check
+	EsisteConversazione(idConversazione int) (bool, error)
+	EsisteConversazioneTraUtenti(utente1_Passato string, utente2_Passato string) (int, error)
+	UtenteCoinvoltoPrivato(utente_Passato string, destinatario_Passato string) (int, error)
+	CercaConversazioneGruppo(conversazione_Passata int) (int, error)
+	CercaConversazionePrivata(conversazioneID int, utente_Passato_convertito int) (int, error)
+	UtenteCoinvoltoGruppo(utente_Passato string, conversazione_Passata int) (int, error)
+	EsistenzaUtente(nickname_Passato string) (bool, error)
+
+	//cosa manca?
+	/*
+		inoltra messaggio
+	*/
 
 	//test
-	GetUsers() ([]User, error)
-	GetMessaggi() ([]Message, error)
-
 	Ping() error
 }
 
@@ -39,28 +101,69 @@ type appdbimpl struct {
 	c *sql.DB
 }
 
-// New restituisce una nuova istanza di AppDatabase basata sulla connessione SQLite `db`.
-// `db` è richiesto - verrà restituito un errore se `db` è `nil`.
+// New returns a new instance of AppDatabase based on the SQLite connection `db`.
+// `db` is required - an error will be returned if `db` is `nil`.
 func New(db *sql.DB) (AppDatabase, error) {
 	if db == nil {
-		return nil, errors.New("il database è richiesto per costruire un AppDatabase")
+		return nil, errors.New("database is required when building a AppDatabase")
 	}
 
-	// Crea la tabella persone se non esiste
-	err1 := CreateTablePersone(db)
-	if err1 != nil {
-		return nil, fmt.Errorf("errore durante la creazione della tabella persone: %w", err1)
+	// Crea la tabella persone se non esiste (guarda file utente.go per maggiori informazioni)
+	err := CreaTabellaUtente(db)
+	if err != nil {
+		return nil, err
 	}
 
-	err2 := CreateTableMessaggi(db)
-	if err2 != nil {
-		return nil, fmt.Errorf("errore durante la creazione della tabella messaggi: %w", err2)
+	err = CreaTabellaFoto(db)
+	if err != nil {
+		return nil, err
 	}
 
-	err3 := CreateTableConversazioni(db)
-	if err3 != nil {
-		return nil, fmt.Errorf("errore durante la creazione della tabella ConversazioniPrivate: %w", err3)
+	err = CreaTabellaConversazione(db)
+	if err != nil {
+		return nil, err
 	}
+
+	err = CreaTabellaGruppo(db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CreaTabellaConversazionePrivata(db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CreaTabellaMessaggio(db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CreaTabellaCommento(db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CreaTabellaUtenteingruppo(db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CreaTabellaStatoMessaggioPrivato(db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CreaTabellaStatoMessaggioGruppo(db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CreaTabellaStatoMessaggioGruppoPersona(db)
+	if err != nil {
+		return nil, err
+	}
+
 	return &appdbimpl{
 		c: db,
 	}, nil

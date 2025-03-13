@@ -1,273 +1,423 @@
-openapi: 3.0.0
-servers:
-  - url: "http://localhost:3000"
+openapi: 3.0.3
 info:
-  title: Fantastic Coffee (decaffeinated)
-  description: Fantastic Coffee (decaffeinated), the skeleton project for Web and Software architecture course
-  version: 1.0.0
+  title: WASAtext API specification
+  description: |-
+    Questo documento OpenApi descrive le API necessarie a WASAText.
+  version: "1"
 paths:
-  /status:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-    get:
-      tags: ["General"]
-      operationId: getStatusMessage
-      summary: Get status message for the user about issues / updates
-      description: |-
-        The response contains a status message meant for the user. It might
-        contains information about current technical issues, update messages
-        or general information.
-      responses:
-        "200":
-          description: Status message available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusInfo"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /:
-    get:
-      tags: ["Group 1"]
-      operationId: index
-      summary: Get an index
-      description: |-
-        This is an example of an index API description
-      responses:
-        "200":
-          description: Successful
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-  /context:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
+  /wasachat:
     post:
-      tags: ["Group 1"]
-      operationId: getContext
-      summary: Another API example
+      tags: ["Login"]
+      summary: Logs in the user
       description: |-
-        Example description 2
-      responses:
-        "200":
-          description: Request ok
-          headers:
-            X-Access-Token:
-              description: Access token for authenticated requests
-              schema: { type: string }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-  /authenticated:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-    get:
-      tags: ["Group 2"]
-      operationId: getAuthenticatedExample
-      summary: Get an endpoint with authentication
-      description: |-
-        Get an endpoint with auth
-      security:
-        - LegacyAuth: []
-        - AppToken: []
-      responses:
-        "200":
-          description: Logout successful
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /pictures/{cat}:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-      - $ref: "#/components/parameters/cat"
-    get:
-      tags: ["Cat pictures"]
-      operationId: getCatFromPicture
-      summary: Example of a parameter in URL
-      description: |-
-        Example of a parameter in URL
-      security:
-        - LegacyAuth: []
-      responses:
-        "200":
-          description: Student picture found
-          content:
-            image/png:
-              schema:
-                type: string
-                format: binary
-              example: Picture binary file
-        "404":
-          description: Student picture not found
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-
-  /autofeeder/{cat}:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-      - $ref: "#/components/parameters/cat"
-    put:
-      tags: ["Autofeeder"]
-      operationId: createCatAutofeeder
-      summary: Example of PUT operation
-      security:
-        - LegacyAuth: []
-      responses:
-        "200":
-          description: Auto feed enabled
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-    delete:
-      tags: ["Autofeeder"]
-      operationId: deleteCatAutofeeder
-      summary: Example of DELETE operation
-      security:
-        - LegacyAuth: []
-      responses:
-        "200":
-          description: Auto feed disabled
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /session/login:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-    post:
-      tags: ["Session management"]
-      operationId: login
-      summary: Log-in into system
-      description: |-
-        Perform a log-in action using username and password credentials.
-        Returns a token which can be used in authenticated requests.
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
       requestBody:
+        description: User details
         content:
-          application/x-www-form-urlencoded:
+          application/json:
             schema:
               type: object
               properties:
-                userid:
+                name:
                   type: string
-                  pattern: '^[a-zA-Z0-9]+$'
+                  example: "Maria.3"
+                  pattern: 'ˆ.*?$'
                   minLength: 3
-                  maxLength: 255
-                password:
-                  type: string
-                  pattern: '^.*?$'
-                  minLength: 8
-                  maxLength: 255
+                  maxLength: 16
+                  description:
+                    nome utente
+        required: true
+      responses:
+        '201':
+          description: User log-in action successful
+          content:  
+            application/json:
+              schema:
+                type: object
+                properties:
+                  identifier:
+                    type: string
+                    example: "abcdef012345"
+                    description: 
+                      identificatore
+    get:
+      tags: ["Schermata principale"]
+      summary: "Visualizza conversazioni"
+      description: |-
+        Restituisce al client la lista delle sue conversazioni
+        in ordine cronologico inverso.
+      operationId: getMyConversation
       responses:
         "200":
-          description: Login successful
-          headers:
-            X-Access-Token:
-              description: Access token for authenticated requests
-              schema: { type: string }
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "403":
-          description: Login failed
-          headers:
-            X-Message:
-              description: Error message
-              schema: { type: string }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+          description: Schermata principale visualizzata correttamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    minItems: 1  # Garantisce che l'array non sia vuoto
+                    items:
+                      type: object
+                      properties:
+                        foto:
+                          type: string
+                          format: binary
+                          description: "Foto profilo utente/foto gruppo"
+                        nome:
+                          type: string
+                          example: "informatica 2024-2025"
+                        ultimoMessaggio:
+                          type: object
+                          properties:
+                            dataOra:
+                              type: string
+                              format: date-time
+                              description: "Data e ora dell'ultimo messaggio"
+                            spunta:
+                              type: string
+                              enum:
+                                - "ricevuto"
+                                - "letto"
+                            contenuto:
+                              oneOf:
+                                - type: string
+                                  description: "Il contenuto del messaggio come testo"
+                                - type: string
+                                  format: binary
+                                  description: "Il contenuto del messaggio come immagine (in formato binario)"
+                          required:
+                            - spunta
+                required:
+                  - messages  # Rende obbligatorio l'array "messages"
+        "400":
+          description: Errore lato client; dice che l'array non deve essere opzionale
 
-
-components:
-  schemas:
-    StatusInfo:
-      title: Status Info
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-            - info
-            - warning
-            - critical
-            - ""
-        title: { type: string }
-        message: { type: string }
-        url: { type: string }
-
-  responses:
-    Unauthorized:
-      description: The access token is missing or it's expired
-    BadRequest:
-      description: The request was not compliant with the documentation (eg. missing fields, etc)
-    InternalServerError:
-      description: The server encountered an internal error. Further info in server logs
-
-  securitySchemes:
-    LegacyAuth:
-      type: apiKey
-      in: header
-      name: X-App-Token
+  /wasachat/impostazioni/username:
+    put:
+      tags: ["Modifica Profilo utente"]
+      summary: settare user name
       description: |-
-        App session token value. This value is sent by the server in the login
-        and session refresh APIs.
-
-  parameters:
-    XAppVersion:
-      schema:
-        type: string
-        pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
-        minLength: 1
-        maxLength: 10
-      name: X-App-Version
-      in: header
-      required: true
-      description: App human readable version ("semantic version" format)
-      allowEmptyValue: false
-    XAppBuild:
-      schema: { type: integer }
-      name: X-App-Build
-      in: header
-      required: true
-      description: App build number
-      allowEmptyValue: false
-    XAppLanguage:
-      schema:
-        type: string
-        pattern: '^[a-z]{2}([-_][A-Z]{2})?$'
-        minLength: 2
-        maxLength: 5
-      name: X-App-Language
-      in: header
-      required: true
-      description: App language in ISO 639-1 format
-      allowEmptyValue: false
-    XAppPlatform:
-      schema:
-        type: string
-        enum: [ios, android]
-      name: X-App-Platform
-      in: header
-      required: true
-      description: App operating system / platform
-      allowEmptyValue: false
-    cat:
-      schema:
-        type: string
-        pattern: '^[a-zA-Z]+$'
-        minLength: 3
-        maxLength: 10
-      name: cat
+        Se l'user name non esiste, viene creato. Se esiste già un user name, viene sovrascritto se diverso dal precedente.
+      operationId: setMyUserName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  minLength: 3
+                  example: "daromacarlo"
+      responses:
+        "200":
+          description: Il nuovo username è uguale al vecchio, nessuna modifica applicata.
+        "201":
+          description: Il nuovo username è stato settato.
+        "400":
+          description: Errore lato client.
+        "500":
+          description: Errore lato server.
+  /wasachat/impostazioni/immagineprofilo:
+    put:
+      tags: ["Modifica Profilo utente"]
+      summary: settare foto profilo
+      description: |-
+        Se l'utente ha già una foto profilo, questa viene aggiornata con quella nuova fornita, altrimenti viene settata la nuova foto.
+      operationId: setMyPhoto
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                foto:
+                  type: string
+                  format: binary
+                  description: La nuova foto profilo in formato binario.
+      responses:
+        "201":
+          description: Foto profilo settata.
+        "400":
+          description: Errore lato client.
+        "500":
+          description: Errore lato server.
+  /wasachat/persone/{userid}:
+    parameters:
+    - name: userid
       in: path
       required: true
-      description: Cat
-      allowEmptyValue: false
+      description: è l'id dell'utente
+      schema:
+        type: number
+        example: 131
+    post:
+      tags: ["Chat"]
+      summary: 
+        aggiunge l'utente a un gruppo
+      description: |-
+        aggiunge l'utente al gruppo selezionato
+      operationId:
+        addToGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idgruppo:
+                  type: number
+                  example: 1234
+      responses:
+        "200": 
+          description:
+            utente aggiunto correttamente al gruppo
+  /wasachat/chats/{chatid}:
+    parameters:
+      - name: chatid
+        in: path
+        required: true
+        description: è l'id della chat
+        schema:
+          type: number
+          example: 131
+    get:
+      tags: ["Chat"]
+      summary:
+        restituisce i messaggi della chat
+      description: |-
+        restituisce i messaggi scambiati nella chat in ordine 
+        cronologico inverso
+      operationId:
+        getConversation
+      responses:
+        "200":
+          description: Chat restituita correttamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        dataOra:
+                          type: string
+                          format: date-time
+                        spunta:
+                          type: string
+                          enum:
+                            - "ricevuto"
+                            - "letto"
+                        contenuto:
+                          oneOf:
+                            - type: string
+                              description: "Il contenuto del messaggio come testo"
+                              example: "AO"
+                            - type: string
+                              format: binary
+                              description: "Il contenuto del messaggio come immagine"
+                      required:
+                        - spunta
+                required:
+                  - messages  # Rende obbligatorio l'array "messages"
+        "400":
+          description:
+            errore lato client
+    post:
+      tags: ["Chat"]
+      summary:
+        invia il messaggio 
+      description: |-
+        invia nella chat selezionata il messaggio scritto
+      operationId:
+        sendMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messaggio:
+                  oneOf:
+                    - type: string
+                      description: "Il contenuto del messaggio come testo"
+                      example: "ti va di uscire insieme questo venerdì?"
+                    - type: string
+                      format: binary
+                      description: "Il contenuto del messaggio come immagine (in formato binario)"
+      responses:
+        "200": 
+          description: 
+            messaggio inviato
+        "400": 
+          description:
+            messaggio non inviato causa problematiche lato client
+        "500":
+          description:
+            messaggio non inviato causa problematiche lato server
+  /wasachat/chats/{chatid}/messaggio:
+    parameters:
+      - name: chatid
+        in: path
+        required: true
+        description: è l'id della chat
+        schema:
+          type: number
+          example: 421
+    post:
+      tags: ["Chat"]
+      summary:
+        inoltra il messaggio 
+      description: |-
+        invia nella chat selezionata il messaggio selezionato
+      operationId:
+        forwardMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: number
+                  example: 12
+      responses:
+        "200": 
+          description: 
+            messaggio inoltrato
+        "400": 
+          description:
+            messaggio non inoltrato causa problematiche lato client
+        "500":
+          description:
+            messaggio non inoltrato causa problematiche lato server
+    delete:
+      tags: ["Chat"]
+      summary:
+        elimina il messaggio
+      description:
+        elimina il messaggio selezionato
+      operationId: 
+        deleteMessage
+      responses:
+        "200":
+          description: messaggio eliminato correttamente
+  /wasachat/{groupid}:
+    parameters:
+      - name: groupid
+        in: path
+        required: true
+        description: è l'id del gruppo
+        schema:
+          type: number
+          example: 2 
+    put:
+      tags: ["Chat"]
+      summary: commentare messaggio
+      description: aggiungere un commento al messaggio selezionato
+      operationId: CommentMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contenuto:
+                  oneOf:
+                  - type: string
+                    description: "Il contenuto del messaggio come testo"
+                    example: "AO"
+                  - type: string
+                    format: binary
+                    description: "Il contenuto del messaggio come immagine (in formato binario)"
+      responses:
+        "200": 
+          description: messaggio commentato
+    delete:
+      tags: ["Chat"]
+      summary: rimuovere commento messaggio
+      description: elimina il commento sul messaggio selezionato
+      operationId: deleteComment
+      responses:
+        "200": 
+          description: messaggio commentato
+    post:
+      tags: ["Chat"]
+      summary: uscire dal gruppo
+      description: uscire dal gruppo selezionato
+      operationId: leaaveGroup
+      responses:
+        "200":
+          description: sei uscito correttamente dal gruppo
+  /wasachat/{groupid}/impostazioni/nomegruppo:
+    parameters:
+      - name: groupid
+        in: path
+        required: true
+        description: è l'id del gruppo
+        schema:
+          type: number
+          example: 2
+    put:
+      tags: ["Modifica gruppo"]
+      summary: Settare nome gruppo
+      description: |-
+        Se il gruppo ha già un nome, questo viene aggiornato con quello nuovo se il nome è differente dal precedente, 
+        altrimenti viene settato il nuovo nome.
+      operationId: setGroupName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  example: "informatica 2024-2025"
+      responses:
+        "200":
+          description: Nome gruppo settato.
+        "400":
+          description: Errore lato client.
+        "500":
+          description: Errore lato server.
+  /wasachat/{groupid}/impostazioni/immaginegruppo:  
+    parameters:
+    - name: groupid
+      in: path
+      required: true
+      description: è l'id del gruppo
+      schema:
+        type: number
+        example: 2
+    put:
+      tags: ["Modifica gruppo"]
+      summary: Settare foto gruppo
+      description: |-
+        Se il gruppo ha già una foto profilo, questa viene aggiornata con quella nuova fornita, altrimenti viene settata la nuova foto.
+      operationId: setGroupPhoto
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                foto:
+                  type: string
+                  format: binary
+                  description: La nuova foto del gruppo in formato binario.
+      responses:
+        "200":
+          description: Foto gruppo settata.
+        "400":
+          description: Errore lato client.
+        "500":
+          description: Errore lato server.

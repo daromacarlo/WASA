@@ -8,15 +8,14 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// Funzione che serve a creare un gruppo dato un nome e una foto
 func (rt *_router) CreaGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// Struttura per ricevere i dati dal body
 	var input struct {
 		Nome         string `json:"nome"`
 		PercorsoFoto string `json:"foto"`
 	}
 	UtenteChiamante := ps.ByName("utente")
 
-	// Decodifica il corpo della richiesta
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		http.Error(w, "Formato della richiesta non valido", http.StatusBadRequest)
@@ -27,8 +26,6 @@ func (rt *_router) CreaGruppo(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "Il nome è obbligatorio", http.StatusBadRequest)
 		return
 	}
-
-	// Validazione: la foto è obbligatoria
 	if len(input.PercorsoFoto) == 0 {
 		http.Error(w, "La foto è obbligatoria", http.StatusBadRequest)
 		return
@@ -43,7 +40,7 @@ func (rt *_router) CreaGruppo(w http.ResponseWriter, r *http.Request, ps httprou
 			return
 		}
 	}
-	// Chiamata al database per creare la foto profilo
+
 	idFoto, err := rt.db.CreaFoto(input.PercorsoFoto, fileFoto)
 	if err != nil {
 		http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
@@ -56,7 +53,6 @@ func (rt *_router) CreaGruppo(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	// Risposta di successo
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Gruppo creato con successo "))
 }
@@ -71,15 +67,14 @@ curl -X POST http://localhost:3000/wasachat/:utente/gruppi \
 }'
 */
 
+// funzione che serve ad aggiungere un utente ad un gruppo, se l'utente è già presente nel gruppo non verrà aggiunto
 func (rt *_router) AggiungiAGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// Struttura per ricevere i dati dal body
 	var input struct {
 		Utente string `json:"utente"`
 	}
 	UtenteChiamante := ps.ByName("utente")
 	idConversazioneStr := ps.ByName("chat")
 
-	// Decodifica il corpo della richiesta
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		http.Error(w, "Formato della richiesta non valido", http.StatusBadRequest)
@@ -91,21 +86,18 @@ func (rt *_router) AggiungiAGruppo(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	// Converti idConversazione in un intero
 	idConversazione, err := strconv.Atoi(idConversazioneStr)
 	if err != nil {
 		http.Error(w, "ID della conversazione non valido", http.StatusBadRequest)
 		return
 	}
 
-	// Chiamata alla funzione AggiungiAGruppoDB
 	err = rt.db.AggiungiAGruppoDB(idConversazione, UtenteChiamante, input.Utente)
 	if err != nil {
 		http.Error(w, "Errore durante l'aggiunta dell'utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Risposta di successo
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Utente aggiunto con successo "))
 }
@@ -119,18 +111,15 @@ curl -X PUT http://localhost:3000/wasachat/:utente/chats/gruppi/:chat/aggiungi \
 }'
 */
 
+// Funzione che serve a lasciare un gruppo, l'utente deve essere presente nel gruppo
 func (rt *_router) LasciaGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	UtenteChiamante := ps.ByName("utente")
 	idConversazioneStr := ps.ByName("chat")
-
-	// Converti idConversazione in un intero
 	idConversazione, err := strconv.Atoi(idConversazioneStr)
 	if err != nil {
 		http.Error(w, "ID della conversazione non valido", http.StatusBadRequest)
 		return
 	}
-
-	// Chiamata alla funzione AggiungiAGruppoDB
 	err = rt.db.LasciaGruppo(idConversazione, UtenteChiamante)
 	if err != nil {
 		http.Error(w, "Errore durante la rimozione dell'utente: "+err.Error(), http.StatusInternalServerError)
@@ -140,22 +129,18 @@ func (rt *_router) LasciaGruppo(w http.ResponseWriter, r *http.Request, ps httpr
 	w.Write([]byte("Utente rimosso con successo "))
 }
 
+// Funzione per impostare una nuova foto al gruppo
 func (rt *_router) ImpostaFotoGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// Struttura per ricevere i dati dal body
 	idConversazioneStr := ps.ByName("chat")
 	var input struct {
 		PercorsoFoto string `json:"foto"`
 	}
 	UtenteChiamante := ps.ByName("utente")
-
-	// Decodifica il corpo della richiesta
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		http.Error(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
-
-	// Validazione: la foto è obbligatoria
 	if len(input.PercorsoFoto) == 0 {
 		http.Error(w, "La foto è obbligatoria", http.StatusBadRequest)
 		return
@@ -170,14 +155,13 @@ func (rt *_router) ImpostaFotoGruppo(w http.ResponseWriter, r *http.Request, ps 
 			return
 		}
 	}
-	// Chiamata al database per creare la foto profilo
+
 	idFoto, err := rt.db.CreaFoto(input.PercorsoFoto, fileFoto)
 	if err != nil {
 		http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Converti idConversazione in un intero
 	idConversazione, err := strconv.Atoi(idConversazioneStr)
 	if err != nil {
 		http.Error(w, "ID della conversazione non valido", http.StatusBadRequest)
@@ -192,36 +176,33 @@ func (rt *_router) ImpostaFotoGruppo(w http.ResponseWriter, r *http.Request, ps 
 
 	w.Write([]byte("Gruppo modificato con successo "))
 }
+
+// Funzione per impostare un nome ad un gruppo
 func (rt *_router) ImpostaNomeGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// Struttura per ricevere i dati dal body
 	UtenteChiamante := ps.ByName("utente")
 	idConversazioneStr := ps.ByName("chat")
 
 	var input struct {
-		Nome string `json:"nome"` // Il campo deve essere maiuscolo per essere esportato
+		Nome string `json:"nome"`
 	}
 
-	// Decodifica il corpo della richiesta
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		http.Error(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
 
-	// Converti idConversazione in un intero
 	idConversazione, err := strconv.Atoi(idConversazioneStr)
 	if err != nil {
 		http.Error(w, "ID della conversazione non valido", http.StatusBadRequest)
 		return
 	}
 
-	// Chiama la funzione per impostare il nome del gruppo
 	err = rt.db.ImpostaNomeGruppo(UtenteChiamante, input.Nome, idConversazione)
 	if err != nil {
 		http.Error(w, "Errore durante l'aggiornamento del nome del gruppo: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Risposta di successo
 	w.Write([]byte("Gruppo modificato con successo "))
 }

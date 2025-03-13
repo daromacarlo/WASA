@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// Creo uno struct per contenere i messaggi
 type MessageData struct {
 	MessageID int        `json:"message_id"`
 	Autore    string     `json:"autore"`
@@ -13,8 +14,11 @@ type MessageData struct {
 	Ricevuto  bool       `json:"ricevuto"`
 	Letto     bool       `json:"letto"`
 	Commenti  []Commento `json:"commenti"`
+	Inoltrato bool       `json:"inoltrato"`
+	Risposta  *int       `json:"risposta"`
 }
 
+// Creo uno struct per contenere i commenti
 type Commento struct {
 	CommentID int    `json:"comment_id"`
 	Autore    string `json:"autore"`
@@ -33,7 +37,7 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 	}
 
 	querySelect := `
-		SELECT m.id, m.autore, m.testo, f.percorso, m.tempo, sm.ricevuto, sm.letto
+		SELECT m.id, m.autore, m.testo, f.percorso, m.tempo, sm.ricevuto, sm.letto, m.inoltrato, m.risposta
 		FROM messaggio m
 		JOIN statomessaggioprivato as sm on m.id = sm.messaggio 
 		LEFT JOIN foto as f on m.foto = f.id
@@ -56,8 +60,10 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 		var time string
 		var ricevuto bool
 		var letto bool
+		var inoltrato bool
+		var risposta *int
 
-		if err := rows.Scan(&messageID, &autore, &text, &foto, &time, &ricevuto, &letto); err != nil {
+		if err := rows.Scan(&messageID, &autore, &text, &foto, &time, &ricevuto, &letto, &inoltrato, &risposta); err != nil {
 			return nil, fmt.Errorf("errore durante la lettura dei dati: %w", err)
 		}
 
@@ -75,6 +81,8 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 			Ricevuto:  ricevuto,
 			Letto:     letto,
 			Commenti:  commenti,
+			Inoltrato: inoltrato,
+			Risposta:  risposta,
 		})
 	}
 
@@ -119,7 +127,7 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 	}
 
 	querySelect := `
-		SELECT m.id, m.autore, m.testo, f.percorso, m.tempo, smg.letto, smg.ricevuto
+		SELECT m.id, m.autore, m.testo, f.percorso, m.tempo, smg.letto, smg.ricevuto, m.inoltrato, m.risposta
 		FROM messaggio m
 		JOIN statomessaggiogruppo as smg on smg.messaggio = m.id
 		LEFT JOIN foto as f on m.foto = f.id
@@ -142,8 +150,10 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 		var time string
 		var ricevuto bool
 		var letto bool
+		var inoltrato bool
+		var risposta *int
 
-		if err := rows.Scan(&messageID, &autore, &text, &foto, &time, &letto, &ricevuto); err != nil {
+		if err := rows.Scan(&messageID, &autore, &text, &foto, &time, &letto, &ricevuto, &inoltrato, &risposta); err != nil {
 			return nil, fmt.Errorf("errore durante la lettura dei dati: %w", err)
 		}
 
@@ -161,6 +171,8 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 			Ricevuto:  ricevuto,
 			Letto:     letto,
 			Commenti:  commenti,
+			Inoltrato: inoltrato,
+			Risposta:  risposta,
 		})
 	}
 

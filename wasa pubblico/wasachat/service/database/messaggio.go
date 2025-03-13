@@ -13,6 +13,8 @@ func CreaTabellaMessaggio(db *sql.DB) error {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			autore INTEGER NOT NULL,
 			conversazione INTEGER NOT NULL,
+			inoltrato BOOL NOT NULL default FALSE,
+			risposta INTEGER default NULL,
 			-- Uno dei due
 			testo TEXT,
 			foto INTEGER,
@@ -20,7 +22,8 @@ func CreaTabellaMessaggio(db *sql.DB) error {
 			tempo TIME,
 			FOREIGN KEY (foto) REFERENCES foto(id),
 			FOREIGN KEY (autore) REFERENCES utente(id),
-			FOREIGN KEY (conversazione) REFERENCES conversazione(id)
+			FOREIGN KEY (conversazione) REFERENCES conversazione(id),
+			FOREIGN KEY (risposta) REFERENCES messaggio(id)
 		);`
 	_, err := db.Exec(query)
 	if err != nil {
@@ -30,6 +33,7 @@ func CreaTabellaMessaggio(db *sql.DB) error {
 }
 
 // Funzione che crea la tabella commento se questa non esiste
+// I commenti non sono messaggi, sono come delle emoji associate ai messaggi
 func CreaTabellaCommento(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS commento(
@@ -49,27 +53,31 @@ func CreaTabellaCommento(db *sql.DB) error {
 }
 
 // Funzione che aggiunge un nuovo messaggio testuale nel database
-func (db *appdbimpl) CreaMessaggioTestualeDBGruppo(utente_Passato string, conversazione_Passata int, testo_Passato string) error {
-	esistenza, err := db.EsisteConversazione(conversazione_Passata)
+func (db *appdbimpl) CreaMessaggioTestualeDBGruppo(utentePassato string, conversazionePassata int, testoPassato string) error {
+	// Controllo se la chat esiste
+	esistenza, err := db.EsisteConversazione(conversazionePassata)
 	if err != nil {
 		return fmt.Errorf("errore durante la verifica di esistenza: %w", err)
 	}
 	if !esistenza {
 		return fmt.Errorf("errore, la chat non esiste")
 	}
-	utente_Passato_convertito, err := db.IdUtenteDaNickname(utente_Passato)
+	// Trovo l'id utente associato al nickname
+	utente_Passato_convertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
 	}
-	utenteCoinvolto, err := db.UtenteCoinvoltoGruppo(utente_Passato, conversazione_Passata)
+	// Controllo se l'utente è coinvolto nel gruppo passato in input
+	utenteCoinvolto, err := db.UtenteCoinvoltoGruppo(utentePassato, conversazionePassata)
 	if err != nil {
 		return fmt.Errorf("errore durante la verifica della partecipazione dell'utente: %w", err)
 	}
 	if utenteCoinvolto == 0 {
-		return fmt.Errorf("l'utente %s non è coinvolto nella conversazione", utente_Passato)
+		return fmt.Errorf("l'utente %s non è coinvolto nella conversazione", utentePassato)
 	}
+	// Se è coinvolto eseguo una query di inserimento
 	queryDiInserimento := `INSERT INTO messaggio (testo, conversazione, autore, tempo) VALUES (?, ?, ?, ?);`
-	result, err := db.c.Exec(queryDiInserimento, testo_Passato, conversazione_Passata, utente_Passato_convertito, time.Now())
+	result, err := db.c.Exec(queryDiInserimento, testoPassato, conversazionePassata, utente_Passato_convertito, time.Now())
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione del messaggio: %w", err)
 	}
@@ -77,6 +85,7 @@ func (db *appdbimpl) CreaMessaggioTestualeDBGruppo(utente_Passato string, conver
 	if err != nil {
 		return fmt.Errorf("errore durante il recupero dell'ID dell'ultimo messaggio: %w", err)
 	}
+	// Creo lo stato del messaggio, letto e ricevuto saranno impostati a false
 	err = db.CreaStatoMessaggioGruppo(int(lastInsertID))
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione dello stato del messaggio: %w", err)
@@ -85,20 +94,23 @@ func (db *appdbimpl) CreaMessaggioTestualeDBGruppo(utente_Passato string, conver
 }
 
 // Funzione che aggiunge un nuovo messaggio con foto nel database
-func (db *appdbimpl) CreaMessaggioFotoDBGruppo(utente_Passato string, conversazione_Passata int, foto_Passata int) error {
-	utente_Passato_convertito, err := db.IdUtenteDaNickname(utente_Passato)
+func (db *appdbimpl) CreaMessaggioFotoDBGruppo(utentePassato string, conversazionePassata int, fotoPassata int) error {
+
+	// Le operazioni e i controlli sono simili a quelli sopra
+
+	utente_Passato_convertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
 	}
-	utenteCoinvolto, err := db.UtenteCoinvoltoGruppo(utente_Passato, conversazione_Passata)
+	utenteCoinvolto, err := db.UtenteCoinvoltoGruppo(utentePassato, conversazionePassata)
 	if err != nil {
 		return fmt.Errorf("errore durante la verifica della partecipazione dell'utente: %w", err)
 	}
 	if utenteCoinvolto == 0 {
-		return fmt.Errorf("l'utente %s non è coinvolto nella conversazione", utente_Passato)
+		return fmt.Errorf("l'utente %s non è coinvolto nella conversazione", utentePassato)
 	}
 	queryDiInserimento := `INSERT INTO messaggio (autore, conversazione, foto, tempo) VALUES (?, ?, ?, ?);`
-	result, err := db.c.Exec(queryDiInserimento, utente_Passato_convertito, conversazione_Passata, foto_Passata, time.Now())
+	result, err := db.c.Exec(queryDiInserimento, utente_Passato_convertito, conversazionePassata, fotoPassata, time.Now())
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione del messaggio: %w", err)
 	}
@@ -115,19 +127,20 @@ func (db *appdbimpl) CreaMessaggioFotoDBGruppo(utente_Passato string, conversazi
 }
 
 // Funzione che aggiunge un nuovo messaggio testuale nel database
-func (db *appdbimpl) CreaMessaggioTestualeDBPrivato(utente_Passato string, destinatario_Passato string, testo_Passato string) error {
+func (db *appdbimpl) CreaMessaggioTestualeDBPrivato(utentePassato string, destinatarioPassato string, testoPassato string) error {
 	// Verifica che l'utente e il destinatario siano coinvolti in una conversazione privata
-	chat, err := db.UtenteCoinvoltoPrivato(utente_Passato, destinatario_Passato)
+	chat, err := db.UtenteCoinvoltoPrivato(utentePassato, destinatarioPassato)
 	if err != nil {
 		return fmt.Errorf("errore durante la verifica della conversazione privata: %w", err)
 	}
-
-	utente_Passato_convertito, err := db.IdUtenteDaNickname(utente_Passato)
+	// Trovo l'id dell'utente
+	utente_Passato_convertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
 	}
+	// Eseguo la query di inserimento
 	queryDiInserimento := `INSERT INTO messaggio (testo, conversazione, autore, tempo) VALUES (?, ?, ?, ?);`
-	result, err := db.c.Exec(queryDiInserimento, testo_Passato, chat, utente_Passato_convertito, time.Now())
+	result, err := db.c.Exec(queryDiInserimento, testoPassato, chat, utente_Passato_convertito, time.Now())
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione del messaggio: %w", err)
 	}
@@ -135,6 +148,7 @@ func (db *appdbimpl) CreaMessaggioTestualeDBPrivato(utente_Passato string, desti
 	if err != nil {
 		return fmt.Errorf("errore durante il recupero dell'ID dell'ultimo messaggio: %w", err)
 	}
+	// Creo lo stato del messaggio, letto e ricevuto saranno impostati a false
 	err = db.CreaStatoMessaggioPrivato(int(lastInsertID))
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione dello stato del messaggio: %w", err)
@@ -143,21 +157,21 @@ func (db *appdbimpl) CreaMessaggioTestualeDBPrivato(utente_Passato string, desti
 }
 
 // Funzione che aggiunge un nuovo messaggio con foto nel database
-func (db *appdbimpl) CreaMessaggioFotoDBPrivato(utente_Passato string, destinatario_Passato string, foto_Passata int) error {
+func (db *appdbimpl) CreaMessaggioFotoDBPrivato(utentePassato string, destinatarioPassato string, fotoPassata int) error {
 	// Verifica che l'utente e il destinatario siano coinvolti in una conversazione privata
-	chat, err := db.UtenteCoinvoltoPrivato(utente_Passato, destinatario_Passato)
+	chat, err := db.UtenteCoinvoltoPrivato(utentePassato, destinatarioPassato)
 	if err != nil {
 		return fmt.Errorf("errore durante la verifica della conversazione privata: %w", err)
 	}
 	if chat == 0 {
 		return fmt.Errorf("utente non coinvolto nella chat")
 	}
-	utente_Passato_convertito, err := db.IdUtenteDaNickname(utente_Passato)
+	utente_Passato_convertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
 	}
 	queryDiInserimento := `INSERT INTO messaggio (autore, conversazione, foto, tempo) VALUES (?, ?, ?, ?);`
-	result, err := db.c.Exec(queryDiInserimento, utente_Passato_convertito, chat, foto_Passata, time.Now())
+	result, err := db.c.Exec(queryDiInserimento, utente_Passato_convertito, chat, fotoPassata, time.Now())
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione del messaggio: %w", err)
 	}
@@ -169,13 +183,13 @@ func (db *appdbimpl) CreaMessaggioFotoDBPrivato(utente_Passato string, destinata
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione dello stato del messaggio: %w", err)
 	}
-
 	return nil
 }
 
-func (db *appdbimpl) EliminaMessaggio(utente_Passato string, id_messaggio int, id_chat int) error {
+// funzione che elimina il messaggio passato tramite id
+func (db *appdbimpl) EliminaMessaggio(utentePassato string, idmessaggio int, idchat int) error {
 	// Converti il nickname dell'utente in un ID
-	utente_Passato_convertito, err := db.IdUtenteDaNickname(utente_Passato)
+	utente_Passato_convertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)
 	}
@@ -184,7 +198,7 @@ func (db *appdbimpl) EliminaMessaggio(utente_Passato string, id_messaggio int, i
 	queryDiEliminazione := `DELETE FROM messaggio WHERE autore = ? AND id = ? AND conversazione = ?;`
 
 	// Esegui la query e ottieni il numero di righe interessate
-	result, err := db.c.Exec(queryDiEliminazione, utente_Passato_convertito, id_messaggio, id_chat)
+	result, err := db.c.Exec(queryDiEliminazione, utente_Passato_convertito, idmessaggio, idchat)
 	if err != nil {
 		return fmt.Errorf("errore durante l'eliminazione del messaggio: %w", err)
 	}
@@ -204,9 +218,9 @@ func (db *appdbimpl) EliminaMessaggio(utente_Passato string, id_messaggio int, i
 
 // Funzione che aggiunge un commento a un messaggio, con controllo se l'utente ha già commentato
 // e verifica della partecipazione alla conversazione (privata o di gruppo)
-func (db *appdbimpl) AggiungiCommento(utente_Passato string, messaggio_Passato int, reazione_Passata string) error {
+func (db *appdbimpl) AggiungiCommento(utentePassato string, messaggioPassato int, reazionePassata string) error {
 	// Converti il nickname dell'utente in un ID
-	utente_Passato_convertito, err := db.IdUtenteDaNickname(utente_Passato)
+	utente_Passato_convertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)
 	}
@@ -214,7 +228,7 @@ func (db *appdbimpl) AggiungiCommento(utente_Passato string, messaggio_Passato i
 	// Verifica che il messaggio esista e recupera la conversazione associata
 	var conversazioneId int
 	queryVerificaMessaggio := `SELECT conversazione FROM messaggio WHERE id = ?;`
-	err = db.c.QueryRow(queryVerificaMessaggio, messaggio_Passato).Scan(&conversazioneId)
+	err = db.c.QueryRow(queryVerificaMessaggio, messaggioPassato).Scan(&conversazioneId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return fmt.Errorf("messaggio non trovato")
@@ -226,7 +240,7 @@ func (db *appdbimpl) AggiungiCommento(utente_Passato string, messaggio_Passato i
 	isGruppo, err := db.CercaConversazioneGruppo(conversazioneId)
 	if isGruppo > 0 {
 		// Se è un gruppo, verifica che l'utente sia coinvolto
-		coinvolto, err := db.UtenteCoinvoltoGruppo(utente_Passato, conversazioneId)
+		coinvolto, err := db.UtenteCoinvoltoGruppo(utentePassato, conversazioneId)
 		if err != nil {
 			return fmt.Errorf("errore durante la verifica della partecipazione dell'utente al gruppo: %w", err)
 		}
@@ -248,7 +262,7 @@ func (db *appdbimpl) AggiungiCommento(utente_Passato string, messaggio_Passato i
 	// Verifica che l'utente non abbia già commentato questo messaggio
 	queryVerificaCommento := `SELECT id FROM commento WHERE autore = ? AND messaggio = ?;`
 	var commentoId int
-	err = db.c.QueryRow(queryVerificaCommento, utente_Passato_convertito, messaggio_Passato).Scan(&commentoId)
+	err = db.c.QueryRow(queryVerificaCommento, utente_Passato_convertito, messaggioPassato).Scan(&commentoId)
 	if err == nil {
 		// Se il commento esiste già, restituisci un errore
 		return fmt.Errorf("l'utente ha già commentato questo messaggio")
@@ -259,7 +273,7 @@ func (db *appdbimpl) AggiungiCommento(utente_Passato string, messaggio_Passato i
 
 	// Aggiungi il commento nel database
 	queryDiInserimento := `INSERT INTO commento (autore, messaggio, reazione) VALUES (?, ?, ?);`
-	_, err = db.c.Exec(queryDiInserimento, utente_Passato_convertito, messaggio_Passato, reazione_Passata)
+	_, err = db.c.Exec(queryDiInserimento, utente_Passato_convertito, messaggioPassato, reazionePassata)
 	if err != nil {
 		return fmt.Errorf("errore durante l'inserimento del commento: %w", err)
 	}
@@ -268,9 +282,9 @@ func (db *appdbimpl) AggiungiCommento(utente_Passato string, messaggio_Passato i
 }
 
 // Funzione che elimina un commento dato l'ID del commento e il nome dell'utente
-func (db *appdbimpl) EliminaCommento(utente_Passato string, id_commento int) error {
+func (db *appdbimpl) EliminaCommento(utentePassato string, idcommento int) error {
 	// Converti il nickname dell'utente in un ID
-	utente_Passato_convertito, err := db.IdUtenteDaNickname(utente_Passato)
+	utente_Passato_convertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)
 	}
@@ -278,7 +292,7 @@ func (db *appdbimpl) EliminaCommento(utente_Passato string, id_commento int) err
 	// Verifica che il commento esista e prendi l'autore del commento
 	var autoreCommento int
 	queryVerificaCommento := `SELECT autore FROM commento WHERE id = ?;`
-	err = db.c.QueryRow(queryVerificaCommento, id_commento).Scan(&autoreCommento)
+	err = db.c.QueryRow(queryVerificaCommento, idcommento).Scan(&autoreCommento)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return fmt.Errorf("commento non trovato")
@@ -287,13 +301,14 @@ func (db *appdbimpl) EliminaCommento(utente_Passato string, id_commento int) err
 	}
 
 	// Controlla che l'utente passato sia l'autore del commento
+	// Se non è l'autore solleva un errore
 	if autoreCommento != utente_Passato_convertito {
 		return fmt.Errorf("l'utente non è l'autore di questo commento, non può eliminarlo")
 	}
 
 	// Elimina il commento dal database
 	queryDiEliminazione := `DELETE FROM commento WHERE id = ?;`
-	_, err = db.c.Exec(queryDiEliminazione, id_commento)
+	_, err = db.c.Exec(queryDiEliminazione, idcommento)
 	if err != nil {
 		return fmt.Errorf("errore durante l'eliminazione del commento: %w", err)
 	}

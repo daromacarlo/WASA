@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Funzione che crea la tabella statomessaggio se questa non esiste e il trigger associato
+// Funzione che crea la tabella statomessaggio se questa non esiste
 func CreaTabellaStatoMessaggioPrivato(db *sql.DB) error {
 	queryTabella := `
 		CREATE TABLE IF NOT EXISTS statomessaggioprivato (
@@ -24,28 +24,34 @@ func CreaTabellaStatoMessaggioPrivato(db *sql.DB) error {
 }
 
 // Funzione per creare un nuovo stato del messaggio nella tabella statomessaggio
-func (db *appdbimpl) CreaStatoMessaggioPrivato(id_messaggio_Passato int) error {
+func (db *appdbimpl) CreaStatoMessaggioPrivato(idmessaggioPassato int) error {
 	queryDiInserimento := `INSERT INTO statomessaggioprivato (messaggio, ricevuto, letto) VALUES (?, ?, ?);`
-	_, err := db.c.Exec(queryDiInserimento, id_messaggio_Passato, false, false)
+	_, err := db.c.Exec(queryDiInserimento, idmessaggioPassato, false, false)
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione dello stato del messaggio: %w", err)
 	}
 	return nil
 }
-
-func (db *appdbimpl) LeggiMessaggiPrivati(utente1_Passato string, utente2_Passato string, conversazioneID int) error {
+func (db *appdbimpl) LeggiMessaggiPrivati(utente1Passato string, utente2Passato string, conversazioneID int) error {
+	utente2_Passato_conv, err := db.IdUtenteDaNickname(utente2Passato)
+	if err != nil {
+		return fmt.Errorf("errore durante l'aggiornamento dei messaggi come letti e ricevuti: %w", err)
+	}
 	queryUpdate := `
 	UPDATE statomessaggioprivato
 	SET letto = 1, ricevuto = 1
 	WHERE messaggio IN (
 		SELECT m.id
 		FROM messaggio m
-		WHERE m.conversazione = ? AND m.autore != ?
+		WHERE m.conversazione = ? 
+		AND m.autore == ? 
 	)`
-	_, err := db.c.Exec(queryUpdate, conversazioneID, utente1_Passato)
+
+	_, err = db.c.Exec(queryUpdate, conversazioneID, utente2_Passato_conv)
 	if err != nil {
 		return fmt.Errorf("errore durante l'aggiornamento dei messaggi come letti e ricevuti: %w", err)
 	}
+
 	return nil
 }
 
@@ -87,18 +93,18 @@ func CreaTabellaStatoMessaggioGruppoPersona(db *sql.DB) error {
 }
 
 // Funzione per creare un nuovo stato del messaggio nella tabella statomessaggio
-func (db *appdbimpl) CreaStatoMessaggioGruppo(id_messaggio_Passato int) error {
+func (db *appdbimpl) CreaStatoMessaggioGruppo(idmessaggioPassato int) error {
 	queryDiInserimento := `INSERT INTO statomessaggiogruppo (messaggio, ricevuto, letto) VALUES (?, ?, ?);`
-	_, err := db.c.Exec(queryDiInserimento, id_messaggio_Passato, false, false)
+	_, err := db.c.Exec(queryDiInserimento, idmessaggioPassato, false, false)
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione dello stato del messaggio: %w", err)
 	}
 	return nil
 }
 
-func (db *appdbimpl) LeggiMessaggiGruppo(utente_Passato string, conversazioneID int) error {
+func (db *appdbimpl) LeggiMessaggiGruppo(utentePassato string, conversazioneID int) error {
 	// Converti il nickname in ID utente
-	utenteconvertito, err := db.IdUtenteDaNickname(utente_Passato)
+	utenteconvertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return fmt.Errorf("errore nella conversione del nickname in ID: %s", err.Error())
 	}
@@ -137,7 +143,7 @@ func (db *appdbimpl) LeggiMessaggiGruppo(utente_Passato string, conversazioneID 
 	queryDiInserimento := `
 		INSERT INTO statomessaggiogruppopersona (messaggio, utente)
 		VALUES (?, ?)
-		ON CONFLICT DO NOTHING;` // Evita duplicati se il DB supporta questa clausola
+		ON CONFLICT DO NOTHING;`
 
 	// Ciclo per inserire i dati
 	for rows.Next() {

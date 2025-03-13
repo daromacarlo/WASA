@@ -148,6 +148,7 @@ func (db *appdbimpl) ImpostaFotoGruppo(UtenteChiamante string, id_foto_Passata i
 	return nil
 }
 
+// Funzione che consente di impostare il nome di un gruppo
 func (db *appdbimpl) ImpostaNomeGruppo(UtenteChiamante string, nomeGruppo_Passato string, id_gruppo_Passato int) error {
 	// Verifica che la conversazione esista
 	esiste, err := db.EsisteConversazione(id_gruppo_Passato)

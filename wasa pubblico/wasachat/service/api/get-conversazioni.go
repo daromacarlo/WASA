@@ -7,20 +7,17 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// funzione che serve a gettare le conversazioni di un utente
 func (rt *_router) GetConversazioni(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Ottieni il nickname dall'URL
 	chiamante := ps.ByName("utente")
-
-	// Recupera la lista dei messaggi dal database
 	lista, err := rt.db.GetConversazioni(chiamante)
 
-	// Gestisci gli errori
 	if err != nil {
 		http.Error(w, "Errore durante il recupero della conversazione: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Controlla se la lista è vuota
 	if len(lista) == 0 {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"message": "Nessuna conversazione aperta"}`))

@@ -7,8 +7,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// (questa funzione non può essere chiamata direttamente dall'utente)
+// Funzione che crea una conversazione privata tra due utenti se questa non esiste
 func (rt *_router) CreaConversazionePrivata(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// Struttura per ricevere i dati dal body
 	var input struct {
 		Utente string `json:"utente"`
 	}
@@ -22,7 +23,6 @@ func (rt *_router) CreaConversazionePrivata(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// controlliamo che la richiesta sia stata strutturata nella maniera corretta
 	if len(input.Utente) == 0 {
 		http.Error(w, "Il nome è obbligatorio", http.StatusBadRequest)
 		return
@@ -39,7 +39,6 @@ func (rt *_router) CreaConversazionePrivata(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Risposta di successo
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Conversazione creata con successo "))
 }

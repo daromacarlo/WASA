@@ -35,63 +35,65 @@ import (
 	"errors"
 )
 
-// AppDatabase is the high level interface for the DB
+// AppDatabase è una interfaccia ad alto livello del database.
 type AppDatabase interface {
 
 	//impostazioni
 	ImpostaFotoProfilo(nicknamePassato string, idfotoPassata int) error
 	ImpostaNome(nicknamePassato string, nuovoNickPassato string) error
-	ImpostaFotoGruppo(UtenteChiamante string, id_foto_Passata int, id_gruppo_passato int) error
-	ImpostaNomeGruppo(UtenteChiamante string, nomeGruppo_Passato string, id_gruppo_passato int) error
+	ImpostaFotoGruppo(utenteChiamante string, idfotoPassata int, idgruppoPassato int) error
+	ImpostaNomeGruppo(utenteChiamante string, nomeGruppoPassato string, idgruppoPassato int) error
 
 	//utente
 	CreaUtente(nicknamePassato string, idfotoPassata int) error
-	IdUtenteDaNickname(nickname_Passato string) (int, error)
-	NicknameUtenteDaId(id_passato int) (string, error)
-	VediProfili(nickname_Passato string) ([]Profilo, error)
+	IdUtenteDaNickname(nicknamePassato string) (int, error)
+	NicknameUtenteDaId(idPassato int) (string, error)
+	VediProfili(nicknamePassato string) ([]Profilo, error)
 
 	//foto
-	CreaFoto(percorso_Passato string, foto_Passata []byte) (int, error)
+	CreaFoto(percorsoPassato string, fotoPassata []byte) (int, error)
 
 	//messaggi
-	CreaMessaggioFotoDBPrivato(utente_Passato string, destinatario_Passato string, foto_Passata int) error
-	CreaMessaggioTestualeDBPrivato(utente_Passato string, destinatario_Passato string, testo_Passato string) error
-	CreaMessaggioFotoDBGruppo(utente_Passato string, conversazione_Passata int, foto_Passata int) error
-	CreaMessaggioTestualeDBGruppo(utente_Passato string, conversazione_Passata int, testo_Passato string) error
-	CreaStatoMessaggioPrivato(id_messaggio_Passato int) error
-	LeggiMessaggiPrivati(utente1_Passato string, utente2_Passato string, conversazioneID int) error
-	CreaStatoMessaggioGruppo(id_messaggio_Passato int) error
-	LeggiMessaggiGruppo(utente1_Passato string, conversazioneID int) error
+	CreaMessaggioFotoDBPrivato(utentePassato string, destinatarioPassato string, fotoPassata int) error
+	CreaMessaggioTestualeDBPrivato(utentePassato string, destinatarioPassato string, testoPassato string) error
+	CreaMessaggioFotoDBGruppo(utentePassato string, conversazionePassata int, fotoPassata int) error
+	CreaMessaggioTestualeDBGruppo(utentePassato string, conversazionePassata int, testoPassato string) error
+	CreaStatoMessaggioPrivato(idmessaggioPassato int) error
+	LeggiMessaggiPrivati(utente1Passato string, utente2Passato string, conversazioneID int) error
+	CreaStatoMessaggioGruppo(idmessaggioPassato int) error
+	LeggiMessaggiGruppo(utente1Passato string, conversazioneID int) error
 	CheckLetturaMessaggiGruppo(conversazioneID int) error
-	EliminaMessaggio(utente_Passato string, id_messaggio int, id_chat int) error
+	EliminaMessaggio(utentePassato string, id_messaggio int, idchat int) error
+	CopiaMessaggioCambiandoOraEMitente(idMessaggio int, nuovoAutore int, chat int) error
+	InoltraMessaggioPrivato(utentePassato string, destinatarioPassato string, IdMessaggio int) error
+	InoltraMessaggioGruppo(utentePassato string, idChatNuova int, IdMessaggio int) error
+	RispondiMessaggioPrivatoFoto(utentePassato string, destinatarioPassato string, IdMessaggio int, fotoPassato int) error
+	RispondiMessaggioPrivatoTesto(utentePassato string, destinatarioPassato string, IdMessaggio int, testoPassato string) error
+	RispondiMessaggioGruppoFoto(utentePassato string, idGruppoPassato int, IdMessaggio int, fotoPassato int) error
+	RispondiMessaggioGruppoTesto(utentePassato string, idGruppoPassato int, IdMessaggio int, testoPassato string) error
 
 	//commenti
-	EliminaCommento(utente_Passato string, id_commento int) error
-	AggiungiCommento(utente_Passato string, messaggio_Passato int, reazione_Passata string) error
+	EliminaCommento(utentePassato string, idcommento int) error
+	AggiungiCommento(utentePassato string, messaggioPassato int, reazionePassata string) error
 
 	//conversazione
 	CreaConversazioneDB() (int, error)
-	CreaGruppoDB(UtenteChiamante string, nomeGruppo_Passato string, idfoto_Passata int) error
+	CreaGruppoDB(utenteChiamante string, nomeGruppoPassato string, idfotoPassata int) error
 	CreaConversazionePrivataDB(utente1_Passato string, utente2_Passato string) (int, error)
-	AggiungiAGruppoDB(idConversazione int, UtenteChiamante string, UtenteDaAggiungere string) error
-	GetConversazionePrivata(utente1_Passato string, utente2_Passato string) ([]MessageData, error)
-	GetConversazioneGruppo(utente1_Passato string, id_conversazione int) ([]MessageData, error)
-	LasciaGruppo(idConversazione int, UtenteChiamante string) error
-	GetConversazioni(utente_Passato string) ([]Conversazione, error)
+	AggiungiAGruppoDB(idConversazione int, utenteChiamante string, utenteDaAggiungere string) error
+	GetConversazionePrivata(utente1Passato string, utente2Passato string) ([]MessageData, error)
+	GetConversazioneGruppo(utente1Passato string, idConversazione int) ([]MessageData, error)
+	LasciaGruppo(idConversazione int, utenteChiamante string) error
+	GetConversazioni(utentePassato string) ([]Conversazione, error)
 
 	//check
 	EsisteConversazione(idConversazione int) (bool, error)
-	EsisteConversazioneTraUtenti(utente1_Passato string, utente2_Passato string) (int, error)
-	UtenteCoinvoltoPrivato(utente_Passato string, destinatario_Passato string) (int, error)
-	CercaConversazioneGruppo(conversazione_Passata int) (int, error)
-	CercaConversazionePrivata(conversazioneID int, utente_Passato_convertito int) (int, error)
-	UtenteCoinvoltoGruppo(utente_Passato string, conversazione_Passata int) (int, error)
-	EsistenzaUtente(nickname_Passato string) (bool, error)
-
-	//cosa manca?
-	/*
-		inoltra messaggio
-	*/
+	EsisteConversazioneTraUtenti(utente1Passato string, utente2Passato string) (int, error)
+	UtenteCoinvoltoPrivato(utentePassato string, destinatarioPassato string) (int, error)
+	CercaConversazioneGruppo(conversazionePassata int) (int, error)
+	CercaConversazionePrivata(conversazioneID int, utentePassatoConvertito int) (int, error)
+	UtenteCoinvoltoGruppo(utentePassato string, conversazionePassata int) (int, error)
+	EsistenzaUtente(nicknamePassato string) (bool, error)
 
 	//test
 	Ping() error

@@ -7,6 +7,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// funzione che serve a registrare un nuovo utente
 func (rt *_router) Registrazione(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Struttura per ricevere i dati dal body
 	var input struct {
@@ -56,9 +57,8 @@ func (rt *_router) Registrazione(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	// Risposta di successo
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Utente creato con successo"))
+	w.Write([]byte("Utente creato con successo "))
 }
 
 // test

@@ -55,17 +55,14 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 	GROUP BY c.id, g.nome
 	`
 
-	// Array per memorizzare le conversazioni
 	var conversazioni []Conversazione
 
-	// Esegui la query per le conversazioni private
 	rowsPrivate, err := db.c.Query(queryConversazioniPrivate, utente_Passato, utente_Passato, utente_Passato, utente_Passato)
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero delle conversazioni private: %w", err)
 	}
 	defer rowsPrivate.Close()
 
-	// Processa i risultati delle conversazioni private
 	for rowsPrivate.Next() {
 		var conv Conversazione
 		if err := rowsPrivate.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &conv.Foto); err != nil {
@@ -78,7 +75,6 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 		conversazioni = append(conversazioni, conv)
 	}
 
-	// Esegui la query per le conversazioni di gruppo
 	rowsGruppo, err := db.c.Query(queryConversazioniGruppo, utente_Passato)
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero delle conversazioni di gruppo: %w", err)

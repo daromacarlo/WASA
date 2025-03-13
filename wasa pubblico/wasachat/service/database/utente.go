@@ -6,6 +6,7 @@ import (
 )
 
 // Funzione che crea la tabella utente se questa non esiste
+// l'utente avrà un id, un nickname, una foto.
 func CreaTabellaUtente(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS utente (
@@ -14,8 +15,7 @@ func CreaTabellaUtente(db *sql.DB) error {
 			foto INTEGER NOT NULL,
 			FOREIGN KEY (foto) REFERENCES foto(id)
 		);`
-
-	// Esegui la query per creare la tabella
+	//viene eseguita la query
 	_, err := db.Exec(query)
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione della tabella utente: %w", err)
@@ -25,59 +25,60 @@ func CreaTabellaUtente(db *sql.DB) error {
 
 // CreaUtente crea un nuovo utente nel database con nickname "nicknamePassato" e id della foto "idfotoPassata",
 // l'utente avrà un nuovo id diverso dagli altri (autoincrementante)
-func (db *appdbimpl) CreaUtente(nickname_Passato string, idfoto_Passata int) error {
+func (db *appdbimpl) CreaUtente(nicknamePassato string, idfotoPassata int) error {
 	//controlliamo che l'utente non esista già (nickname già in uso)
-	esistenza, err := db.EsistenzaUtente(nickname_Passato)
+	esistenza, err := db.EsistenzaUtente(nicknamePassato)
 	if esistenza {
-		return fmt.Errorf("nickname già in uso: %w", err)
+		return fmt.Errorf("il nickname è già in uso: %w", err)
 	}
 
-	// La query per inserire un nuovo utente
+	// Eseguiamo la query da inserimento
 	queryDiInserimento := `INSERT INTO utente (nickname, foto) VALUES (?,?);`
 
 	// Eseguiamo la query e otteniamo il risultato
-	result, err := db.c.Exec(queryDiInserimento, nickname_Passato, idfoto_Passata)
+	result, err := db.c.Exec(queryDiInserimento, nicknamePassato, idfotoPassata)
 	if err != nil {
-		return fmt.Errorf("errore durante la creazione dell'utente: %w", err)
+		return fmt.Errorf("errore inaspettato durante la creazione dell'utente: %w", err)
 	}
 
 	// Otteniamo l'ID dell'ultimo elemento inserito
 	ultimoIdInserito, err := result.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("errore durante il recupero dell'ID dell'ultimo elemento inserito: %w", err)
+		return fmt.Errorf("errore inaspettato durante il recupero dell'ID dell'ultimo elemento inserito: %w", err)
 	}
 
+	//Stampiamo a console l'id dell'ultimo utente inserito. Funzione non necessaria ma comoda in fase di costruzione di codice
 	fmt.Println("ID utente creato:", ultimoIdInserito)
 	return nil
 }
 
-// funzione che controlla se l'utente con nome nickname_Passato esiste già
-func (db *appdbimpl) EsistenzaUtente(nickname_Passato string) (bool, error) {
+// funzione che controlla se l'utente con nome "nickname_Passato" esiste già
+func (db *appdbimpl) EsistenzaUtente(nicknamePassato string) (bool, error) {
 	var count int
 
 	query := `SELECT COUNT(*) FROM utente WHERE nickname = ?;`
 	// Eseguiamo la query per verificare l'esistenza dell'utente
-	err := db.c.QueryRow(query, nickname_Passato).Scan(&count)
+	err := db.c.QueryRow(query, nicknamePassato).Scan(&count)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// Se non ci sono righe, significa che l'utente non esiste
 			return false, nil
 		}
-		// Se c'è un altro errore, lo restituiamo
-		return false, fmt.Errorf("errore durante la verifica dell'esistenza: %w", err)
+		// Se c'è un altro errore, lo solleviamo
+		return false, fmt.Errorf("errore inaspettato durante la verifica dell'esistenza: %w", err)
 	}
-	// Se count > 0, significa che l'utente esiste
+	// Se count > 0, significa che l'utente "nickname_Passato" esiste, sollevo un errore
 	return count > 0, nil
 }
 
 // IdUtenteDaNickname restituisce l'ID dell'utente dato il nickname
-func (db *appdbimpl) IdUtenteDaNickname(nickname_Passato string) (int, error) {
+func (db *appdbimpl) IdUtenteDaNickname(nicknamePassato string) (int, error) {
 	var id int
 	query := `SELECT id FROM utente WHERE nickname = ?;`
-	err := db.c.QueryRow(query, nickname_Passato).Scan(&id)
+	err := db.c.QueryRow(query, nicknamePassato).Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, fmt.Errorf("utente con nickname '%s' non trovato", nickname_Passato)
+			return 0, fmt.Errorf("utente con nickname '%s' non trovato", nicknamePassato)
 		}
 		return 0, fmt.Errorf("errore durante il recupero dell'ID utente: %w", err)
 	}
@@ -85,13 +86,13 @@ func (db *appdbimpl) IdUtenteDaNickname(nickname_Passato string) (int, error) {
 }
 
 // NicknameUtenteDaId restituisce il nickname dell'utente dato il suo ID
-func (db *appdbimpl) NicknameUtenteDaId(id_passato int) (string, error) {
+func (db *appdbimpl) NicknameUtenteDaId(idPassato int) (string, error) {
 	var nickname string
 	query := `SELECT nickname FROM utente WHERE id = ?;`
-	err := db.c.QueryRow(query, id_passato).Scan(&nickname)
+	err := db.c.QueryRow(query, idPassato).Scan(&nickname)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return "", fmt.Errorf("utente con ID '%d' non trovato", id_passato)
+			return "", fmt.Errorf("utente con ID '%d' non trovato", idPassato)
 		}
 		return "", fmt.Errorf("errore durante il recupero del nickname: %w", err)
 	}
@@ -99,6 +100,7 @@ func (db *appdbimpl) NicknameUtenteDaId(id_passato int) (string, error) {
 }
 
 // impostazioni utente
+
 // ImpostaFotoProfilo aggiorna la foto del profilo dell'utente
 func (db *appdbimpl) ImpostaFotoProfilo(nicknamePassato string, idfotoPassata int) error {
 	// Verifica che l'utente esista
@@ -158,9 +160,10 @@ func (db *appdbimpl) ImpostaNome(nicknamePassato string, nuovoNickPassato string
 // Struttura per memorizzare il nome e la foto profilo dell'utente
 type Profilo struct {
 	Nickname string
-	Foto     *string // Foto potrebbe essere nulla (nulla in caso non ci sia una foto)
+	Foto     *string
 }
 
+// Funzione di test.
 // Funzione per ottenere tutti i nomi e foto profilo degli utenti
 func (db *appdbimpl) VediProfili(chiamante string) ([]Profilo, error) {
 	// Query per ottenere il nickname e la foto profilo di tutti gli utenti
@@ -204,7 +207,7 @@ func (db *appdbimpl) VediProfili(chiamante string) ([]Profilo, error) {
 
 	// Controlla se ci sono errori durante l'iterazione
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("errore durante l'iterazione dei risultati: %w", err)
+		return nil, fmt.Errorf("errore durante l'iterazione del risultato: %w", err)
 	}
 
 	// Restituisce l'elenco dei profili

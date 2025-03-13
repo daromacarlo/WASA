@@ -8,6 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// Funzione che serve a gettare i messaggi di una chat privata
 func (rt *_router) GetConversazionePrivata(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Ottieni il nickname dall'URL
 	chiamante := ps.ByName("utente")
@@ -37,6 +38,8 @@ func (rt *_router) GetConversazionePrivata(w http.ResponseWriter, r *http.Reques
 		return
 	}
 }
+
+// Funzione che serve a gettare una conversazione di gruppo
 func (rt *_router) GetConversazioneGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Ottieni il nickname dall'URL
 	chiamante := ps.ByName("utente")

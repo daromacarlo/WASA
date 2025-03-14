@@ -1,3 +1,5 @@
+//il file seguente contiene funzioni di supporto
+
 package database
 
 import (
@@ -5,15 +7,52 @@ import (
 	"fmt"
 )
 
+func (db *appdbimpl) GetConversazioneIdByMessaggio(idMessaggio int) (int, error) {
+	// Query per ottenere l'ID della conversazione dal messaggio
+	query := `
+		SELECT conversazione
+		FROM messaggio
+		WHERE id = ?;
+	`
+	var conversazioneID int
+	err := db.c.QueryRow(query, idMessaggio).Scan(&conversazioneID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("nessun messaggio trovato con l'ID %d", idMessaggio)
+		}
+		return 0, fmt.Errorf("errore durante il recupero dell'ID della conversazione: %w", err)
+	}
+
+	return conversazioneID, nil
+}
+
+func (db *appdbimpl) EsisteMessaggio(idMessaggio int) (bool, error) {
+	var count int
+	query := "SELECT COUNT(*) FROM messaggio WHERE id = ?;"
+	err := db.c.QueryRow(query, idMessaggio).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("errore durante la verifica dell'esistenza del messaggio con ID %d: %w", idMessaggio, err)
+	}
+	return count > 0, nil
+}
+
 // Passando un id di una conversazione la funzione restituisce true se esiste una conversazione con questo id, false se non esiste
 func (db *appdbimpl) EsisteConversazione(idConversazione int) (bool, error) {
 	var count int
-	query := `SELECT COUNT(*) FROM conversazioneprivata WHERE id = ?`
+	// Query per verificare se esiste una conversazione con l'id specificato
+	query := `SELECT COUNT(*) FROM conversazione WHERE id = ?`
 	err := db.c.QueryRow(query, idConversazione).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)
 	}
-	return true, nil
+
+	// Se count è maggiore di 0, la conversazione esiste
+	if count > 0 {
+		return true, nil
+	}
+
+	// Se count è 0, la conversazione non esiste
+	return false, nil
 }
 
 // Passando i nickname degli utenti alla seguente funzione essa ritorna l'id della conversazine se questa esiste altrimenti ritona 0 e un errore
@@ -65,6 +104,49 @@ func (db *appdbimpl) UtenteCoinvoltoPrivato(utentePassato string, destinatarioPa
 		return esiste, nil
 	}
 }
+func (db *appdbimpl) GetNomeUtenteCoinvolto(conversazioneID int, nomeUtentePassato string) (string, error) {
+	// Prima otteniamo l'ID dell'utente passato tramite il suo nome
+	queryUtenteID := `
+		SELECT id
+		FROM utente
+		WHERE nickname = ?;`
+
+	var utenteID int
+	err := db.c.QueryRow(queryUtenteID, nomeUtentePassato).Scan(&utenteID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Se l'utente non esiste
+			return "", fmt.Errorf("utente con nome %s non trovato", nomeUtentePassato)
+		}
+		return "", fmt.Errorf("errore durante il recupero dell'ID dell'utente: %w", err)
+	}
+
+	// Esegui la query per ottenere l'altro utente coinvolto nella conversazione privata
+	queryVerificaPartecipazione := `
+		SELECT 
+			CASE 
+				WHEN cp.utente1 = ? THEN u2.nickname
+				WHEN cp.utente2 = ? THEN u1.nickname
+			END as utente_coinvolto
+		FROM conversazione as c
+		JOIN conversazioneprivata as cp ON cp.conversazione = c.id
+		JOIN utente u1 ON cp.utente1 = u1.id
+		JOIN utente u2 ON cp.utente2 = u2.id
+		WHERE c.id = ? AND (cp.utente1 = ? OR cp.utente2 = ?);`
+
+	var nomeUtenteCoinvolto string
+	err = db.c.QueryRow(queryVerificaPartecipazione, utenteID, utenteID, conversazioneID, utenteID, utenteID).Scan(&nomeUtenteCoinvolto)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Se non ci sono risultati, la conversazione non esiste o l'utente non è coinvolto
+			return "", fmt.Errorf("l'utente non è coinvolto in questa conversazione")
+		}
+		return "", fmt.Errorf("errore durante la ricerca dell'utente coinvolto: %w", err)
+	}
+
+	// Restituisci il nome dell'altro utente coinvolto
+	return nomeUtenteCoinvolto, nil
+}
 
 func (db *appdbimpl) CercaConversazionePrivata(conversazioneID int, utente_Passato_convertito int) (int, error) {
 	// Se è una conversazione privata, verifica che l'utente sia coinvolto
@@ -79,7 +161,7 @@ func (db *appdbimpl) CercaConversazionePrivata(conversazioneID int, utente_Passa
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// Se non ci sono risultati, la conversazione non esiste
-			return 0, fmt.Errorf("la conversazione privata non esiste o l'utente non è coinvolto")
+			return 0, fmt.Errorf("la conversazione non esiste o l'utente non ne è coinvolto")
 		}
 		return 0, fmt.Errorf("errore durante la verifica della partecipazione dell'utente: %w", err)
 	}

@@ -8,88 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) InviaMessaggioPrivato(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// Struttura per ricevere i dati dal body
-	var input struct {
-		Testo        string `json:"testo"`
-		PercorsoFoto string `json:"foto"`
-	}
-	UtenteChiamante := ps.ByName("utente")
-	Destinatario := ps.ByName("destinatario")
-	// Decodifica il corpo della richiesta
-	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
-		http.Error(w, "Formato della richiesta non valido", http.StatusBadRequest)
-		return
-	}
-	// Controlliamo che la richiesta sia valida
-	if len(input.Testo) == 0 && len(input.PercorsoFoto) == 0 {
-		http.Error(w, "Errore, il messaggio deve contenere almeno una foto o del testo", http.StatusBadRequest)
-		return
-	}
-
-	if len(input.Testo) > 0 && len(input.PercorsoFoto) > 0 {
-		http.Error(w, "Errore, il messaggio non può contenere sia foto che testo", http.StatusBadRequest)
-		return
-	}
-
-	if len(input.Testo) == 0 {
-		var fileFoto []byte
-
-		if len(input.PercorsoFoto) > 0 {
-			fileFoto, err = ReadImageFile(input.PercorsoFoto)
-			if err != nil {
-				http.Error(w, "Errore durante la lettura della foto: "+err.Error(), http.StatusBadRequest)
-				return
-			}
-		}
-		// Chiamata al database per creare la foto profilo
-		idFoto, err := rt.db.CreaFoto(input.PercorsoFoto, fileFoto)
-		if err != nil {
-			http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		err = rt.db.CreaMessaggioFotoDBPrivato(UtenteChiamante, Destinatario, idFoto)
-		if err != nil {
-			http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		// Risposta di successo
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("Foto inviata con successo "))
-		return
-	}
-
-	err = rt.db.CreaMessaggioTestualeDBPrivato(UtenteChiamante, Destinatario, input.Testo)
-	if err != nil {
-		http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Risposta di successo
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Messaggio di testo inviato con successo "))
-}
-
-// test
-/*
-curl -X POST http://localhost:3000/wasachat/:utente/chats/chatprivate/:destinatario \
--H "Content-Type: application/json" \
--d '{
-  "testo": "ciao come va?",
-  "foto": ""
-}'
-
-curl -X POST http://localhost:3000/wasachat/:utente/chats/chatprivate/:destinatario \
--H "Content-Type: application/json" \
--d '{
-  "testo": "",
-  "foto": "/home/carlo/Scrivania/wasachat/immagini/prova.png"
-}'
-*/
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func (rt *_router) InviaMessaggioGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) InviaMessaggio(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Struttura per ricevere i dati dal body
 	var input struct {
 		Testo        string `json:"testo"`
@@ -132,13 +51,13 @@ func (rt *_router) InviaMessaggioGruppo(w http.ResponseWriter, r *http.Request, 
 				return
 			}
 		}
-		// Chiamata al database per creare la foto profilo
+		// Chiamata al database per creare la foto
 		idFoto, err := rt.db.CreaFoto(input.PercorsoFoto, fileFoto)
 		if err != nil {
 			http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = rt.db.CreaMessaggioFotoDBGruppo(UtenteChiamante, Conversazione, idFoto)
+		err = rt.db.CreaMessaggioFotoDB(UtenteChiamante, Conversazione, idFoto)
 		if err != nil {
 			http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -149,7 +68,7 @@ func (rt *_router) InviaMessaggioGruppo(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	err = rt.db.CreaMessaggioTestualeDBGruppo(UtenteChiamante, Conversazione, input.Testo)
+	err = rt.db.CreaMessaggioTestualeDB(UtenteChiamante, Conversazione, input.Testo)
 	if err != nil {
 		http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -162,14 +81,14 @@ func (rt *_router) InviaMessaggioGruppo(w http.ResponseWriter, r *http.Request, 
 
 // test
 /*
-curl -X POST http://localhost:3000/wasachat/:utente/chats/gruppi/:chat \
+curl -X POST http://localhost:3000/wasachat/:utente/chats/:chat \
 -H "Content-Type: application/json" \
 -d '{
   "testo": "ciao come va?",
   "foto": ""
 }'
 
-curl -X POST http://localhost:3000/wasachat/:utente/chats/gruppi/:chat \
+curl -X POST http://localhost:3000/wasachat/:utente/chats/:chat \
 -H "Content-Type: application/json" \
 -d '{
   "testo": "",

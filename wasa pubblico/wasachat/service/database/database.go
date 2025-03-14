@@ -54,10 +54,8 @@ type AppDatabase interface {
 	CreaFoto(percorsoPassato string, fotoPassata []byte) (int, error)
 
 	//messaggi
-	CreaMessaggioFotoDBPrivato(utentePassato string, destinatarioPassato string, fotoPassata int) error
-	CreaMessaggioTestualeDBPrivato(utentePassato string, destinatarioPassato string, testoPassato string) error
-	CreaMessaggioFotoDBGruppo(utentePassato string, conversazionePassata int, fotoPassata int) error
-	CreaMessaggioTestualeDBGruppo(utentePassato string, conversazionePassata int, testoPassato string) error
+	CreaMessaggioFotoDB(utentePassato string, conversazionePassata int, fotoPassata int) error
+	CreaMessaggioTestualeDB(utentePassato string, conversazionePassata int, testoPassato string) error
 	CreaStatoMessaggioPrivato(idmessaggioPassato int) error
 	LeggiMessaggiPrivati(utente1Passato string, utente2Passato string, conversazioneID int) error
 	CreaStatoMessaggioGruppo(idmessaggioPassato int) error
@@ -65,12 +63,10 @@ type AppDatabase interface {
 	CheckLetturaMessaggiGruppo(conversazioneID int) error
 	EliminaMessaggio(utentePassato string, id_messaggio int, idchat int) error
 	CopiaMessaggioCambiandoOraEMitente(idMessaggio int, nuovoAutore int, chat int) error
-	InoltraMessaggioPrivato(utentePassato string, destinatarioPassato string, IdMessaggio int) error
-	InoltraMessaggioGruppo(utentePassato string, idChatNuova int, IdMessaggio int) error
-	RispondiMessaggioPrivatoFoto(utentePassato string, destinatarioPassato string, IdMessaggio int, fotoPassato int) error
-	RispondiMessaggioPrivatoTesto(utentePassato string, destinatarioPassato string, IdMessaggio int, testoPassato string) error
-	RispondiMessaggioGruppoFoto(utentePassato string, idGruppoPassato int, IdMessaggio int, fotoPassato int) error
-	RispondiMessaggioGruppoTesto(utentePassato string, idGruppoPassato int, IdMessaggio int, testoPassato string) error
+	InoltraMessaggio(utentePassato string, idChatNuova int, IdMessaggio int) error
+	ImpostaRisposta(IdMessaggio int, IdNuovoMessaggio int, chat int) error
+	RispondiMessaggioFoto(utentePassato string, idGruppoPassato int, IdMessaggio int, fotoPassato int) error
+	RispondiMessaggioTesto(utentePassato string, idGruppoPassato int, IdMessaggio int, testoPassato string) error
 
 	//commenti
 	EliminaCommento(utentePassato string, idcommento int) error
@@ -85,6 +81,7 @@ type AppDatabase interface {
 	GetConversazioneGruppo(utente1Passato string, idConversazione int) ([]MessageData, error)
 	LasciaGruppo(idConversazione int, utenteChiamante string) error
 	GetConversazioni(utentePassato string) ([]Conversazione, error)
+	GetConversazione(utentePassato string, conversazionePassata int) ([]MessageData, error)
 
 	//check
 	EsisteConversazione(idConversazione int) (bool, error)

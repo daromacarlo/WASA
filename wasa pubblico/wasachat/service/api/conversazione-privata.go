@@ -45,7 +45,7 @@ func (rt *_router) CreaConversazionePrivata(w http.ResponseWriter, r *http.Reque
 
 // test
 /*
-curl -X POST http://localhost:3000/wasachat/test/Mario/conversazioniprivate \
+curl -X POST http://localhost:3000/wasachat/Mario/conversazioniprivate \
 -H "Content-Type: application/json" \
 -d '{
   "utente": "Luigi"

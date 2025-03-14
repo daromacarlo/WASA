@@ -4,6 +4,33 @@ import (
 	"fmt"
 )
 
+func (db *appdbimpl) GetConversazione(utentePassato string, conversazionePassata int) ([]MessageData, error) {
+	// Controllo se la chat esiste
+	esistenza, err := db.EsisteConversazione(conversazionePassata)
+	if err != nil {
+		return nil, fmt.Errorf("errore durante la verifica di esistenza: %w", err)
+	}
+	if !esistenza {
+		return nil, fmt.Errorf("errore, la chat non esiste")
+	}
+
+	tipoConversazione, err := db.CercaConversazioneGruppo(conversazionePassata)
+	if err != nil {
+		return nil, fmt.Errorf("errore durante il controllo del tipo di conversazione: %w", err)
+	}
+	if tipoConversazione > 0 {
+		// La conversazione è un gruppo, chiama GetConversazioneGruppo
+		return db.GetConversazioneGruppo(utentePassato, conversazionePassata)
+	} else {
+		nome, err := db.GetNomeUtenteCoinvolto(conversazionePassata, utentePassato)
+		if err != nil {
+			return nil, fmt.Errorf("errore durante il controllo del tipo di conversazione: %w", err)
+		}
+		// La conversazione è privata, chiama GetConversazionePrivata
+		return db.GetConversazionePrivata(utentePassato, nome)
+	}
+}
+
 // Creo uno struct per contenere i messaggi
 type MessageData struct {
 	MessageID int        `json:"message_id"`
@@ -92,23 +119,8 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 
 	return messageData, nil
 }
+
 func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversazione int) ([]MessageData, error) {
-	esiste, err := db.EsisteConversazione(id_conversazione)
-	if err != nil {
-		return nil, fmt.Errorf("errore durante il controllo dell'esistenza della conversazione: %w", err)
-	}
-	if !esiste {
-		return nil, fmt.Errorf("la conversazione specificata non esiste")
-	}
-
-	tipogruppo, err := db.CercaConversazioneGruppo(id_conversazione)
-	if err != nil {
-		return nil, fmt.Errorf("errore durante il controllo del tipo di conversazione: %w", err)
-	}
-	if tipogruppo == 0 {
-		return nil, fmt.Errorf("la conversazione specificata non è un gruppo")
-	}
-
 	coinvolto, err := db.UtenteCoinvoltoGruppo(utente1_Passato, id_conversazione)
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il controllo della partecipazione dell'utente: %w", err)

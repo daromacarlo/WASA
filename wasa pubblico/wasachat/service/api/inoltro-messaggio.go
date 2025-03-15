@@ -8,7 +8,7 @@ import (
 )
 
 // funzione per inoltrare messaggi ad un gruppo
-func (rt *_router) InoltraMessaggio(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) forwardMessagge(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	UtenteChiamante := ps.ByName("utente")
 	NuovaConversazioneStr := ps.ByName("nuovachat")
 	IdMessaggioStr := ps.ByName("messaggio")

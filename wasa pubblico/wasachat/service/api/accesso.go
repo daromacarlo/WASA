@@ -8,7 +8,7 @@ import (
 )
 
 // funzione che serve a registrare un nuovo utente
-func (rt *_router) Registrazione(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Struttura per ricevere i dati dal body
 	var input struct {
 		Nickname     string `json:"nickname"`

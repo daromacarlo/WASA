@@ -68,7 +68,7 @@ curl -X POST http://localhost:3000/wasachat/:utente/gruppi \
 */
 
 // funzione che serve ad aggiungere un utente ad un gruppo, se l'utente è già presente nel gruppo non verrà aggiunto
-func (rt *_router) AggiungiAGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Utente string `json:"utente"`
 	}
@@ -112,7 +112,7 @@ curl -X PUT http://localhost:3000/wasachat/:utente/chats/gruppi/:chat/aggiungi \
 */
 
 // Funzione che serve a lasciare un gruppo, l'utente deve essere presente nel gruppo
-func (rt *_router) LasciaGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	UtenteChiamante := ps.ByName("utente")
 	idConversazioneStr := ps.ByName("chat")
 	idConversazione, err := strconv.Atoi(idConversazioneStr)
@@ -130,7 +130,7 @@ func (rt *_router) LasciaGruppo(w http.ResponseWriter, r *http.Request, ps httpr
 }
 
 // Funzione per impostare una nuova foto al gruppo
-func (rt *_router) ImpostaFotoGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	idConversazioneStr := ps.ByName("chat")
 	var input struct {
 		PercorsoFoto string `json:"foto"`
@@ -178,7 +178,7 @@ func (rt *_router) ImpostaFotoGruppo(w http.ResponseWriter, r *http.Request, ps 
 }
 
 // Funzione per impostare un nome ad un gruppo
-func (rt *_router) ImpostaNomeGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	UtenteChiamante := ps.ByName("utente")
 	idConversazioneStr := ps.ByName("chat")
 

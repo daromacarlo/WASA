@@ -30,7 +30,7 @@ func (rt *_router) VediProfili(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 }
 
-func (rt *_router) ImpostaFotoProfilo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Struttura per ricevere i dati dal body
 	UtenteChiamante := ps.ByName("utente")
 
@@ -83,12 +83,12 @@ func (rt *_router) ImpostaFotoProfilo(w http.ResponseWriter, r *http.Request, ps
 	})
 }
 
-func (rt *_router) ImpostaNome(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Struttura per ricevere i dati dal body
 	UtenteChiamante := ps.ByName("utente")
 
 	var input struct {
-		Nome string `json:"nome"` // Il campo deve essere maiuscolo per essere esportato
+		Nome string `json:"nome"`
 	}
 
 	// Decodifica il corpo della richiesta

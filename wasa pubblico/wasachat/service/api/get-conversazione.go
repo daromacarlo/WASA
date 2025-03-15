@@ -9,7 +9,7 @@ import (
 )
 
 // Funzione che serve a gettare una conversazione di gruppo
-func (rt *_router) GetConversazione(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Ottieni il nickname dall'URL
 	chiamante := ps.ByName("utente")
 	chatStr := ps.ByName("chat")

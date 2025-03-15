@@ -8,7 +8,7 @@ import (
 )
 
 // funzione che serve a gettare le conversazioni di un utente
-func (rt *_router) GetConversazioni(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) getMyConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Ottieni il nickname dall'URL
 	chiamante := ps.ByName("utente")
 	lista, err := rt.db.GetConversazioni(chiamante)

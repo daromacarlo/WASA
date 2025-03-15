@@ -8,7 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) InviaMessaggio(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Struttura per ricevere i dati dal body
 	var input struct {
 		Testo        string `json:"testo"`
@@ -124,7 +124,7 @@ func (rt *_router) EliminaMessaggio(w http.ResponseWriter, r *http.Request, ps h
 	w.Write([]byte("Messaggio eliminato con successo "))
 }
 
-func (rt *_router) AggiungiCommento(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) commentMessagge(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Reazione string `json:"reazione"`
 	}
@@ -158,7 +158,7 @@ func (rt *_router) AggiungiCommento(w http.ResponseWriter, r *http.Request, ps h
 	w.Write([]byte("Commento aggiunto con successo"))
 }
 
-func (rt *_router) EliminaCommento(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	UtenteChiamante := ps.ByName("utente")
 	IDCommentostr := ps.ByName("commento")
 

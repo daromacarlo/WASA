@@ -52,6 +52,16 @@ func (db *appdbimpl) CreaUtente(nicknamePassato string, idfotoPassata int) error
 	return nil
 }
 
+func (db *appdbimpl) Login(nicknamePassato string) (string, error) {
+	//controlliamo che l'utente non esista già (nickname già in uso)
+	esistenza, err := db.EsistenzaUtente(nicknamePassato)
+	if !esistenza {
+		return "", fmt.Errorf("l'utente non esiste, registrati.: %w", err)
+	}
+
+	return nicknamePassato, nil
+}
+
 // funzione che controlla se l'utente con nome "nickname_Passato" esiste già
 func (db *appdbimpl) EsistenzaUtente(nicknamePassato string) (bool, error) {
 	var count int

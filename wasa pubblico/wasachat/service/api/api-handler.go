@@ -11,6 +11,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.GET("/context", rt.wrap(rt.getContextReply))
 	rt.router.GET("/liveness", rt.liveness)
 	rt.router.POST("/wasachat/:utente/gruppi", rt.CreaGruppo)
+	rt.router.PUT("/wasachat", rt.registrare)
 	rt.router.POST("/wasachat", rt.doLogin)
 	rt.router.POST("/wasachat/:utente/chats/:chat", rt.sendMessage)
 	rt.router.PUT("/wasachat/:utente/chats/gruppi/:chat/aggiungi", rt.addToGroup)

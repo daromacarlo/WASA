@@ -49,6 +49,7 @@ type AppDatabase interface {
 	IdUtenteDaNickname(nicknamePassato string) (int, error)
 	NicknameUtenteDaId(idPassato int) (string, error)
 	VediProfili(nicknamePassato string) ([]Profilo, error)
+	Login(nicknamePassato string) (string, error)
 
 	//foto
 	CreaFoto(percorsoPassato string, fotoPassata []byte) (int, error)

@@ -11,8 +11,8 @@ import (
 func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Struttura per ricevere i dati dal body
 	var input struct {
-		Testo        string `json:"testo"`
-		PercorsoFoto string `json:"foto"`
+		Testo string `json:"testo"`
+		Foto  string `json:"foto"`
 	}
 	UtenteChiamante := ps.ByName("utente")
 	ConversazioneStr := ps.ByName("chat")
@@ -31,33 +31,25 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	// Controlliamo che la richiesta sia valida
-	if len(input.Testo) == 0 && len(input.PercorsoFoto) == 0 {
+	if len(input.Testo) == 0 && len(input.Foto) == 0 {
 		http.Error(w, "Errore, il messaggio deve contenere almeno una foto o del testo", http.StatusBadRequest)
 		return
 	}
 
-	if len(input.Testo) > 0 && len(input.PercorsoFoto) > 0 {
+	if len(input.Testo) > 0 && len(input.Foto) > 0 {
 		http.Error(w, "Errore, il messaggio non può contenere sia foto che testo", http.StatusBadRequest)
 		return
 	}
 
 	if len(input.Testo) == 0 {
-		var fileFoto []byte
 
-		if len(input.PercorsoFoto) > 0 {
-			fileFoto, err = ReadImageFile(input.PercorsoFoto)
-			if err != nil {
-				http.Error(w, "Errore durante la lettura della foto: "+err.Error(), http.StatusBadRequest)
-				return
-			}
-		}
 		// Chiamata al database per creare la foto
-		idFoto, err := rt.db.CreaFoto(input.PercorsoFoto, fileFoto)
+		idFoto, err := rt.db.CreaFoto(input.Foto)
 		if err != nil {
 			http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = rt.db.CreaMessaggioFotoDB(UtenteChiamante, Conversazione, idFoto)
+		_, err = rt.db.CreaMessaggioFotoDB(UtenteChiamante, Conversazione, idFoto)
 		if err != nil {
 			http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -68,7 +60,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	err = rt.db.CreaMessaggioTestualeDB(UtenteChiamante, Conversazione, input.Testo)
+	_, err = rt.db.CreaMessaggioTestualeDB(UtenteChiamante, Conversazione, input.Testo)
 	if err != nil {
 		http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
 		return

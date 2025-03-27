@@ -58,13 +58,13 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 		return nil, fmt.Errorf("errore durante la ricerca della conversazione: %w", err)
 	}
 
-	err = db.LeggiMessaggiPrivati(utente1_Passato, utente2_Passato, conversazioneID)
+	err = db.LeggiMessaggiPrivati(utente2_Passato, conversazioneID)
 	if err != nil {
 		return nil, fmt.Errorf("errore durante la modifica dello stato dei messaggi: %w", err)
 	}
 
 	querySelect := `
-		SELECT m.id, m.autore, m.testo, f.percorso, m.tempo, sm.ricevuto, sm.letto, m.inoltrato, m.risposta
+		SELECT m.id, m.autore, m.testo, f.foto, m.tempo, sm.ricevuto, sm.letto, m.inoltrato, m.risposta
 		FROM messaggio m
 		JOIN statomessaggioprivato as sm on m.id = sm.messaggio 
 		LEFT JOIN foto as f on m.foto = f.id
@@ -139,7 +139,7 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 	}
 
 	querySelect := `
-		SELECT m.id, m.autore, m.testo, f.percorso, m.tempo, smg.letto, smg.ricevuto, m.inoltrato, m.risposta
+		SELECT m.id, m.autore, m.testo, f.foto, m.tempo, smg.letto, smg.ricevuto, m.inoltrato, m.risposta
 		FROM messaggio m
 		JOIN statomessaggiogruppo as smg on smg.messaggio = m.id
 		LEFT JOIN foto as f on m.foto = f.id

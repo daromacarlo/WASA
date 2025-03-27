@@ -11,8 +11,8 @@ import (
 // Funzione che serve a creare un gruppo dato un nome e una foto
 func (rt *_router) CreaGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
-		Nome         string `json:"nome"`
-		PercorsoFoto string `json:"foto"`
+		Nome string `json:"nome"`
+		Foto string `json:"foto"`
 	}
 	UtenteChiamante := ps.ByName("utente")
 
@@ -26,22 +26,12 @@ func (rt *_router) CreaGruppo(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "Il nome è obbligatorio", http.StatusBadRequest)
 		return
 	}
-	if len(input.PercorsoFoto) == 0 {
+	if len(input.Foto) == 0 {
 		http.Error(w, "La foto è obbligatoria", http.StatusBadRequest)
 		return
 	}
 
-	var fileFoto []byte
-
-	if len(input.PercorsoFoto) > 0 {
-		fileFoto, err = ReadImageFile(input.PercorsoFoto)
-		if err != nil {
-			http.Error(w, "Errore durante la lettura della foto: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-	}
-
-	idFoto, err := rt.db.CreaFoto(input.PercorsoFoto, fileFoto)
+	idFoto, err := rt.db.CreaFoto(input.Foto)
 	if err != nil {
 		http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -133,7 +123,7 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	idConversazioneStr := ps.ByName("chat")
 	var input struct {
-		PercorsoFoto string `json:"foto"`
+		Foto string `json:"foto"`
 	}
 	UtenteChiamante := ps.ByName("utente")
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -141,22 +131,12 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		http.Error(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
-	if len(input.PercorsoFoto) == 0 {
+	if len(input.Foto) == 0 {
 		http.Error(w, "La foto è obbligatoria", http.StatusBadRequest)
 		return
 	}
 
-	var fileFoto []byte
-
-	if len(input.PercorsoFoto) > 0 {
-		fileFoto, err = ReadImageFile(input.PercorsoFoto)
-		if err != nil {
-			http.Error(w, "Errore durante la lettura della foto: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-	}
-
-	idFoto, err := rt.db.CreaFoto(input.PercorsoFoto, fileFoto)
+	idFoto, err := rt.db.CreaFoto(input.Foto)
 	if err != nil {
 		http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -205,4 +185,42 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 	}
 
 	w.Write([]byte("Gruppo modificato con successo "))
+}
+
+// IsGroupHandler verifica se la chat è un gruppo
+func (rt *_router) IsGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	chatParam := ps.ByName("chat")
+
+	// Converti il parametro chat in intero
+	chatID, err := strconv.Atoi(chatParam)
+	if err != nil {
+		http.Error(w, "ID chat non valido", http.StatusBadRequest)
+		return
+	}
+
+	// Verifica se la chat è un gruppo
+	idGruppo, err := rt.db.CercaConversazioneGruppo(chatID)
+	if err != nil {
+		http.Error(w, "Errore interno del server", http.StatusInternalServerError)
+		return
+	}
+
+	// Prepara la risposta
+	response := struct {
+		IsGroup bool `json:"is_group"`
+		GroupID int  `json:"group_id,omitempty"`
+	}{
+		IsGroup: idGruppo > 0,
+	}
+
+	if idGruppo > 0 {
+		response.GroupID = idGruppo
+	}
+
+	// Imposta l'header e invia la risposta JSON
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Errore nella codifica della risposta", http.StatusInternalServerError)
+		return
+	}
 }

@@ -140,7 +140,7 @@ func (db *appdbimpl) ImpostaFotoGruppo(UtenteChiamante string, id_foto_Passata i
 	}
 
 	// Aggiorna la foto del gruppo
-	query := `UPDATE gruppo SET foto = ? WHERE id = ?`
+	query := `UPDATE gruppo SET foto = ? WHERE conversazione = ?`
 	_, err = db.c.Exec(query, id_foto_Passata, id_gruppo_Passato)
 	if err != nil {
 		return fmt.Errorf("errore durante l'aggiornamento della foto del gruppo: %w", err)
@@ -179,7 +179,7 @@ func (db *appdbimpl) ImpostaNomeGruppo(UtenteChiamante string, nomeGruppo_Passat
 
 	// Recupera il vecchio nome del gruppo
 	var vecchioNome string
-	queryGetNome := `SELECT nome FROM gruppo WHERE id = ?`
+	queryGetNome := `SELECT nome FROM gruppo WHERE conversazione = ?`
 	err = db.c.QueryRow(queryGetNome, id_gruppo_Passato).Scan(&vecchioNome)
 	if err != nil {
 		return fmt.Errorf("errore durante il recupero del nome del gruppo: %w", err)
@@ -191,7 +191,7 @@ func (db *appdbimpl) ImpostaNomeGruppo(UtenteChiamante string, nomeGruppo_Passat
 	}
 
 	// Aggiorna il nome del gruppo
-	queryUpdate := `UPDATE gruppo SET nome = ? WHERE id = ?`
+	queryUpdate := `UPDATE gruppo SET nome = ? WHERE conversazione = ?`
 	_, err = db.c.Exec(queryUpdate, nomeGruppo_Passato, id_gruppo_Passato)
 	if err != nil {
 		return fmt.Errorf("errore durante l'aggiornamento del nome del gruppo: %w", err)

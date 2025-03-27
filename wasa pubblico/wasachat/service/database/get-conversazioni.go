@@ -7,72 +7,77 @@ import (
 
 // Definizione della struttura Conversazione
 type Conversazione struct {
-	Id     int     `json:"chat_id"`
-	Nome   string  `json:"nome"`
-	Foto   *string `json:"foto"`
-	Time   *string `json:"time"`
-	Ultimo *string `json:"ultimosnip"`
+	Id       int     `json:"chat_id"`
+	Nome     string  `json:"nome"`
+	Foto     *string `json:"foto"`
+	Time     *string `json:"time"`
+	Ultimo   *string `json:"ultimosnip"`
+	IsGruppo bool    `json:"isgruppo"`
 }
 
-// Funzione per ottenere le conversazioni dell'utente
 func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversazione, error) {
 	utente_Passato, err := db.IdUtenteDaNickname(utente_Passato_string)
 	if err != nil {
 		return nil, err
 	}
 
+	// Query per conversazioni private (come prima)
 	queryConversazioniPrivate := `
-	SELECT c.id, 
-	       CASE 
-	           WHEN cp.utente1 = ? THEN u2.nickname 
-	           ELSE u1.nickname 
-	       END AS nome,
-	       MAX(m.tempo) AS time, 
-	       m.testo AS ultimosnip,
-		   CASE 
-	           WHEN cp.utente1 = ? THEN f2.percorso
-	           ELSE f1.percorso
-			END AS foto
-	FROM conversazione AS c
-	JOIN conversazioneprivata AS cp ON c.id = cp.conversazione
-	JOIN foto AS f1 ON f1.id = u1.foto
-	JOIN foto AS f2 ON f2.id = u2.foto
-	LEFT JOIN utente AS u1 ON u1.id = cp.utente1
-	LEFT JOIN utente AS u2 ON u2.id = cp.utente2
-	LEFT JOIN messaggio AS m ON m.conversazione = c.id
-	WHERE cp.utente1 = ? OR cp.utente2 = ?
-	GROUP BY c.id, nome
-	`
+    SELECT c.id, 
+           CASE 
+               WHEN cp.utente1 = ? THEN u2.nickname 
+               ELSE u1.nickname 
+           END AS nome,
+           MAX(m.tempo) AS time, 
+           m.testo AS ultimosnip,
+           CASE 
+               WHEN cp.utente1 = ? THEN f2.foto
+               ELSE f1.foto
+            END AS foto,
+            false AS isgruppo
+    FROM conversazione AS c
+    JOIN conversazioneprivata AS cp ON c.id = cp.conversazione
+    JOIN foto AS f1 ON f1.id = u1.foto
+    JOIN foto AS f2 ON f2.id = u2.foto
+    LEFT JOIN utente AS u1 ON u1.id = cp.utente1
+    LEFT JOIN utente AS u2 ON u2.id = cp.utente2
+    LEFT JOIN messaggio AS m ON m.conversazione = c.id
+    WHERE cp.utente1 = ? OR cp.utente2 = ?
+    GROUP BY c.id, nome
+    `
 
+	// Query per conversazioni di gruppo (come prima)
 	queryConversazioniGruppo := `
-	SELECT c.id, g.nome, MAX(m.tempo) AS time, m.testo AS ultimosnip, f.percorso AS foto
-	FROM conversazione AS c
-	JOIN gruppo AS g ON g.conversazione = c.id
-	JOIN utenteingruppo AS ug ON g.id = ug.gruppo
-	JOIN foto AS f ON f.id = g.foto
-	LEFT JOIN messaggio AS m ON m.conversazione = c.id
-	WHERE ug.utente = ?
-	GROUP BY c.id, g.nome
-	`
+    SELECT c.id, g.nome, MAX(m.tempo) AS time, m.testo AS ultimosnip, f.foto AS foto, true AS isgruppo
+    FROM conversazione AS c
+    JOIN gruppo AS g ON g.conversazione = c.id
+    JOIN utenteingruppo AS ug ON g.id = ug.gruppo
+    JOIN foto AS f ON f.id = g.foto
+    LEFT JOIN messaggio AS m ON m.conversazione = c.id
+    WHERE ug.utente = ?
+    GROUP BY c.id, g.nome
+    `
 
 	var conversazioni []Conversazione
 
+	// Prima recuperiamo tutte le conversazioni
 	rowsPrivate, err := db.c.Query(queryConversazioniPrivate, utente_Passato, utente_Passato, utente_Passato, utente_Passato)
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero delle conversazioni private: %w", err)
 	}
 	defer rowsPrivate.Close()
 
+	var idsConversazioniPrivate []int
 	for rowsPrivate.Next() {
 		var conv Conversazione
-		if err := rowsPrivate.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &conv.Foto); err != nil {
+		if err := rowsPrivate.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &conv.Foto, &conv.IsGruppo); err != nil {
 			return nil, fmt.Errorf("errore durante la lettura delle conversazioni private: %w", err)
 		}
-		// Troncamento del messaggio a 15 caratteri
 		if conv.Ultimo != nil && len(*conv.Ultimo) > 15 {
 			*conv.Ultimo = (*conv.Ultimo)[:15]
 		}
 		conversazioni = append(conversazioni, conv)
+		idsConversazioniPrivate = append(idsConversazioniPrivate, conv.Id)
 	}
 
 	rowsGruppo, err := db.c.Query(queryConversazioniGruppo, utente_Passato)
@@ -81,20 +86,37 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 	}
 	defer rowsGruppo.Close()
 
-	// Processa i risultati delle conversazioni di gruppo
+	var idsConversazioniGruppo []int
 	for rowsGruppo.Next() {
 		var conv Conversazione
-		if err := rowsGruppo.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &conv.Foto); err != nil {
+		if err := rowsGruppo.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &conv.Foto, &conv.IsGruppo); err != nil {
 			return nil, fmt.Errorf("errore durante la lettura delle conversazioni di gruppo: %w", err)
 		}
-		// Troncamento del messaggio a 15 caratteri
 		if conv.Ultimo != nil && len(*conv.Ultimo) > 15 {
 			*conv.Ultimo = (*conv.Ultimo)[:15]
 		}
 		conversazioni = append(conversazioni, conv)
+		idsConversazioniGruppo = append(idsConversazioniGruppo, conv.Id)
 	}
 
-	// Funzione per ordinamento
+	// Ora segniamo i messaggi come ricevuti per ogni conversazione
+	for _, idConv := range idsConversazioniPrivate {
+		if err := db.segnaMessaggiPrivatiRicevuti(utente_Passato_string, idConv); err != nil {
+			return nil, fmt.Errorf("errore durante la segnalazione dei messaggi privati come ricevuti: %w", err)
+		}
+	}
+
+	for _, idConv := range idsConversazioniGruppo {
+		if err := db.segnaMessaggiGruppoRicevuti(utente_Passato_string, idConv); err != nil {
+			return nil, fmt.Errorf("errore durante la segnalazione dei messaggi di gruppo come ricevuti: %w", err)
+		}
+		err = db.CheckRicevimentoMessaggiGruppo(idConv)
+		if err != nil {
+			return nil, fmt.Errorf("errore durante il check di lettura dei messaggi: %w", err)
+		}
+	}
+
+	// Ordinamento come prima
 	sort.Slice(conversazioni, func(i, j int) bool {
 		if conversazioni[i].Time == nil {
 			return false

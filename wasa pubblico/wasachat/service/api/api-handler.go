@@ -10,6 +10,7 @@ func (rt *_router) Handler() http.Handler {
 	// Register routes
 	rt.router.GET("/context", rt.wrap(rt.getContextReply))
 	rt.router.GET("/liveness", rt.liveness)
+	rt.router.GET("/check/:chat", rt.IsGroup)
 	rt.router.POST("/wasachat/:utente/gruppi", rt.CreaGruppo)
 	rt.router.PUT("/wasachat", rt.registrare)
 	rt.router.POST("/wasachat", rt.doLogin)

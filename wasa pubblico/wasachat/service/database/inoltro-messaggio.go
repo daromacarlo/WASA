@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_Passato int, conversazione_Passata int) error {
+func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_Passato string, conversazione_Passata int) error {
 
 	var messaggioOriginale struct {
 		Testo *string
@@ -135,7 +135,7 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 	}
 
 	// Copia il messaggio cambiando l'ora e il mittente
-	err = db.CopiaMessaggioCambiandoOraEMitente(IdMessaggio, utente_Passato_convertito, idChatNuova)
+	err = db.CopiaMessaggioCambiandoOraEMitente(IdMessaggio, utente_Passato, idChatNuova)
 	if err != nil {
 		return fmt.Errorf("errore durante la copia del messaggio: %w", err)
 	}

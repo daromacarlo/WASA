@@ -35,7 +35,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	UtenteChiamante := ps.ByName("utente")
 
 	var input struct {
-		PercorsoFoto string `json:"foto"`
+		Foto string `json:"foto"`
 	}
 
 	// Decodifica il corpo della richiesta
@@ -46,23 +46,13 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	// Validazione: la foto è obbligatoria
-	if len(input.PercorsoFoto) == 0 {
+	if len(input.Foto) == 0 {
 		http.Error(w, "La foto è obbligatoria", http.StatusBadRequest)
 		return
 	}
 
-	var fileFoto []byte
-
-	if len(input.PercorsoFoto) > 0 {
-		fileFoto, err = ReadImageFile(input.PercorsoFoto)
-		if err != nil {
-			http.Error(w, "Errore durante la lettura della foto: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-	}
-
 	// Chiamata al database per creare la foto profilo
-	idFoto, err := rt.db.CreaFoto(input.PercorsoFoto, fileFoto)
+	idFoto, err := rt.db.CreaFoto(input.Foto)
 	if err != nil {
 		http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
 		return

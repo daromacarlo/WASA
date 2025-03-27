@@ -10,7 +10,6 @@ func CreaTabellaFoto(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS foto(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			percorso NOT NULL,
 			foto BLOB NOT NULL
 		);`
 	_, err := db.Exec(query)
@@ -21,9 +20,9 @@ func CreaTabellaFoto(db *sql.DB) error {
 }
 
 // CreaFoto crea una nuova foto nel database con percorso "percorso_Passato" e foto "foto_Passata", la foto avra un nuovo id diverso dagli altri (autoincrementante)
-func (db *appdbimpl) CreaFoto(percorso_Passato string, foto_Passata []byte) (int, error) {
-	queryDiInserimento := `INSERT INTO foto (percorso, foto) VALUES (?,?);`
-	result, err := db.c.Exec(queryDiInserimento, percorso_Passato, foto_Passata)
+func (db *appdbimpl) CreaFoto(foto_Passata string) (int, error) {
+	queryDiInserimento := `INSERT INTO foto (foto) VALUES (?);`
+	result, err := db.c.Exec(queryDiInserimento, foto_Passata)
 	if err != nil {
 		return 0, fmt.Errorf("errore durante la creazione della foto: %w", err)
 	}

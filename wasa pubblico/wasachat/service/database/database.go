@@ -52,20 +52,20 @@ type AppDatabase interface {
 	Login(nicknamePassato string) (string, error)
 
 	//foto
-	CreaFoto(percorsoPassato string, fotoPassata []byte) (int, error)
+	CreaFoto(fotoPassata string) (int, error)
 
 	//messaggi
-	CreaMessaggioFotoDB(utentePassato string, conversazionePassata int, fotoPassata int) error
-	CreaMessaggioTestualeDB(utentePassato string, conversazionePassata int, testoPassato string) error
+	CreaMessaggioFotoDB(utentePassato string, conversazionePassata int, fotoPassata int) (int, error)
+	CreaMessaggioTestualeDB(utentePassato string, conversazionePassata int, testoPassato string) (int, error)
 	CreaStatoMessaggioPrivato(idmessaggioPassato int) error
-	LeggiMessaggiPrivati(utente1Passato string, utente2Passato string, conversazioneID int) error
+	LeggiMessaggiPrivati(utente2Passato string, conversazioneID int) error
 	CreaStatoMessaggioGruppo(idmessaggioPassato int) error
 	LeggiMessaggiGruppo(utente1Passato string, conversazioneID int) error
 	CheckLetturaMessaggiGruppo(conversazioneID int) error
 	EliminaMessaggio(utentePassato string, id_messaggio int, idchat int) error
-	CopiaMessaggioCambiandoOraEMitente(idMessaggio int, nuovoAutore int, chat int) error
+	CopiaMessaggioCambiandoOraEMitente(idMessaggio int, nuovoAutore string, chat int) error
 	InoltraMessaggio(utentePassato string, idChatNuova int, IdMessaggio int) error
-	ImpostaRisposta(IdMessaggio int, IdNuovoMessaggio int, chat int) error
+	ImpostaRisposta(IdMessaggio int, IdNuovoMessaggio int) error
 	RispondiMessaggioFoto(utentePassato string, idGruppoPassato int, IdMessaggio int, fotoPassato int) error
 	RispondiMessaggioTesto(utentePassato string, idGruppoPassato int, IdMessaggio int, testoPassato string) error
 
@@ -160,6 +160,11 @@ func New(db *sql.DB) (AppDatabase, error) {
 	}
 
 	err = CreaTabellaStatoMessaggioGruppoPersona(db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CreaTabellaStatoMessaggioGruppoPersonaRicevimento(db)
 	if err != nil {
 		return nil, err
 	}

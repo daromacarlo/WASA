@@ -4,10 +4,7 @@ import (
 	"net/http"
 )
 
-// Handler returns an instance of httprouter.Router that handle APIs registered here
-// interfaccia utente ad alto livello
 func (rt *_router) Handler() http.Handler {
-	// Register routes
 	rt.router.GET("/context", rt.wrap(rt.getContextReply))
 	rt.router.GET("/liveness", rt.liveness)
 	rt.router.GET("/check/:chat", rt.IsGroup)

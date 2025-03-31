@@ -5,7 +5,6 @@ import (
 	"sort"
 )
 
-// Definizione della struttura Conversazione
 type Conversazione struct {
 	Id       int     `json:"chat_id"`
 	Nome     string  `json:"nome"`
@@ -21,7 +20,6 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 		return nil, err
 	}
 
-	// Query per conversazioni private (come prima)
 	queryConversazioniPrivate := `
     SELECT c.id, 
            CASE 
@@ -46,7 +44,6 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
     GROUP BY c.id, nome
     `
 
-	// Query per conversazioni di gruppo (come prima)
 	queryConversazioniGruppo := `
     SELECT c.id, g.nome, MAX(m.tempo) AS time, m.testo AS ultimosnip, f.foto AS foto, true AS isgruppo
     FROM conversazione AS c
@@ -59,8 +56,6 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
     `
 
 	var conversazioni []Conversazione
-
-	// Prima recuperiamo tutte le conversazioni
 	rowsPrivate, err := db.c.Query(queryConversazioniPrivate, utente_Passato, utente_Passato, utente_Passato, utente_Passato)
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero delle conversazioni private: %w", err)
@@ -99,7 +94,6 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 		idsConversazioniGruppo = append(idsConversazioniGruppo, conv.Id)
 	}
 
-	// Ora segniamo i messaggi come ricevuti per ogni conversazione
 	for _, idConv := range idsConversazioniPrivate {
 		if err := db.segnaMessaggiPrivatiRicevuti(utente_Passato_string, idConv); err != nil {
 			return nil, fmt.Errorf("errore durante la segnalazione dei messaggi privati come ricevuti: %w", err)
@@ -116,7 +110,6 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 		}
 	}
 
-	// Ordinamento come prima
 	sort.Slice(conversazioni, func(i, j int) bool {
 		if conversazioni[i].Time == nil {
 			return false

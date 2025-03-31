@@ -30,6 +30,6 @@ func (db *appdbimpl) CreaFoto(foto_Passata string) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("errore durante il recupero dell'ID dell'ultimo elemento inserito: %w", err)
 	}
-	return int(ultimoIdInserito), nil //castato perché ultimoIdInserito è di tipo int64
+	return int(ultimoIdInserito), nil
 
 }

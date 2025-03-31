@@ -58,37 +58,26 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	// Imposta la foto profilo dell'utente
 	err = rt.db.ImpostaFotoProfilo(UtenteChiamante, idFoto)
 	if err != nil {
 		http.Error(w, "Errore durante l'aggiornamento della foto profilo: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	// Risposta di successo
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Foto profilo aggiornata con successo",
-	})
 }
 
 func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// Struttura per ricevere i dati dal body
 	UtenteChiamante := ps.ByName("utente")
 
 	var input struct {
 		Nome string `json:"nome"`
 	}
 
-	// Decodifica il corpo della richiesta
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		http.Error(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
 
-	// Controlla se il nome è già in uso
 	existe, err := rt.db.EsistenzaUtente(input.Nome)
 	if err != nil {
 		http.Error(w, "Errore durante il controllo dell'esistenza del nome utente: "+err.Error(), http.StatusInternalServerError)
@@ -99,17 +88,10 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	// Chiama la funzione per impostare il nome dell'utente
 	err = rt.db.ImpostaNome(UtenteChiamante, input.Nome)
 	if err != nil {
 		http.Error(w, "Errore durante l'aggiornamento del nome utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Risposta di successo
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Nome utente aggiornato con successo",
-	})
 }

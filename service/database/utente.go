@@ -15,7 +15,6 @@ func CreaTabellaUtente(db *sql.DB) error {
 			foto INTEGER NOT NULL,
 			FOREIGN KEY (foto) REFERENCES foto(id)
 		);`
-	//viene eseguita la query
 	_, err := db.Exec(query)
 	if err != nil {
 		return fmt.Errorf("errore durante la creazione della tabella utente: %w", err)
@@ -26,7 +25,6 @@ func CreaTabellaUtente(db *sql.DB) error {
 // CreaUtente crea un nuovo utente nel database con nickname "nicknamePassato" e id della foto "idfotoPassata",
 // l'utente avrà un nuovo id diverso dagli altri (autoincrementante)
 func (db *appdbimpl) CreaUtente(nicknamePassato string, idfotoPassata int) error {
-	//controlliamo che l'utente non esista già (nickname già in uso)
 	esistenza, err := db.EsistenzaUtente(nicknamePassato)
 	if esistenza {
 		return fmt.Errorf("il nickname è già in uso: %w", err)
@@ -46,14 +44,11 @@ func (db *appdbimpl) CreaUtente(nicknamePassato string, idfotoPassata int) error
 	if err != nil {
 		return fmt.Errorf("errore inaspettato durante il recupero dell'ID dell'ultimo elemento inserito: %w", err)
 	}
-
-	//Stampiamo a console l'id dell'ultimo utente inserito. Funzione non necessaria ma comoda in fase di costruzione di codice
 	fmt.Println("ID utente creato:", ultimoIdInserito)
 	return nil
 }
 
 func (db *appdbimpl) Login(nicknamePassato string) (string, error) {
-	//controlliamo che l'utente non esista già (nickname già in uso)
 	esistenza, err := db.EsistenzaUtente(nicknamePassato)
 	if !esistenza {
 		return "", fmt.Errorf("l'utente non esiste, registrati.: %w", err)
@@ -220,6 +215,5 @@ func (db *appdbimpl) VediProfili(chiamante string) ([]Profilo, error) {
 		return nil, fmt.Errorf("errore durante l'iterazione del risultato: %w", err)
 	}
 
-	// Restituisce l'elenco dei profili
 	return userProfiles, nil
 }

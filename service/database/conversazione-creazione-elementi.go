@@ -58,7 +58,6 @@ func (db *appdbimpl) CreaGruppoDB(UtenteChiamante string, nomeGruppo_Passato str
 
 // funzione che crea una conversazione privata, ritorna l'id della conversazione
 func (db *appdbimpl) CreaConversazionePrivataDB(utente1_Passato string, utente2_Passato string) (int, error) {
-	//controlliamo che gli utenti coinvolti esistano
 	esistenza, err := db.EsistenzaUtente(utente1_Passato)
 	if err != nil {
 		return 0, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente (chiamante): %s", err.Error())
@@ -73,8 +72,6 @@ func (db *appdbimpl) CreaConversazionePrivataDB(utente1_Passato string, utente2_
 	if !esistenza {
 		return 0, fmt.Errorf("l'utente %s non esiste (chiamato)", utente2_Passato)
 	}
-
-	//controlliamo che già non esista una conversazione tra i due, se non esiste la creiamo
 	idConversazione, err := db.EsisteConversazioneTraUtenti(utente1_Passato, utente2_Passato)
 	if err != nil {
 		return 0, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %s", err.Error())
@@ -99,7 +96,6 @@ func (db *appdbimpl) CreaConversazionePrivataDB(utente1_Passato string, utente2_
 	if err != nil {
 		return 0, fmt.Errorf("errore durante l'inserimento della conversazione nel database: %s", err.Error())
 	}
-
 	LastInsertIdid, err := result.LastInsertId()
 	if err != nil {
 		return 0, fmt.Errorf("errore durante il recupero dell'ID della conversazione appena creata: %s", err.Error())

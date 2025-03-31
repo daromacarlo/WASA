@@ -7,9 +7,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// funzione che serve a gettare le conversazioni di un utente
 func (rt *_router) getMyConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// Ottieni il nickname dall'URL
 	chiamante := ps.ByName("utente")
 	lista, err := rt.db.GetConversazioni(chiamante)
 
@@ -24,7 +22,6 @@ func (rt *_router) getMyConversation(w http.ResponseWriter, r *http.Request, ps 
 		return
 	}
 
-	// Converte la lista in JSON e restituisce la risposta
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(lista); err != nil {

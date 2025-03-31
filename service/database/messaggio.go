@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-// Funzione che crea la tabella messaggio se questa non esiste
 func CreaTabellaMessaggio(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS messaggio(
@@ -32,8 +31,6 @@ func CreaTabellaMessaggio(db *sql.DB) error {
 	return nil
 }
 
-// Funzione che crea la tabella commento se questa non esiste
-// I commenti non sono messaggi, sono come delle emoji associate ai messaggi
 func CreaTabellaCommento(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS commento(
@@ -51,9 +48,7 @@ func CreaTabellaCommento(db *sql.DB) error {
 	return nil
 }
 
-// Funzione che aggiunge un nuovo messaggio testuale nel database
 func (db *appdbimpl) CreaMessaggioTestualeDB(utentePassato string, conversazionePassata int, testoPassato string) (int, error) {
-	// Controllo se la chat esiste
 	esistenza, err := db.EsisteConversazione(conversazionePassata)
 	if err != nil {
 		return 0, fmt.Errorf("errore durante la verifica di esistenza: %w", err)
@@ -61,22 +56,16 @@ func (db *appdbimpl) CreaMessaggioTestualeDB(utentePassato string, conversazione
 	if !esistenza {
 		return 0, fmt.Errorf("errore, la chat non esiste")
 	}
-
-	// Trovo l'id utente associato al nickname
 	utente_Passato_convertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return 0, fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
 	}
-
-	// Verifica se la conversazione è di tipo gruppo
 	isGruppo, err := db.CercaConversazioneGruppo(conversazionePassata)
 	if err != nil {
 		return 0, fmt.Errorf("errore durante la verifica del tipo di conversazione: %w", err)
 	}
-
 	var idMessaggio int
 	if isGruppo > 0 {
-		// Se è un gruppo, controllo se l'utente è coinvolto
 		coinvolto, err := db.UtenteCoinvoltoGruppo(utentePassato, conversazionePassata)
 		if err != nil {
 			return 0, fmt.Errorf("errore durante la verifica della partecipazione dell'utente al gruppo: %w", err)
@@ -84,15 +73,12 @@ func (db *appdbimpl) CreaMessaggioTestualeDB(utentePassato string, conversazione
 		if coinvolto == 0 {
 			return 0, fmt.Errorf("l'utente non è membro del gruppo")
 		}
-
-		// Esegui l'inserimento del messaggio nel gruppo
 		idMessaggio, err = db.inserisciMessaggio(conversazionePassata, utentePassato, testoPassato, true)
 		if err != nil {
 			return 0, err
 		}
 
 	} else {
-		// Se è una conversazione privata, controllo la partecipazione dell'utente
 		idPrivata, err := db.CercaConversazionePrivata(conversazionePassata, utente_Passato_convertito)
 		if err != nil {
 			return 0, fmt.Errorf("errore durante la verifica della conversazione: %w", err)
@@ -100,8 +86,6 @@ func (db *appdbimpl) CreaMessaggioTestualeDB(utentePassato string, conversazione
 		if idPrivata == 0 {
 			return 0, fmt.Errorf("l'utente non è coinvolto nella conversazione privata")
 		}
-
-		// Esegui l'inserimento del messaggio nella conversazione privata
 		idMessaggio, err = db.inserisciMessaggio(conversazionePassata, utentePassato, testoPassato, false)
 		if err != nil {
 			return 0, err
@@ -111,7 +95,6 @@ func (db *appdbimpl) CreaMessaggioTestualeDB(utentePassato string, conversazione
 	return idMessaggio, nil
 }
 
-// Funzione che esegue l'inserimento del messaggio
 func (db *appdbimpl) inserisciMessaggio(conversazionePassata int, utente_Passato string, testoPassato string, isGruppo bool) (int, error) {
 	var queryDiInserimento string
 	var result sql.Result
@@ -129,7 +112,6 @@ func (db *appdbimpl) inserisciMessaggio(conversazionePassata int, utente_Passato
 		return 0, fmt.Errorf("errore durante il recupero dell'ID dell'ultimo messaggio: %w", err)
 	}
 
-	// Crea lo stato del messaggio, letto e ricevuto saranno impostati a false
 	if isGruppo {
 		err = db.CreaStatoMessaggioGruppo(int(lastInsertID))
 	} else {
@@ -143,9 +125,7 @@ func (db *appdbimpl) inserisciMessaggio(conversazionePassata int, utente_Passato
 	return int(lastInsertID), nil
 }
 
-// Funzione che aggiunge un nuovo messaggio con foto nel database
 func (db *appdbimpl) CreaMessaggioFotoDB(utentePassato string, conversazionePassata int, fotoPassata int) (int, error) {
-	// Controllo se la chat esiste
 	esistenza, err := db.EsisteConversazione(conversazionePassata)
 	if err != nil {
 		return 0, fmt.Errorf("errore durante la verifica di esistenza: %w", err)
@@ -153,14 +133,10 @@ func (db *appdbimpl) CreaMessaggioFotoDB(utentePassato string, conversazionePass
 	if !esistenza {
 		return 0, fmt.Errorf("errore, la chat non esiste")
 	}
-
-	// Trovo l'id utente associato al nickname
 	utente_Passato_convertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return 0, fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
 	}
-
-	// Verifica se l'utente è coinvolto nella conversazione (sia gruppo che privata)
 	isGruppo, err := db.CercaConversazioneGruppo(conversazionePassata)
 	if err != nil {
 		return 0, fmt.Errorf("errore durante la verifica del tipo di conversazione: %w", err)
@@ -168,7 +144,6 @@ func (db *appdbimpl) CreaMessaggioFotoDB(utentePassato string, conversazionePass
 
 	var idMessaggio int
 	if isGruppo > 0 {
-		// Se è un gruppo, controllo se l'utente è coinvolto
 		coinvolto, err := db.UtenteCoinvoltoGruppo(utentePassato, conversazionePassata)
 		if err != nil {
 			return 0, fmt.Errorf("errore durante la verifica della partecipazione dell'utente al gruppo: %w", err)
@@ -176,15 +151,12 @@ func (db *appdbimpl) CreaMessaggioFotoDB(utentePassato string, conversazionePass
 		if coinvolto == 0 {
 			return 0, fmt.Errorf("l'utente non è membro del gruppo")
 		}
-
-		// Esegui l'inserimento del messaggio con foto nel gruppo
 		idMessaggio, err = db.inserisciMessaggioFoto(conversazionePassata, utentePassato, fotoPassata, true)
 		if err != nil {
 			return 0, fmt.Errorf("errore durante l'inserimento del messaggio: %w", err)
 		}
 
 	} else {
-		// Se è una conversazione privata, controllo la partecipazione dell'utente
 		idPrivata, err := db.CercaConversazionePrivata(conversazionePassata, utente_Passato_convertito)
 		if err != nil {
 			return 0, fmt.Errorf("errore durante la verifica della conversazione: %w", err)
@@ -192,8 +164,6 @@ func (db *appdbimpl) CreaMessaggioFotoDB(utentePassato string, conversazionePass
 		if idPrivata == 0 {
 			return 0, fmt.Errorf("l'utente non è coinvolto nella conversazione privata")
 		}
-
-		// Esegui l'inserimento del messaggio con foto nella conversazione privata
 		idMessaggio, err = db.inserisciMessaggioFoto(conversazionePassata, utentePassato, fotoPassata, false)
 		if err != nil {
 			return 0, fmt.Errorf("errore durante l'inserimento del messaggio: %w", err)

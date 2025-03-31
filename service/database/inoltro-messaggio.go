@@ -25,7 +25,6 @@ func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			// Se il messaggio non esiste, restituisci errore
 			return fmt.Errorf("nessun messaggio trovato con ID %d", idMessaggio)
 		}
 		return fmt.Errorf("errore nel recupero del messaggio originale con ID %d: %w", idMessaggio, err)
@@ -63,10 +62,6 @@ func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_
 }
 
 func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, IdMessaggio int) error {
-	// Verifica se il messaggio esiste
-	// Se è un gruppo, verifica che l'utente sia coinvolto
-	// Verifica se la conversazione è un gruppo o privata
-	// Recupera l'ID dell'utente a partire dal nickname
 	utente_Passato_convertito, err := db.IdUtenteDaNickname(utente_Passato)
 	if err != nil {
 		return fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)
@@ -76,7 +71,6 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 		return fmt.Errorf("errore durante la verifica del tipo di conversazione: %w", err)
 	}
 	if isGruppo > 0 {
-		// Se è un gruppo, verifica che l'utente sia coinvolto
 		coinvolto, err := db.UtenteCoinvoltoGruppo(utente_Passato, idChatNuova)
 		if err != nil {
 			return fmt.Errorf("errore durante la verifica della partecipazione dell'utente al gruppo: %w", err)
@@ -85,7 +79,6 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 			return fmt.Errorf("l'utente non è membro del gruppo")
 		}
 	} else {
-		// Se è privata, verifica che l'utente sia coinvolto nella conversazione privata
 		idPrivata, err := db.CercaConversazionePrivata(idChatNuova, utente_Passato_convertito)
 		if err != nil {
 			return fmt.Errorf("errore durante la verifica della conversazione privata: %w", err)
@@ -102,20 +95,15 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 	if !esistenza {
 		return fmt.Errorf("errore: il messaggio con ID %d non esiste", IdMessaggio)
 	}
-
-	// Recupera l'ID della conversazione a partire dal messaggio
 	conversazioneID, err := db.GetConversazioneIdByMessaggio(IdMessaggio)
 	if err != nil {
 		return fmt.Errorf("errore durante il recupero dell'ID conversazione: %w", err)
 	}
-
-	// Verifica se la conversazione è un gruppo o privata
 	isGruppo, err = db.CercaConversazioneGruppo(conversazioneID)
 	if err != nil {
 		return fmt.Errorf("errore durante la verifica del tipo di conversazione: %w", err)
 	}
 	if isGruppo > 0 {
-		// Se è un gruppo, verifica che l'utente sia coinvolto
 		coinvolto, err := db.UtenteCoinvoltoGruppo(utente_Passato, conversazioneID)
 		if err != nil {
 			return fmt.Errorf("errore durante la verifica della partecipazione dell'utente al gruppo: %w", err)
@@ -124,7 +112,6 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 			return fmt.Errorf("l'utente non è membro del gruppo")
 		}
 	} else {
-		// Se è privata, verifica che l'utente sia coinvolto nella conversazione privata
 		idPrivata, err := db.CercaConversazionePrivata(conversazioneID, utente_Passato_convertito)
 		if err != nil {
 			return fmt.Errorf("errore durante la verifica della conversazione privata: %w", err)
@@ -133,8 +120,6 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 			return fmt.Errorf("l'utente non è coinvolto nella conversazione privata")
 		}
 	}
-
-	// Copia il messaggio cambiando l'ora e il mittente
 	err = db.CopiaMessaggioCambiandoOraEMitente(IdMessaggio, utente_Passato, idChatNuova)
 	if err != nil {
 		return fmt.Errorf("errore durante la copia del messaggio: %w", err)

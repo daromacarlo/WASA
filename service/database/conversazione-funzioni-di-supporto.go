@@ -1,5 +1,3 @@
-//il file seguente contiene funzioni di supporto
-
 package database
 
 import (

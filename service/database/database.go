@@ -38,23 +38,23 @@ import (
 // AppDatabase è una interfaccia ad alto livello del database.
 type AppDatabase interface {
 
-	//impostazioni
+	// impostazioni
 	ImpostaFotoProfilo(nicknamePassato string, idfotoPassata int) error
 	ImpostaNome(nicknamePassato string, nuovoNickPassato string) error
 	ImpostaFotoGruppo(utenteChiamante string, idfotoPassata int, idgruppoPassato int) error
 	ImpostaNomeGruppo(utenteChiamante string, nomeGruppoPassato string, idgruppoPassato int) error
 
-	//utente
+	// utente
 	CreaUtente(nicknamePassato string, idfotoPassata int) error
 	IdUtenteDaNickname(nicknamePassato string) (int, error)
 	NicknameUtenteDaId(idPassato int) (string, error)
 	VediProfili(nicknamePassato string) ([]Profilo, error)
 	Login(nicknamePassato string) (string, error)
 
-	//foto
+	// foto
 	CreaFoto(fotoPassata string) (int, error)
 
-	//messaggi
+	// messaggi
 	CreaMessaggioFotoDB(utentePassato string, conversazionePassata int, fotoPassata int) (int, error)
 	CreaMessaggioTestualeDB(utentePassato string, conversazionePassata int, testoPassato string) (int, error)
 	CreaStatoMessaggioPrivato(idmessaggioPassato int) error
@@ -69,11 +69,11 @@ type AppDatabase interface {
 	RispondiMessaggioFoto(utentePassato string, idGruppoPassato int, IdMessaggio int, fotoPassato int) error
 	RispondiMessaggioTesto(utentePassato string, idGruppoPassato int, IdMessaggio int, testoPassato string) error
 
-	//commenti
+	// commenti
 	EliminaCommento(utentePassato string, idcommento int) error
 	AggiungiCommento(utentePassato string, messaggioPassato int, reazionePassata string) error
 
-	//conversazione
+	// conversazione
 	CreaConversazioneDB() (int, error)
 	CreaGruppoDB(utenteChiamante string, nomeGruppoPassato string, idfotoPassata int) error
 	CreaConversazionePrivataDB(utente1_Passato string, utente2_Passato string) (int, error)
@@ -84,7 +84,7 @@ type AppDatabase interface {
 	GetConversazioni(utentePassato string) ([]Conversazione, error)
 	GetConversazione(utentePassato string, conversazionePassata int) ([]MessageData, error)
 
-	//check
+	// check
 	EsisteConversazione(idConversazione int) (bool, error)
 	EsisteConversazioneTraUtenti(utente1Passato string, utente2Passato string) (int, error)
 	UtenteCoinvoltoPrivato(utentePassato string, destinatarioPassato string) (int, error)
@@ -93,7 +93,7 @@ type AppDatabase interface {
 	UtenteCoinvoltoGruppo(utentePassato string, conversazionePassata int) (int, error)
 	EsistenzaUtente(nicknamePassato string) (bool, error)
 
-	//test
+	// test
 	Ping() error
 }
 

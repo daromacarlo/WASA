@@ -4,8 +4,6 @@ import (
 	"os"
 )
 
-// (questa funzione non è chiamabile direttamente dall'utente)
-// Funzione di supporto per leggere un file immagine
 func ReadImageFile(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {

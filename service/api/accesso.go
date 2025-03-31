@@ -40,9 +40,6 @@ func (rt *_router) registrare(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "Errore durante la creazione dell'utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Utente creato con successo "))
 }
 
 func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

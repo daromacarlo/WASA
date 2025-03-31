@@ -173,23 +173,19 @@ func (db *appdbimpl) CreaMessaggioFotoDB(utentePassato string, conversazionePass
 	return idMessaggio, nil
 }
 
-// Funzione che esegue l'inserimento del messaggio con foto
 func (db *appdbimpl) inserisciMessaggioFoto(conversazionePassata int, utente_Passato string, fotoPassata int, isGruppo bool) (int, error) {
 	queryDiInserimento := `INSERT INTO messaggio (autore, conversazione, foto, tempo) VALUES (?, ?, ?, ?);`
 	result, err := db.c.Exec(queryDiInserimento, utente_Passato, conversazionePassata, fotoPassata, time.Now())
 
-	// Gestione dell'errore durante l'inserimento del messaggio
 	if err != nil {
 		return 0, fmt.Errorf("errore durante la creazione del messaggio: %w", err)
 	}
 
-	// Recupero l'ID dell'ultimo messaggio inserito
 	lastInsertID, err := result.LastInsertId()
 	if err != nil {
 		return 0, fmt.Errorf("errore durante il recupero dell'ID dell'ultimo messaggio: %w", err)
 	}
 
-	// Crea lo stato del messaggio, che verrà impostato come "non letto" per il gruppo
 	if isGruppo {
 		err = db.CreaStatoMessaggioGruppo(int(lastInsertID))
 	} else {
@@ -203,18 +199,12 @@ func (db *appdbimpl) inserisciMessaggioFoto(conversazionePassata int, utente_Pas
 	return int(lastInsertID), nil
 }
 
-// funzione che elimina il messaggio passato tramite id
 func (db *appdbimpl) EliminaMessaggio(utentePassato string, idmessaggio int, idchat int) error {
-	// Query per eliminare il messaggio
 	queryDiEliminazione := `DELETE FROM messaggio WHERE autore = ? AND id = ? AND conversazione = ?;`
-
-	// Esegui la query e ottieni il numero di righe interessate
 	result, err := db.c.Exec(queryDiEliminazione, utentePassato, idmessaggio, idchat)
 	if err != nil {
 		return fmt.Errorf("errore durante l'eliminazione del messaggio: %w", err)
 	}
-
-	// Verifica se è stato eliminato almeno un messaggio
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("errore durante il controllo delle righe interessate: %w", err)
@@ -227,10 +217,7 @@ func (db *appdbimpl) EliminaMessaggio(utentePassato string, idmessaggio int, idc
 	return nil
 }
 
-// Funzione che aggiunge un commento a un messaggio, con controllo della partecipazione alla conversazione (privata o di gruppo)
-// Se l'utente ha già commentato, sostituisce il commento esistente
 func (db *appdbimpl) AggiungiCommento(utentePassato string, messaggioPassato int, reazionePassata string) error {
-	// Converti il nickname dell'utente in un ID
 	utente_Passato_convertito, err := db.IdUtenteDaNickname(utentePassato)
 	if err != nil {
 		return fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)

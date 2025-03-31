@@ -24,7 +24,7 @@
       <ul v-if="chats.length > 0">
         <li v-for="chat in chats" :key="chat.chat_id" @click="goToChat(chat)">
           <div class="chat-item">
-            <img
+          <img
               v-if="chat.foto"
               :src="chat.foto"
               class="chat-photo"

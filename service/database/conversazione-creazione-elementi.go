@@ -15,7 +15,6 @@ func (db *appdbimpl) CreaConversazioneDB() (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("errore durante il recupero dell'ID della conversazione: %s", err.Error())
 	}
-	fmt.Println("ID conversazione creato:", LastInsertIdid)
 	return int(LastInsertIdid), nil
 }
 
@@ -92,16 +91,9 @@ func (db *appdbimpl) CreaConversazionePrivataDB(utente1_Passato string, utente2_
 		return 0, fmt.Errorf("errore nella conversione del nickname %s in ID per utente2: %s", utente2_Passato, err.Error())
 	}
 	queryDiInserimento := `INSERT INTO conversazioneprivata (conversazione, utente1, utente2) VALUES (?, ?, ?);`
-	result, err := db.c.Exec(queryDiInserimento, idConversazione, utente1_ID, utente2_ID)
+	_, err = db.c.Exec(queryDiInserimento, idConversazione, utente1_ID, utente2_ID)
 	if err != nil {
 		return 0, fmt.Errorf("errore durante l'inserimento della conversazione nel database: %s", err.Error())
 	}
-	LastInsertIdid, err := result.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("errore durante il recupero dell'ID della conversazione appena creata: %s", err.Error())
-	}
-
-	fmt.Println("ID della conversazione privata creata:", LastInsertIdid)
-
 	return int(idConversazione), nil
 }

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"sort"
 )
@@ -31,17 +32,17 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
            CASE 
                WHEN cp.utente1 = ? THEN f2.foto
                ELSE f1.foto
-            END AS foto,
-            false AS isgruppo
+           END AS foto,
+           false AS isgruppo
     FROM conversazione AS c
     JOIN conversazioneprivata AS cp ON c.id = cp.conversazione
-    JOIN foto AS f1 ON f1.id = u1.foto
-    JOIN foto AS f2 ON f2.id = u2.foto
-    LEFT JOIN utente AS u1 ON u1.id = cp.utente1
-    LEFT JOIN utente AS u2 ON u2.id = cp.utente2
+    JOIN utente AS u1 ON u1.id = cp.utente1
+    JOIN utente AS u2 ON u2.id = cp.utente2
+    LEFT JOIN foto AS f1 ON f1.id = u1.foto
+    LEFT JOIN foto AS f2 ON f2.id = u2.foto
     LEFT JOIN messaggio AS m ON m.conversazione = c.id
     WHERE cp.utente1 = ? OR cp.utente2 = ?
-    GROUP BY c.id, nome
+    GROUP BY c.id, nome, f1.foto, f2.foto
     `
 
 	queryConversazioniGruppo := `
@@ -52,7 +53,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
     JOIN foto AS f ON f.id = g.foto
     LEFT JOIN messaggio AS m ON m.conversazione = c.id
     WHERE ug.utente = ?
-    GROUP BY c.id, g.nome
+    GROUP BY c.id, g.nome, f.foto
     `
 
 	var conversazioni []Conversazione
@@ -65,8 +66,14 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 	var idsConversazioniPrivate []int
 	for rowsPrivate.Next() {
 		var conv Conversazione
-		if err := rowsPrivate.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &conv.Foto, &conv.IsGruppo); err != nil {
+		var foto sql.NullString
+		if err := rowsPrivate.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &foto, &conv.IsGruppo); err != nil {
 			return nil, fmt.Errorf("errore durante la lettura delle conversazioni private: %w", err)
+		}
+		if foto.Valid && foto.String != "" {
+			conv.Foto = &foto.String
+		} else {
+			conv.Foto = nil
 		}
 		if conv.Ultimo != nil && len(*conv.Ultimo) > 15 {
 			*conv.Ultimo = (*conv.Ultimo)[:15]
@@ -84,8 +91,14 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 	var idsConversazioniGruppo []int
 	for rowsGruppo.Next() {
 		var conv Conversazione
-		if err := rowsGruppo.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &conv.Foto, &conv.IsGruppo); err != nil {
+		var foto sql.NullString
+		if err := rowsGruppo.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &foto, &conv.IsGruppo); err != nil {
 			return nil, fmt.Errorf("errore durante la lettura delle conversazioni di gruppo: %w", err)
+		}
+		if foto.Valid && foto.String != "" {
+			conv.Foto = &foto.String
+		} else {
+			conv.Foto = nil
 		}
 		if conv.Ultimo != nil && len(*conv.Ultimo) > 15 {
 			*conv.Ultimo = (*conv.Ultimo)[:15]

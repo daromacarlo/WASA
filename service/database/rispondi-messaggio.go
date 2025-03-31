@@ -6,9 +6,6 @@ import (
 
 // ImpostaRisposta imposta l'attributo 'risposta' nel messaggio con l'ID del vecchio messaggio
 func (db *appdbimpl) ImpostaRisposta(idMessaggio int, idNuovoMessaggio int) error {
-	// Print the IDs for debugging
-	fmt.Printf("Impostando risposta per il messaggio con ID %d, nuova risposta con ID %d\n", idMessaggio, idNuovoMessaggio)
-
 	query := `
 		UPDATE messaggio
 		SET risposta = ?

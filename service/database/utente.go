@@ -12,7 +12,7 @@ func CreaTabellaUtente(db *sql.DB) error {
 		CREATE TABLE IF NOT EXISTS utente (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			nickname TEXT UNIQUE NOT NULL,
-			foto INTEGER NOT NULL,
+			foto,
 			FOREIGN KEY (foto) REFERENCES foto(id)
 		);`
 	_, err := db.Exec(query)
@@ -34,24 +34,20 @@ func (db *appdbimpl) CreaUtente(nicknamePassato string, idfotoPassata int) error
 	queryDiInserimento := `INSERT INTO utente (nickname, foto) VALUES (?,?);`
 
 	// Eseguiamo la query e otteniamo il risultato
-	result, err := db.c.Exec(queryDiInserimento, nicknamePassato, idfotoPassata)
+	_, err = db.c.Exec(queryDiInserimento, nicknamePassato, idfotoPassata)
 	if err != nil {
 		return fmt.Errorf("errore inaspettato durante la creazione dell'utente: %w", err)
 	}
-
-	// Otteniamo l'ID dell'ultimo elemento inserito
-	ultimoIdInserito, err := result.LastInsertId()
-	if err != nil {
-		return fmt.Errorf("errore inaspettato durante il recupero dell'ID dell'ultimo elemento inserito: %w", err)
-	}
-	fmt.Println("ID utente creato:", ultimoIdInserito)
 	return nil
 }
 
 func (db *appdbimpl) Login(nicknamePassato string) (string, error) {
 	esistenza, err := db.EsistenzaUtente(nicknamePassato)
 	if !esistenza {
-		return "", fmt.Errorf("l'utente non esiste, registrati.: %w", err)
+		db.CreaUtente(nicknamePassato, 0)
+	}
+	if err != nil {
+		return "", fmt.Errorf("errore durante la verifica dell'esistenza dell'utente")
 	}
 
 	return nicknamePassato, nil
@@ -180,7 +176,7 @@ func (db *appdbimpl) VediProfili(chiamante string) ([]Profilo, error) {
 		return nil, fmt.Errorf("l'utente %s non esiste", chiamante)
 	}
 
-	query := `SELECT u.nickname, f.percorso 
+	query := `SELECT u.nickname, f.foto
 			  FROM utente as u
 			  JOIN foto as f ON f.id = u.foto`
 

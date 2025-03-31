@@ -5,7 +5,6 @@
   
 		<div class="button-container">
 		  <button class="btn login-btn" @click="goToLogin">Accedi</button>
-		  <button class="btn register-btn" @click="goToRegister">Registrati</button>
 		</div>
 	  </div>
 	</div>
@@ -18,10 +17,6 @@
 	  goToLogin() {
 		// Naviga alla pagina di login
 		this.$router.push('/login');
-	  },
-	  goToRegister() {
-		// Naviga alla pagina di registrazione
-		this.$router.push('/register');
 	  },
 	},
   };
@@ -80,13 +75,5 @@
   .login-btn:hover {
 	background-color: #7dac10;
   }
-  
-  .register-btn {
-	background-color: #7dac10;
-	color: white;
-  }
-  
-  .register-btn:hover {
-	background-color: #7dac10;
-  }
+
   </style>

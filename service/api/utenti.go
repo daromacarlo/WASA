@@ -16,8 +16,6 @@ func (rt *_router) VediProfili(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	if len(lista) == 0 {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"message": "Nessun utente trovato"}`))
 		return
 	}
 	if err := json.NewEncoder(w).Encode(lista); err != nil {
@@ -50,7 +48,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	// Chiamata al database per creare la foto profilo
 	idFoto, err := rt.db.CreaFoto(input.Foto)
 	if err != nil {
-		http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Errore durante l'inserimento della foto profilo nella funzione setMyPhoto: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -80,14 +78,13 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 	if existe {
-		http.Error(w, "Il nome utente è già in uso", http.StatusConflict)
+		http.Error(w, "Il nickname scritto è già in uso", http.StatusConflict)
 		return
 	}
 
 	err = rt.db.ImpostaNome(UtenteChiamante, input.Nome)
 	if err != nil {
-		http.Error(w, "Errore durante l'aggiornamento del nome utente: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Errore durante l'aggiornamento del nome: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 }

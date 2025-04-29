@@ -86,7 +86,7 @@ func (db *appdbimpl) RispondiMessaggioTesto(utentePassato string, idConversazion
 	// Crea il nuovo messaggio testuale nel database e ottieni direttamente l'ID
 	idNuovoMessaggio, err := db.CreaMessaggioTestualeDB(utentePassato, idConversazionePassato, testoPassato)
 	if err != nil {
-		return fmt.Errorf("errore durante la creazione del messaggio testuale per l'utente '%s': %w", utentePassato, err)
+		return fmt.Errorf(" testuale per l'utente '%s': %w", utentePassato, err)
 	}
 
 	// Imposta il nuovo messaggio come risposta al messaggio precedente
@@ -109,7 +109,7 @@ func (db *appdbimpl) RispondiMessaggioFoto(utentePassato string, idConversazione
 	// Crea il nuovo messaggio con foto nel database e ottieni direttamente l'ID
 	idNuovoMessaggio, err := db.CreaMessaggioFotoDB(utentePassato, idConversazionePassato, fotoPassato)
 	if err != nil {
-		return fmt.Errorf("errore durante la creazione del messaggio foto per l'utente '%s': %w", utentePassato, err)
+		return fmt.Errorf(" foto per l'utente '%s': %w", utentePassato, err)
 	}
 
 	// Imposta il nuovo messaggio come risposta al messaggio precedente

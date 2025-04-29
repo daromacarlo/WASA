@@ -40,22 +40,21 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 		idFoto, err := rt.db.CreaFoto(input.Foto)
 		if err != nil {
-			http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Errore durante l'inserimento della foto del messaggio: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		_, err = rt.db.CreaMessaggioFotoDB(UtenteChiamante, Conversazione, idFoto)
 		if err != nil {
-			http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, " durante l'inserimento del messaggio: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("Foto inviata con successo "))
 		return
 	}
 
 	_, err = rt.db.CreaMessaggioTestualeDB(UtenteChiamante, Conversazione, input.Testo)
 	if err != nil {
-		http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Errore durante l'inserimento del messaggio nella tabella messaggi: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -83,7 +82,6 @@ func (rt *_router) EliminaMessaggio(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	w.Write([]byte("Messaggio eliminato con successo "))
 }
 
 func (rt *_router) commentMessagge(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -115,15 +113,15 @@ func (rt *_router) commentMessagge(w http.ResponseWriter, r *http.Request, ps ht
 
 func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	UtenteChiamante := ps.ByName("utente")
-	IDCommentostr := ps.ByName("commento")
+	IDMessaggiostr := ps.ByName("messaggio")
 
-	IDCommento, err := strconv.Atoi(IDCommentostr)
+	IDMessaggio, err := strconv.Atoi(IDMessaggiostr)
 	if err != nil {
 		http.Error(w, "ID commento non valido", http.StatusBadRequest)
 		return
 	}
 
-	err = rt.db.EliminaCommento(UtenteChiamante, IDCommento)
+	err = rt.db.EliminaCommento(UtenteChiamante, IDMessaggio)
 	if err != nil {
 		http.Error(w, "Errore durante l'eliminazione del commento "+err.Error(), http.StatusInternalServerError)
 		return

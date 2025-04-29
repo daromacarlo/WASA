@@ -44,7 +44,10 @@ func (db *appdbimpl) CreaUtente(nicknamePassato string, idfotoPassata int) error
 func (db *appdbimpl) Login(nicknamePassato string) (string, error) {
 	esistenza, err := db.EsistenzaUtente(nicknamePassato)
 	if !esistenza {
-		db.CreaUtente(nicknamePassato, 0)
+		err = db.CreaUtente(nicknamePassato, 0)
+		if err != nil {
+			return "", fmt.Errorf("errore durante la creazione del nuovo utente a seguito della sua non esistenza nel database")
+		}
 	}
 	if err != nil {
 		return "", fmt.Errorf("errore durante la verifica dell'esistenza dell'utente")
@@ -184,7 +187,6 @@ func (db *appdbimpl) VediProfili(chiamante string) ([]Profilo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero dei profili utente: %w", err)
 	}
-	defer rows.Close()
 
 	// Array per memorizzare i profili utente
 	var userProfiles []Profilo
@@ -204,11 +206,6 @@ func (db *appdbimpl) VediProfili(chiamante string) ([]Profilo, error) {
 			Nickname: nickname,
 			Foto:     foto,
 		})
-	}
-
-	// Controlla se ci sono errori durante l'iterazione
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("errore durante l'iterazione del risultato: %w", err)
 	}
 
 	return userProfiles, nil

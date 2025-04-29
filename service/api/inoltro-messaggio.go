@@ -7,7 +7,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// funzione per inoltrare messaggi ad un gruppo
+// Funzione per inoltrare messaggi ad un gruppo
 func (rt *_router) forwardMessagge(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	UtenteChiamante := ps.ByName("utente")
 	NuovaConversazioneStr := ps.ByName("nuovachat")
@@ -24,10 +24,7 @@ func (rt *_router) forwardMessagge(w http.ResponseWriter, r *http.Request, ps ht
 	}
 	err = rt.db.InoltraMessaggio(UtenteChiamante, NuovaConversazione, IdMessaggio)
 	if err != nil {
-		http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Errore durante la creazione del messaggio durante l'inoltro del messaggio: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Messaggio inoltrato con successo "))
-	return
 }

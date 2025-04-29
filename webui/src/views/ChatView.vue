@@ -272,7 +272,7 @@ export default {
 
     getReactionName(reaction) {
       const names = {
-        "❤️": "Mi piace",
+        "❤️":  "Mi piace",
         "😂": "Divertente",
         "🥺": "Carino",
         "👍": "OK",
@@ -322,6 +322,7 @@ export default {
         console.error("Errore durante l'eliminazione del commento:", error);
         alert(error.response?.data?.message || "Si è verificato un errore durante l'eliminazione del commento");
       }
+      this.$router.go()
     },
 
     async toggleReaction(reaction) {
@@ -660,7 +661,7 @@ export default {
         
         await this.$axios.put(
           `/wasachat/${currentUser}/chats/gruppi/${chatId}/aggiungi`,
-          { utente: nickname.trim() }
+          { utente_da_aggiungere: nickname.trim() }
         );
         
         alert(`${nickname} è stato aggiunto al gruppo con successo!`);

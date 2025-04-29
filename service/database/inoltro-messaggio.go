@@ -33,7 +33,7 @@ func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_
 	queryDiInserimento := `INSERT INTO messaggio (testo, foto, conversazione, autore, tempo, inoltrato, risposta) VALUES (?, ?, ?, ?, ?, ?, ?);`
 	result, err := db.c.Exec(queryDiInserimento, messaggioOriginale.Testo, messaggioOriginale.Foto, conversazione_Passata, utente_Passato, time.Now(), true, nil)
 	if err != nil {
-		return fmt.Errorf("errore durante la creazione del messaggio: %w", err)
+		return fmt.Errorf(" modificato: %w", err)
 	}
 	lastInsertID, err := result.LastInsertId()
 	if err != nil {

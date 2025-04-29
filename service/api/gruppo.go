@@ -33,7 +33,7 @@ func (rt *_router) CreaGruppo(w http.ResponseWriter, r *http.Request, ps httprou
 
 	idFoto, err := rt.db.CreaFoto(input.Foto)
 	if err != nil {
-		http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Errore durante l'inserimento della foto del gruppo: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -43,8 +43,6 @@ func (rt *_router) CreaGruppo(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Gruppo creato con successo "))
 }
 
 // test
@@ -60,7 +58,7 @@ curl -X POST http://localhost:3000/wasachat/:utente/gruppi \
 // funzione che serve ad aggiungere un utente ad un gruppo, se l'utente è già presente nel gruppo non verrà aggiunto
 func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
-		Utente string `json:"utente"`
+		Utente string `json:"utente_da_aggiungere"`
 	}
 	UtenteChiamante := ps.ByName("utente")
 	idConversazioneStr := ps.ByName("chat")
@@ -87,9 +85,6 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "Errore durante l'aggiunta dell'utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Utente aggiunto con successo "))
 }
 
 // test
@@ -115,8 +110,6 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "Errore durante la rimozione dell'utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write([]byte("Utente rimosso con successo "))
 }
 
 // Funzione per impostare una nuova foto al gruppo
@@ -138,7 +131,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 
 	idFoto, err := rt.db.CreaFoto(input.Foto)
 	if err != nil {
-		http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Errore durante l'inserimento della foto del gruppo: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -153,8 +146,6 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		http.Error(w, "Errore durante la creazione dell'utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write([]byte("Gruppo modificato con successo "))
 }
 
 // Funzione per impostare un nome ad un gruppo
@@ -183,8 +174,6 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 		http.Error(w, "Errore durante l'aggiornamento del nome del gruppo: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write([]byte("Gruppo modificato con successo "))
 }
 
 // IsGroupHandler verifica se la chat è un gruppo

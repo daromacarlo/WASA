@@ -92,7 +92,7 @@ export default {
         try {
           this.loading = true;
           await this.$axios.post(
-            `/wasachat/${nickname}/inoltra/${destinationChatId}/${messageId}`
+            `/wasachat/${nickname}/inoltro/${destinationChatId}/messaggi/${messageId}`
           );
           
           // Ritorna automaticamente alla chat di origine dopo l'inoltro

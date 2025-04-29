@@ -22,10 +22,10 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.PUT("/wasachat/:utente/nome", rt.setMyUserName)
 	rt.router.GET("/wasachat/:utente/utenti", rt.VediProfili) //funzione di test
 	rt.router.GET("/wasachat/:utente/chats", rt.getMyConversation)
-	rt.router.DELETE("/wasachat/:utente/messaggi/:commento", rt.deleteComment)
+	rt.router.DELETE("/wasachat/:utente/messaggi/:messaggio", rt.deleteComment)
 	rt.router.POST("/wasachat/:utente/messaggi/:messaggio", rt.commentMessagge)
 	rt.router.POST("/wasachat/:utente/risposta/chats/:chat/:idMessaggio", rt.RispondiAMessaggio)
-	rt.router.POST("/wasachat/:utente/inoltra/:nuovachat/:messaggio", rt.forwardMessagge)
+	rt.router.POST("/wasachat/:utente/inoltro/:nuovachat/messaggi/:messaggio", rt.forwardMessagge)
 	rt.router.POST("/wasachat/:utente/conversazioniprivate", rt.CreaConversazionePrivata)
 	return rt.router
 }

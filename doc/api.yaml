@@ -1,33 +1,36 @@
 openapi: 3.0.3
 info:
-  title: WASAtext API specification
+  title: Specifica API WASAtext
   description: |-
     Questo documento OpenApi descrive le API necessarie a WASAText.
-  version: "1"
-  
-  
+  version: "1.0.0"
+tags:
+  - name: Autenticazione
+    description: Operazioni di autenticazione e gestione utente
+  - name: Schermata Principale
+    description: Operazioni relative alla schermata principale
+  - name: Profilo Utente
+    description: Operazioni di gestione del profilo utente
+  - name: Chat
+    description: Operazioni relative alle chat e ai messaggi
+  - name: Gestione Gruppi
+    description: Operazioni di gestione dei gruppi
+
 paths:
   /wasachat:
     post:
-      tags: ["Login"]
-      summary: Logs in the user
+      tags: ["Autenticazione"]
+      summary: Login utente
       description: |-
-        If the user does not exist, it will be created,
-        and an identifier is returned.
-        If the user exists, the user identifier is returned.
-      operationId: doLogin
+        Se l'utente non esiste, viene creato e viene restituito un identificatore.
+        Se l'utente esiste, viene restituito il suo identificatore.
+      operationId: effettuaLogin
       requestBody:
-        description: User details
+        description: Dettagli utente
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: "Carlo"
-                  minLength: 1
-                  description: nome utente
+              $ref: '#/components/schemas/RichiestaLogin'
         required: true
       responses:
         '201':
@@ -35,584 +38,760 @@ paths:
         '400':
           description: Errore generico lato utente
         '404':
-          description: Nome utente non esiste nel database, accesso non effettuato
+          description: Nome utente non esiste nel database
         '500':
-          description: Errore interno del server. Riprovare più tardi.
-                        
-  /wasachat/{utente}/chats: 
+          description: Errore interno del server
+
+  /wasachat/{utente}/chats:
     parameters:
     - name: utente
       in: path
       required: true
-      description: è il nickname dell'utente
+      description: Nickname dell'utente
       schema:
         type: string
-        example: Carlo
+        example: "Carlo"
+        minLength: 1
+        maxLength: 50
+        pattern: '^[a-zA-Z0-9_]+$'
     get:
-      tags: ["Schermata principale"]
+      tags: ["Schermata Principale"]
       summary: "Visualizza conversazioni"
       description: |-
-        Restituisce al client la lista delle sue conversazioni
+        Restituisce la lista delle conversazioni dell'utente
         in ordine cronologico inverso.
-      operationId: getMyConversation
+      operationId: ottieniConversazioni
       responses:
         "200":
           description: Schermata principale visualizzata correttamente
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  messages:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        chat_id:
-                          type: integer
-                          example: 21
-                        nome:
-                          type: string
-                          example: "informatica 2024-2025"
-                        foto:
-                          type: string
-                          format: binary
-                          description: "Foto profilo utente/foto gruppo."
-                        time:
-                          type: string
-                          format: date-time
-                          description: "Data e ora dell'ultimo messaggio."
-                        ultimosnip:
-                          type: string
-                          description: "Il contenuto del messaggio come testo, se l'ultimo messaggio è una foto viene scritto 'foto'."
-                          example: "AE"
+                $ref: '#/components/schemas/RispostaConversazioni'
+              example:
+                chats:
+                  - chat_id: 21
+                    nome: "informatica 2024-2025"
+                    foto: "base64encodedimage"
+                    time: "2025-03-15T14:30:00Z"
+                    ultimosnip: "AE"
+                    isgruppo: false
         "400":
-          description: Errore lato client; dice che l'array non deve essere opzionale
-        '404':
-          description: Nome utente non esiste nel database
-        '500':
-          description: Errore interno del server. Riprovare più tardi.
-
+          description: Errore lato client
+        "404":
+          description: Utente non trovato
+        "500":
+          description: Errore interno del server
   /wasachat/{utente}/nome:
     parameters:
     - name: utente
       in: path
       required: true
-      description: è il nickname dell'utente
+      description: Nickname dell'utente
       schema:
         type: string
-        example: Carlo
+        example: "Carlo"
+        minLength: 1
+        maxLength: 50
+        pattern: '^[a-zA-Z0-9_]+$'
     put:
-      tags: ["Modifica Profilo utente"]
-      summary: settare user name
+      tags: ["Profilo Utente"]
+      summary: Modifica nome utente
       description: |-
-        Se l'user name non esiste, viene creato. Se esiste già un user name, viene sovrascritto se diverso dal precedente.
-      operationId: setMyUserName
+        Imposta o modifica il nome utente.
+      operationId: modificaNomeUtente
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                nome:
-                  type: string
-                  minLength: 1
-                  example: "daromacarlo"
+              $ref: '#/components/schemas/RichiestaNomeUtente'
+        required: true
       responses:
         "200":
-          description: Il nuovo username è uguale al vecchio, nessuna modifica applicata.
-        "201":
-          description: Il nuovo username è stato settato.
+          description: Nome aggiornato con successo
         "400":
-          description: Errore lato client.
+          description: Errore lato client
         "404":
-          description: L'utente non esiste.
-        "406":
-          description: Nome utente già in uso
+          description: Utente non trovato
         "500":
-          description: Errore lato server.
-          
+          description: Errore interno del server
   /wasachat/{utente}/foto:
     parameters:
     - name: utente
       in: path
       required: true
-      description: è il nickname dell'utente
+      description: Nickname dell'utente
       schema:
         type: string
-        example: Carlo
+        example: "Carlo"
+        minLength: 1
+        maxLength: 50
+        pattern: '^[a-zA-Z0-9_]+$'
     put:
-      tags: ["Modifica Profilo utente"]
-      summary: settare foto profilo
+      tags: ["Profilo Utente"]
+      summary: Modifica foto profilo
       description: |-
-        Se l'utente ha già una foto profilo, questa viene aggiornata con quella nuova fornita, altrimenti viene settata la nuova foto.
-      operationId: setMyPhoto
+        Imposta o modifica la foto profilo dell'utente.
+      operationId: modificaFotoProfilo
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                foto:
-                  type: string
-                  example: "/home/foto/fotobellabellissima.png"
+              $ref: '#/components/schemas/RichiestaFotoProfilo'
+        required: true
       responses:
-        "201":
-          description: La nuova foto è stata settata.
+        "200":
+          description: Foto aggiornata con successo
         "400":
-          description: Errore lato client.
+          description: Errore lato client
         "404":
-          description: L'utente non esiste.
+          description: Utente non trovato
         "500":
-          description: Errore lato server.
-          
+          description: Errore interno del server
+
   /wasachat/{utente}/chats/gruppi/{chat}/aggiungi:
     parameters:
       - name: utente
         in: path
         required: true
-        description: è il nickname dell'utente
+        description: Nickname dell'utente
         schema:
           type: string
-          example: Carlo
+          example: "Carlo"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
       - name: chat
         in: path
         required: true
-        description: è l'id del gruppo
+        description: ID del gruppo
         schema:
           type: integer
           example: 1
+          minimum: 1
+          maximum: 999999999999
     post:
-      tags: ["Chat"]
-      summary: 
-        aggiunge l'utente a un gruppo
+      tags: ["Gestione Gruppi"]
+      summary: Aggiungi utente al gruppo
       description: |-
-        aggiunge l'utente al gruppo selezionato
-      operationId:
-        addToGroup
+        Aggiunge un utente al gruppo specificato.
+      operationId: aggiungiUtenteAlGruppo
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                utente:
-                  type: string
-                  example: "Luigi"
+              $ref: '#/components/schemas/RichiestaAggiungiUtente'
+        required: true
       responses:
-        "200": 
-          description:
-            utente già presente nel gruppo, non sono state apportate modifiche.
-        "201":
-          description: utente aggiunto al gruppo.
+        "200":
+          description: Utente aggiunto con successo
         "400":
-          description: Errore lato client.
+          description: Errore lato client
         "404":
-          description: L'utente non esiste chiamante o l'utente da aggiungere non esiste.
-        "406":
-          description: La chat passata non esiste o non è un gruppo
+          description: Utente o gruppo non trovato
         "500":
-          description: Errore lato server.
-            
+          description: Errore interno del server
+
   /wasachat/{utente}/chats/{chat}:
     parameters:
       - name: utente
         in: path
         required: true
-        description: È il nickname dell'utente
+        description: Nickname dell'utente
         schema:
           type: string
-          example: Carlo
+          example: "Carlo"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
       - name: chat
         in: path
         required: true
-        description: È l'ID della chat o del gruppo
+        description: ID della chat
         schema:
           type: integer
           example: 1
-    delete:
-      tags: ["Chat"]
-      summary: uscire dal gruppo
-      description: uscire dal gruppo selezionato
-      operationId: leaaveGroup
-      responses:
-        "200":
-          description: sei uscito correttamente dal gruppo
-        "400":
-          description: uscita dal gruppo non riuscita a causa di un errore lato client
-        "404":
-          description: l'utente o il gruppo non esiste
-        "406":
-          description: la chat passata non è un gruppo o l'utente non è coinvolto in questa chat
-        "500":
-          description: uscita dal gruppo non riuscita a causa di un errore lato server
+          minimum: 1
+          maximum: 999999999999
     get:
       tags: ["Chat"]
-      summary: Restituisce i messaggi della chat
+      summary: Ottieni messaggi chat
       description: |-
-        Restituisce i messaggi scambiati nella chat in ordine cronologico inverso.
-      operationId: getConversation
+        Restituisce i messaggi della chat specificata.
+      operationId: ottieniMessaggiChat
       responses:
         "200":
-          description: Chat restituita correttamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  messages:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        message_id:
-                          type: integer
-                          description: "ID univoco del messaggio."
-                          example: 12345
-                        autore:
-                          type: string
-                          description: "Nickname dell'autore del messaggio."
-                          example: "Luigi"
-                        text:
-                          type: string
-                          description: "Il contenuto del messaggio come testo."
-                          example: "Sei libero sabato?"
-                        foto:
-                          type: string
-                          description: "Percorso o URL dell'immagine allegata al messaggio."
-                          example: "/home/foto/messaggio.png"
-                        time:
-                          type: string
-                          format: date-time
-                          description: "Timestamp del messaggio nel formato ISO 8601."
-                          example: "2025-03-15T14:30:00Z"
-                        ricevuto:
-                          type: boolean
-                          description: "Indica se il messaggio è stato ricevuto dal destinatario."
-                          example: true
-                        letto:
-                          type: boolean
-                          description: "Indica se il messaggio è stato letto dal destinatario."
-                          example: false
-                        commenti:
-                          type: array
-                          description: "Lista dei commenti associati al messaggio."
-                          items:
-                            type: object
-                            properties:
-                              comment_id:
-                                type: integer
-                                description: "ID univoco del commento."
-                                example: 56789
-                              autore:
-                                type: string
-                                description: "Nickname dell'autore del commento."
-                                example: "Marco"
-                              reazione:
-                                type: string
-                                description: "Tipo di reazione o emoji associata al commento."
-                                example: "👍"
-                        inoltrato:
-                          type: boolean
-                          description: "Indica se il messaggio è stato inoltrato da un'altra conversazione."
-                          example: true
-                        risposta:
-                          type: integer
-                          description: "ID del messaggio originale a cui si sta rispondendo."
-                          example: 9876
+          description: Messaggi restituiti con successo
         "400":
-          description: Errore lato client (richiesta errata o parametri mancanti).
+          description: Errore lato client
         "404":
-          description: L'utente o la chat non esistono.
+          description: Chat non trovata
         "500":
-          description: Errore lato server.
+          description: Errore interno del server
     post:
       tags: ["Chat"]
-      summary: "Invia un messaggio"
-      description: "Invia un messaggio di testo o foto nella chat selezionata."
-      operationId: sendMessage
+      summary: Invia messaggio
+      description: |-
+        Invia un messaggio nella chat specificata.
+      operationId: inviaMessaggio
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                testo:
-                  type: string
-                  description: "Il contenuto del messaggio come testo."
-                  example: "Ti va di uscire insieme questo venerdì?"
-                foto:
-                  type: string
-                  description: "Percorso file della foto."
-                  example: "/home/foto/bellafoto.png"
+              $ref: '#/components/schemas/RichiestaMessaggio'
+        required: true
       responses:
         "200":
-          description: "Messaggio inviato con successo."
+          description: Messaggio inviato con successo
         "400":
-          description: "Il messaggio non è stato inviato a causa di un errore lato cliente."
+          description: Errore lato client
         "404":
-          description: "La chat non esiste, l'utente non esiste, o l'utente non è coinvolto nella chat."
+          description: Chat non trovata
         "500":
-          description: "Il messaggio non è stato inviato a causa di un errore lato server."
+          description: Errore interno del server
 
-  /wasachat/{utente}/inoltra/{nuovachat}/{messaggio}:
+    delete:
+      tags: ["Gestione Gruppi"]
+      summary: Esci dal gruppo
+      description: |-
+        L'utente esce dal gruppo specificato.
+      operationId: esciDalGruppo
+      responses:
+        "200":
+          description: Uscita dal gruppo avvenuta con successo
+        "400":
+          description: Errore lato client
+        "404":
+          description: Gruppo non trovato
+        "500":
+          description: Errore interno del server
+
+  /wasachat/{utente}/inoltro/{nuovachat}/messaggi/{messaggio}:
     parameters:
       - name: utente
         in: path
         required: true
-        description: è il nickname del chiamante
+        description: Nickname dell'utente
         schema:
           type: string
-          example: Carlo
+          example: "Carlo"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
       - name: nuovachat
         in: path
         required: true
-        description: è l'id della chat in cui si vuole inoltrare il messaggio
+        description: ID della chat di destinazione
         schema:
-          type: number
+          type: integer
           example: 4235782
+          minimum: 1
+          maximum: 99999999999
       - name: messaggio
         in: path
         required: true
-        description: è l'id del messaggio da inviare
+        description: ID del messaggio da inoltrare
         schema:
-          type: number
+          type: integer
           example: 4212
+          minimum: 1
+          maximum: 99999999999
     post:
       tags: ["Chat"]
-      summary:
-        inoltra il messaggio 
+      summary: Inoltra messaggio
       description: |-
-        invia nella chat selezionata il messaggio selezionato
-      operationId:
-        forwardMessage
+        Inoltra un messaggio a un'altra chat.
+      operationId: inoltraMessaggio
       responses:
-        "200": 
-          description: 
-            messaggio inoltrato
-        "400": 
-          description:
-            messaggio non inoltrato causa problematiche lato client
+        "200":
+          description: Messaggio inoltrato con successo
+        "400":
+          description: Errore lato client
         "404":
-          description:
-            l'utente non esiste o la chat non esiste
-        "406":
-          description:
-            l'utente non può accedere al messaggio passato
+          description: Messaggio o chat non trovati
         "500":
-          description:
-            messaggio non inoltrato causa problematiche lato server
-            
+          description: Errore interno del server
+
   /wasachat/{utente}/chats/{chat}/messaggi/{messaggio}:
     parameters:
     - name: utente
       in: path
       required: true
-      description: è il nickname del chiamante
+      description: Nickname dell'utente
       schema:
         type: string
-        example: Carlo
+        example: "Carlo"
+        minLength: 1
+        maxLength: 50
+        pattern: '^[a-zA-Z0-9_]+$'
     - name: chat
       in: path
       required: true
-      description: è l'id della chat
+      description: ID della chat
       schema:
-        type: number
+        type: integer
         example: 4235782
+        minimum: 1
+        maximum: 99999999999
     - name: messaggio
       in: path
       required: true
-      description: è l'id del messaggio da inviare
+      description: ID del messaggio
       schema:
-        type: number
+        type: integer
         example: 4212
+        minimum: 1
+        maximum: 99999999999
     delete:
       tags: ["Chat"]
-      summary:
-        elimina il messaggio
-      description:
-        elimina il messaggio selezionato
-      operationId: 
-        deleteMessage
+      summary: Elimina messaggio
+      description: |-
+        Elimina un messaggio dalla chat.
+      operationId: eliminaMessaggio
       responses:
         "200":
-          description: messaggio eliminato correttamente
-        "400": 
-          description:
-            messaggio non eliminato causa problematiche lato client
+          description: Messaggio eliminato con successo
+        "400":
+          description: Errore lato client
         "404":
-          description:
-            l'utente non esiste, la chat o il messaggio non esiste
-        "406":
-          description:
-            l'utente non può accedere al messaggio passato
+          description: Messaggio non trovato
         "500":
-          description:
-            messaggio non eliminato causa problematiche lato server
-            
+          description: Errore interno del server
+
   /wasachat/{utente}/messaggi/{messaggio}:
     parameters:
     - name: utente
       in: path
       required: true
-      description: è il nickname del chiamante
+      description: Nickname dell'utente
       schema:
         type: string
-        example: Carlo
+        example: "Carlo"
+        minLength: 1
+        maxLength: 50
+        pattern: '^[a-zA-Z0-9_]+$'
     - name: messaggio
       in: path
       required: true
-      description: è l'id del messaggio a cui rispondere
+      description: ID del messaggio
       schema:
-        type: number
+        type: integer
         example: 4212
+        minimum: 1
+        maximum: 99999999999
     put:
       tags: ["Chat"]
-      summary: commentare messaggio
-      description: aggiungere un commento al messaggio selezionato
-      operationId: CommentMessage
+      summary: Commenta messaggio
+      description: |-
+        Aggiunge un commento a un messaggio.
+      operationId: commentaMessaggio
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                contenuto:
-                  oneOf:
-                  - type: string
-                    description: "Il contenuto del commento come testo"
-                    example: "👍"
-                  - type: string
-                    format: binary
-                    description: "Il contenuto del messaggio come immagine (in formato binario)"
-      responses:
-        "200": 
-          description: messaggio commentato
-        "400": 
-          description:
-            messaggio non commentato causa problematiche lato client
-        "404":
-          description:
-            l'utente non esiste, la chat o il messaggio non esiste
-        "406":
-          description:
-            l'utente non può accedere al messaggio passato
-        "500":
-          description:
-            messaggio non commentato causa problematiche lato server
-            
-  /wasachat/{utente}/messaggi/{commento}:
-    parameters:
-    - name: utente
-      in: path
-      required: true
-      description: è il nickname del chiamante
-      schema:
-        type: string
-        example: Carlo
-    - name: commento
-      in: path
-      required: true
-      description: è l'id del commento da eliminare
-      schema:
-        type: number
-        example: 4212
-    delete:
-      tags: ["Chat"]
-      summary: "Rimuovere un commento da un messaggio"
-      description: "Elimina il commento associato al messaggio selezionato."
-      operationId: deleteComment
+              $ref: '#/components/schemas/RichiestaCommento'
+        required: true
       responses:
         "200":
-          description: "Commento eliminato con successo."
+          description: Commento aggiunto con successo
         "400":
-          description: "Errore nella richiesta (problema lato client)."
+          description: Errore lato client
         "404":
-          description: "Commento o messaggio non trovato."
-        "406":
-          description: "L'utente non può accedere al commento"
+          description: Messaggio non trovato
         "500":
-          description: "Errore interno del server durante l'eliminazione del commento."
+          description: Errore interno del server
           
+    delete:
+      tags: ["Chat"]
+      summary: Elimina commento
+      description: |-
+        Elimina un commento da un messaggio.
+      operationId: eliminaCommento
+      responses:
+        "200":
+          description: Commento eliminato con successo
+        "400":
+          description: Errore lato client
+        "404":
+          description: Commento non trovato
+        "500":
+          description: Errore interno del server
+
   /wasachat/{utente}/gruppi/{chat}/nome:
     parameters:
     - name: utente
       in: path
       required: true
-      description: è il nickname del chiamante
+      description: Nickname dell'utente
       schema:
         type: string
-        example: Carlo
+        example: "Carlo"
+        minLength: 1
+        maxLength: 50
+        pattern: '^[a-zA-Z0-9_]+$'
     - name: chat
       in: path
       required: true
-      description: è l'id della chat a cui cambiare il nome
+      description: ID del gruppo
       schema:
-        type: number
+        type: integer
         example: 4212
+        minimum: 1
+        maximum: 99999999999
     put:
-      tags: ["Modifica gruppo"]
-      summary: Settare nome gruppo
+      tags: ["Gestione Gruppi"]
+      summary: Modifica nome gruppo
       description: |-
-        Se il gruppo ha già un nome, questo viene aggiornato con quello nuovo se il nome è differente dal precedente, 
-        altrimenti viene settato il nuovo nome.
-      operationId: setGroupName
+        Modifica il nome del gruppo specificato.
+      operationId: modificaNomeGruppo
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                nome:
-                  type: string
-                  example: "informatica 2024-2025"
+              $ref: '#/components/schemas/RichiestaNomeGruppo'
+        required: true
       responses:
         "200":
-          description: Nome gruppo settato.
-        "201":
-          description: Il nome è uguale al precedente, non sono state apportate modifiche.
+          description: Nome gruppo modificato con successo
         "400":
-          description: Errore lato client.
+          description: Errore lato client
         "404":
-          description: La chat non esiste o l'utente non è coinvolto
-        "406":
-          description: La chat passata non è un gruppo
+          description: Gruppo non trovato
         "500":
-          description: Errore lato server.
-          
-  /wasachat/{groupid}/impostazioni/foto:  
+          description: Errore interno del server
+
+  /wasachat/{groupid}/impostazioni/foto:
     parameters:
     - name: groupid
       in: path
       required: true
-      description: è l'id del gruppo
+      description: ID del gruppo
       schema:
-        type: number
+        type: integer
         example: 2
+        minimum: 1
+        maximum: 99999999999
     put:
-      tags: ["Modifica gruppo"]
-      summary: Settare foto gruppo
+      tags: ["Gestione Gruppi"]
+      summary: Modifica foto gruppo
       description: |-
-        Se il gruppo ha già una foto profilo, questa viene aggiornata con quella nuova fornita, altrimenti viene settata la nuova foto.
-      operationId: setGroupPhoto
+        Modifica la foto del gruppo specificato.
+      operationId: modificaFotoGruppo
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                foto:
-                  type: string
-                  description: il percorso della nuova foto.
-                  example: "/home/foto/fotogruppo.png"
+              $ref: '#/components/schemas/RichiestaFotoGruppo'
+        required: true
       responses:
         "200":
-          description: Foto gruppo settata.
+          description: Foto gruppo modificata con successo
         "400":
-          description: Errore lato client.
+          description: Errore lato client
         "404":
-          description: La chat non esiste o l'utente non è coinvolto
-        "406":
-          description: La chat passata non è un gruppo
+          description: Gruppo non trovato
         "500":
-          description: Errore lato server.
+          description: Errore interno del server
+
+components:
+  schemas:
+    RichiestaLogin:
+      type: object
+      description: Dati richiesti per il login
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Nome utente per il login
+          example: "Carlo"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
+
+    RispostaLogin:
+      type: object
+      description: Risposta per login avvenuto con successo
+      properties:
+        user_id:
+          type: string
+          description: Identificativo univoco dell'utente
+          example: "user123"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_-]+$'
+        session_token:
+          type: string
+          description: Token di sessione per l'autenticazione
+          example: "abc123xyz"
+          minLength: 10
+          maxLength: 255
+
+    RispostaConversazioni:
+      type: object
+      description: Elenco delle conversazioni dell'utente
+      required:
+        - chats
+      properties:
+        chats:
+          type: array
+          description: Lista delle conversazioni
+          minItems: 0
+          maxItems: 1000
+          items:
+            $ref: '#/components/schemas/RiepilogoConversazione'
+
+    RiepilogoConversazione:
+      type: object
+      description: Dettagli di una singola conversazione
+      properties:
+        chat_id:
+          type: integer
+          description: ID univoco della chat
+          example: 21
+          minimum: 1
+          maximum: 999999999999
+        nome:
+          type: string
+          description: Nome della chat o gruppo
+          example: "informatica 2024-2025"
+          minLength: 1
+          maxLength: 100
+          pattern: '^[a-zA-Z0-9_ -]+$'
+        foto:
+          type: string
+          format: binary
+          description: Immagine del profilo o foto del gruppo in formato base64
+          minLength: 1
+          maxLength: 1048576
+        time:
+          type: string
+          format: date-time
+          description: Data e ora dell'ultimo messaggio in formato ISO 8601
+          minLength: 20
+          maxLength: 30
+        ultimosnip:
+          type: string
+          description: Anteprima dell'ultimo messaggio
+          example: "AE"
+          minLength: 0
+          maxLength: 1000
+          pattern: '^[\s\S]*$'
+        isgruppo:
+          type: boolean
+          description: Indica se si tratta di una chat di gruppo
+          example: false
+
+    RichiestaNomeUtente:
+      type: object
+      description: Richiesta per modificare il nome utente
+      required:
+        - nome
+      properties:
+        nome:
+          type: string
+          description: Nuovo nome utente
+          example: "daromacarlo"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
+
+    RichiestaFotoProfilo:
+      type: object
+      description: Richiesta per modificare la foto profilo
+      required:
+        - foto
+      properties:
+        foto:
+          type: string
+          description: Contenuto base64 della nuova foto
+          example: "dadasjbdajsvdjashvfjavfhvasja--"
+          minLength: 1
+          maxLength: 1048576
+
+    RichiestaAggiungiUtente:
+      type: object
+      description: Richiesta per aggiungere un utente a un gruppo
+      required:
+        - utente_da_aggiungere
+      properties:
+        utente_da_aggiungere:
+          type: string
+          description: Nickname dell'utente da aggiungere
+          example: "Luigi"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
+
+    RispostaMessaggiChat:
+      type: object
+      description: Elenco dei messaggi in una chat
+      required:
+        - messages
+      properties:
+        messages:
+          type: array
+          description: Lista dei messaggi
+          minItems: 0
+          maxItems: 1000
+          items:
+            $ref: '#/components/schemas/Messaggio'
+
+    Messaggio:
+      type: object
+      description: Dettagli di un singolo messaggio
+      required:
+        - message_id
+        - autore
+        - time
+        - ricevuto
+        - letto
+        - commenti
+        - inoltrato
+      properties:
+        message_id:
+          type: integer
+          description: ID univoco del messaggio
+          example: 12345
+          minimum: 1
+          maximum: 99999999999
+        autore:
+          type: string
+          description: Nickname dell'autore del messaggio
+          example: "Luigi"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
+        text:
+          type: string
+          description: Contenuto testuale del messaggio
+          example: "Sei libero sabato?"
+          minLength: 1
+          maxLength: 1000
+          pattern: '^[\s\S]*$'
+        foto:
+          type: string
+          description: Percorso o contenuto base64 dell'immagine allegata
+          example: "/home/foto/messaggio.png"
+          minLength: 1
+          maxLength: 1048576
+        time:
+          type: string
+          format: date-time
+          description: Timestamp del messaggio in formato ISO 8601
+          example: "2025-03-15T14:30:00Z"
+          minLength: 20
+          maxLength: 30
+        ricevuto:
+          type: boolean
+          description: Indica se il messaggio è stato ricevuto
+          example: true
+        letto:
+          type: boolean
+          description: Indica se il messaggio è stato letto
+          example: false
+        commenti:
+          type: array
+          description: Lista dei commenti associati al messaggio
+          minItems: 0
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/Commento'
+        inoltrato:
+          type: boolean
+          description: Indica se il messaggio è stato inoltrato
+          example: true
+        risposta:
+          type: integer
+          description: ID del messaggio a cui si sta rispondendo
+          example: 9876
+          minimum: 1
+          maximum: 99999999999
+
+    RichiestaMessaggio:
+      type: object
+      description: Richiesta per inviare un messaggio
+      properties:
+        testo:
+          type: string
+          description: Contenuto testuale del messaggio
+          example: "Ti va di uscire insieme questo venerdì?"
+          minLength: 1
+          maxLength: 1000
+          pattern: '^[\s\S]*$'
+        foto:
+          type: string
+          description: Percorso o contenuto base64 dell'immagine da allegare
+          example: "/home/foto/bellafoto.png"
+          minLength: 1
+          maxLength: 1048576
+
+    RichiestaCommento:
+      type: object
+      description: Richiesta per aggiungere un commento
+      required:
+        - contenuto
+      properties:
+        contenuto:
+          type: string
+          description: Contenuto del commento (testo o emoji)
+          example: "👍"
+          minLength: 1
+          maxLength: 1000
+          pattern: '^[\p{Emoji}\p{So}\s]+$'
+
+    Commento:
+      type: object
+      description: Dettagli di un singolo commento
+      required:
+        - comment_id
+        - autore
+        - reazione
+      properties:
+        comment_id:
+          type: integer
+          description: ID univoco del commento
+          example: 56789
+          minimum: 1
+          maximum: 99999999999
+        autore:
+          type: string
+          description: Nickname dell'autore del commento
+          example: "Marco"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
+        reazione:
+          type: string
+          description: Contenuto del commento (emoji o testo breve)
+          example: "👍"
+          minLength: 1
+          maxLength: 10
+          pattern: '^[\p{Emoji}\p{So}\s]+$'
+
+    RichiestaNomeGruppo:
+      type: object
+      description: Richiesta per modificare il nome di un gruppo
+      required:
+        - nome
+      properties:
+        nome:
+          type: string
+          description: Nuovo nome del gruppo
+          example: "informatica 2024-2025"
+          minLength: 1
+          maxLength: 100
+          pattern: '^[a-zA-Z0-9_ -]+$'
+
+    RichiestaFotoGruppo:
+      type: object
+      description: Richiesta per modificare la foto di un gruppo
+      required:
+        - foto
+      properties:
+        foto:
+          type: string
+          description: Contenuto base64 della nuova foto
+          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          minLength: 1
+          maxLength: 1048576

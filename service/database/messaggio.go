@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -104,7 +105,7 @@ func (db *appdbimpl) inserisciMessaggio(conversazionePassata int, utente_Passato
 	result, err = db.c.Exec(queryDiInserimento, utente_Passato, conversazionePassata, testoPassato, time.Now())
 
 	if err != nil {
-		return 0, fmt.Errorf("errore durante la creazione del messaggio: %w", err)
+		return 0, fmt.Errorf("errore durante la creazione del nuovo messaggio : %w", err)
 	}
 
 	lastInsertID, err := result.LastInsertId()
@@ -178,7 +179,7 @@ func (db *appdbimpl) inserisciMessaggioFoto(conversazionePassata int, utente_Pas
 	result, err := db.c.Exec(queryDiInserimento, utente_Passato, conversazionePassata, fotoPassata, time.Now())
 
 	if err != nil {
-		return 0, fmt.Errorf("errore durante la creazione del messaggio: %w", err)
+		return 0, fmt.Errorf(": %w", err)
 	}
 
 	lastInsertID, err := result.LastInsertId()
@@ -223,7 +224,6 @@ func (db *appdbimpl) AggiungiCommento(utentePassato string, messaggioPassato int
 		return fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)
 	}
 
-	// Verifica che il messaggio esista e recupera la conversazione associata
 	var conversazioneId int
 	queryVerificaMessaggio := `SELECT conversazione FROM messaggio WHERE id = ?;`
 	err = db.c.QueryRow(queryVerificaMessaggio, messaggioPassato).Scan(&conversazioneId)
@@ -234,14 +234,12 @@ func (db *appdbimpl) AggiungiCommento(utentePassato string, messaggioPassato int
 		return fmt.Errorf("errore durante la verifica del messaggio: %w", err)
 	}
 
-	// Verifica se la conversazione è un gruppo o privata
 	isGruppo, err := db.CercaConversazioneGruppo(conversazioneId)
 	if err != nil {
 		return fmt.Errorf("errore durante la verifica del tipo di conversazione: %w", err)
 	}
 
 	if isGruppo > 0 {
-		// Se è un gruppo, verifica che l'utente sia coinvolto
 		coinvolto, err := db.UtenteCoinvoltoGruppo(utentePassato, conversazioneId)
 		if err != nil {
 			return fmt.Errorf("errore durante la verifica della partecipazione dell'utente al gruppo: %w", err)
@@ -250,7 +248,6 @@ func (db *appdbimpl) AggiungiCommento(utentePassato string, messaggioPassato int
 			return fmt.Errorf("l'utente non è membro del gruppo")
 		}
 	} else {
-		// Se è una conversazione privata, verifica che l'utente sia coinvolto
 		idPrivata, err := db.CercaConversazionePrivata(conversazioneId, utente_Passato_convertito)
 		if err != nil {
 			return fmt.Errorf("errore durante la verifica della partecipazione dell'utente: %w", err)
@@ -260,58 +257,56 @@ func (db *appdbimpl) AggiungiCommento(utentePassato string, messaggioPassato int
 		}
 	}
 
-	// Verifica se l'utente ha già commentato questo messaggio
 	queryVerificaCommento := `SELECT id FROM commento WHERE autore = ? AND messaggio = ?;`
 	var commentoId int
 	err = db.c.QueryRow(queryVerificaCommento, utentePassato, messaggioPassato).Scan(&commentoId)
 
-	if err == nil {
-		// Se il commento esiste già, aggiornalo invece di inserirne uno nuovo
+	switch {
+	case err == nil:
 		queryDiAggiornamento := `UPDATE commento SET reazione = ?, data_commento = CURRENT_TIMESTAMP WHERE id = ?;`
 		_, err = db.c.Exec(queryDiAggiornamento, reazionePassata, commentoId)
 		if err != nil {
 			return fmt.Errorf("errore durante l'aggiornamento del commento: %w", err)
 		}
-	} else if err == sql.ErrNoRows {
-		// Se il commento non esiste, inseriscilo
+	case errors.Is(err, sql.ErrNoRows):
 		queryDiInserimento := `INSERT INTO commento (autore, messaggio, reazione) VALUES (?, ?, ?);`
 		_, err = db.c.Exec(queryDiInserimento, utentePassato, messaggioPassato, reazionePassata)
 		if err != nil {
 			return fmt.Errorf("errore durante l'inserimento del commento: %w", err)
 		}
-	} else {
-		// Se si verifica un altro errore, lo restituiamo
+	default:
 		return fmt.Errorf("errore durante la verifica del commento: %w", err)
 	}
 
 	return nil
 }
 
-// Funzione che elimina un commento dato l'ID del messaggio e il nome dell'utente
-func (db *appdbimpl) EliminaCommento(utentePassato string, idmessaggio int) error {
-	// Verifica che il commento esista e prendi l'autore del commento
-	var (
-		idcommento     int
-		autoreCommento string
-	)
+// EliminaCommento elimina un commento specifico di un utente dato l'ID del messaggio
+func (db *appdbimpl) EliminaCommento(utente string, idmessaggio int) error {
+	// Verifica che esista un commento dell'utente specifico per questo messaggio
+	var idcommento int
 
-	queryVerificaCommento := `SELECT id, autore FROM commento WHERE messaggio = ?;`
-	err := db.c.QueryRow(queryVerificaCommento, idmessaggio).Scan(&idcommento, &autoreCommento)
+	queryVerificaCommento := `
+        SELECT id 
+        FROM commento 
+        WHERE messaggio = ? AND autore = ?;
+    `
+
+	err := db.c.QueryRow(queryVerificaCommento, idmessaggio, utente).Scan(&idcommento)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("commento non trovato per questo messaggio")
+			return fmt.Errorf("nessun commento trovato per questo utente e messaggio")
 		}
-		return fmt.Errorf("errore durante la verifica del commento: %w", err)
-	}
-
-	// Controlla che l'utente passato sia l'autore del commento
-	if autoreCommento != utentePassato {
-		return fmt.Errorf("l'utente non è l'autore di questo commento, non può eliminarlo")
+		return fmt.Errorf("errore durante la ricerca del commento: %w", err)
 	}
 
 	// Elimina il commento dal database
-	queryDiEliminazione := `DELETE FROM commento WHERE id = ?;`
-	_, err = db.c.Exec(queryDiEliminazione, idcommento)
+	queryEliminazione := `
+        DELETE FROM commento 
+        WHERE id = ?;
+    `
+
+	_, err = db.c.Exec(queryEliminazione, idcommento)
 	if err != nil {
 		return fmt.Errorf("errore durante l'eliminazione del commento: %w", err)
 	}

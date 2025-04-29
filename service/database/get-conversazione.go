@@ -75,7 +75,6 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero dei messaggi: %w", err)
 	}
-	defer rows.Close()
 
 	var messageData []MessageData
 
@@ -113,10 +112,6 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 		})
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("errore durante l'iterazione dei messaggi: %w", err)
-	}
-
 	return messageData, nil
 }
 
@@ -150,7 +145,6 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero dei messaggi: %w", err)
 	}
-	defer rows.Close()
 
 	var messageData []MessageData
 
@@ -188,10 +182,6 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 		})
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("errore durante l'iterazione dei messaggi: %w", err)
-	}
-
 	return messageData, nil
 }
 
@@ -205,7 +195,6 @@ func (db *appdbimpl) GetCommentiMessaggio(messageID int) ([]Commento, error) {
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero dei commenti: %w", err)
 	}
-	defer rows.Close()
 
 	var commenti []Commento
 
@@ -223,10 +212,6 @@ func (db *appdbimpl) GetCommentiMessaggio(messageID int) ([]Commento, error) {
 			Autore:    autore,
 			Reazione:  reazione,
 		})
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("errore durante l'iterazione dei commenti: %w", err)
 	}
 
 	return commenti, nil

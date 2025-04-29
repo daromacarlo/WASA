@@ -61,7 +61,6 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero delle conversazioni private: %w", err)
 	}
-	defer rowsPrivate.Close()
 
 	var idsConversazioniPrivate []int
 	for rowsPrivate.Next() {
@@ -86,7 +85,6 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero delle conversazioni di gruppo: %w", err)
 	}
-	defer rowsGruppo.Close()
 
 	var idsConversazioniGruppo []int
 	for rowsGruppo.Next() {
@@ -108,13 +106,13 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 	}
 
 	for _, idConv := range idsConversazioniPrivate {
-		if err := db.segnaMessaggiPrivatiRicevuti(utente_Passato_string, idConv); err != nil {
+		if err := db.SegnaMessaggiPrivatiRicevuti(utente_Passato_string, idConv); err != nil {
 			return nil, fmt.Errorf("errore durante la segnalazione dei messaggi privati come ricevuti: %w", err)
 		}
 	}
 
 	for _, idConv := range idsConversazioniGruppo {
-		if err := db.segnaMessaggiGruppoRicevuti(utente_Passato_string, idConv); err != nil {
+		if err := db.SegnaMessaggiGruppoRicevuti(utente_Passato_string, idConv); err != nil {
 			return nil, fmt.Errorf("errore durante la segnalazione dei messaggi di gruppo come ricevuti: %w", err)
 		}
 		err = db.CheckRicevimentoMessaggiGruppo(idConv)

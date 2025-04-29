@@ -45,7 +45,6 @@ func (db *appdbimpl) CreaGruppoDB(UtenteChiamante string, nomeGruppo_Passato str
 		return fmt.Errorf("errore durante il recupero dell'ID del gruppo: %s", err.Error())
 	}
 
-	fmt.Println("ID gruppo creato:", LastInsertIdid)
 	queryDiInserimentoUtente := `INSERT INTO utenteingruppo (utente, gruppo) VALUES (?, ?);`
 	_, err = db.c.Exec(queryDiInserimentoUtente, utenteconvertito, LastInsertIdid)
 	if err != nil {

@@ -26,8 +26,6 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	}
 
 	if len(lista) == 0 {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"message": "Nessun messaggio trovato in questa conversazione"}`))
 		return
 	}
 

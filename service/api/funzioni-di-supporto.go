@@ -1,9 +1,6 @@
 package api
 
-import (
-	"os"
-)
-
+/*
 func ReadImageFile(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -21,5 +18,6 @@ func ReadImageFile(path string) ([]byte, error) {
 		return nil, err
 	}
 
-	return fileData, nil
+	return
 }
+*/

@@ -31,7 +31,7 @@ func (rt *_router) registrare(w http.ResponseWriter, r *http.Request, ps httprou
 
 	idFoto, err := rt.db.CreaFoto(input.Foto)
 	if err != nil {
-		http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Errore durante l'inserimento della foto profilo durante la registrazione: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

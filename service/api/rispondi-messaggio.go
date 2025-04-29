@@ -44,12 +44,12 @@ func (rt *_router) RispondiAMessaggio(w http.ResponseWriter, r *http.Request, ps
 	if len(input.Testo) == 0 {
 		idFoto, err := rt.db.CreaFoto(input.Foto)
 		if err != nil {
-			http.Error(w, "Errore durante l'inserimento della foto profilo: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Errore durante l'inserimento della foto per la risposta: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		err = rt.db.RispondiMessaggioFoto(UtenteChiamante, Conversazione, IdMessaggio, idFoto)
 		if err != nil {
-			http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, " di risposta: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
@@ -57,7 +57,7 @@ func (rt *_router) RispondiAMessaggio(w http.ResponseWriter, r *http.Request, ps
 
 	err = rt.db.RispondiMessaggioTesto(UtenteChiamante, Conversazione, IdMessaggio, input.Testo)
 	if err != nil {
-		http.Error(w, "Errore durante la creazione del messaggio: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Errore durante l'inserimento del messaggio di risposta : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

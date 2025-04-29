@@ -17,13 +17,10 @@ func (rt *_router) getMyConversation(w http.ResponseWriter, r *http.Request, ps 
 	}
 
 	if len(lista) == 0 {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"message": "Nessuna conversazione aperta"}`))
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(lista); err != nil {
 		http.Error(w, "Errore durante la codifica della risposta in JSON: "+err.Error(), http.StatusInternalServerError)
 		return

@@ -684,7 +684,7 @@ export default {
           case 403: errorMessage = "Non hai i permessi per aggiungere membri"; break;
           case 404: errorMessage = "Utente non trovato"; break;
           case 409: errorMessage = "L'utente è già nel gruppo"; break;
-          case 500: errorMessage = "Errore del server. Riprova più tardi"; break;
+          case 500: errorMessage = "Errore lato server. Riprova più tardi"; break;
         }
       } else if (error.request) {
         errorMessage = "Impossibile connettersi al server. Verifica la tua connessione";

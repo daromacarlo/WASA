@@ -111,7 +111,7 @@
           params: { nickname: this.newGroupName } 
         });
           
-          alert("Nome del gruppo modificato con successo!");
+          alert("Nome dell'utente modificato con successo!");
           this.closeModifyNameModal();
           // Ricarica i dati del gruppo se necessario
           // await this.loadGroupInfo();
@@ -212,7 +212,7 @@
             case 404: errorMessage = "Gruppo non trovato"; break;
             case 409: errorMessage = "Modifica non consentita"; break;
             case 413: errorMessage = "L'immagine è troppo grande"; break;
-            case 500: errorMessage = "Errore del server. Riprova più tardi"; break;
+            case 500: errorMessage = "Errore da parte del server. Riprova più tardi"; break;
           }
         } else if (error.request) {
           errorMessage = "Impossibile connettersi al server. Verifica la tua connessione";

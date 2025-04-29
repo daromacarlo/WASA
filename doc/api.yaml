@@ -35,12 +35,28 @@ paths:
       responses:
         '201':
           description: Accesso avvenuto con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaLogin'
         '400':
           description: Errore generico lato utente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         '404':
           description: Nome utente non esiste nel database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         '500':
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
 
   /wasachat/{utente}/chats:
     parameters:
@@ -78,10 +94,23 @@ paths:
                     isgruppo: false
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Utente non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+
   /wasachat/{utente}/nome:
     parameters:
     - name: utente
@@ -109,12 +138,29 @@ paths:
       responses:
         "200":
           description: Nome aggiornato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Utente non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+
   /wasachat/{utente}/foto:
     parameters:
     - name: utente
@@ -142,12 +188,28 @@ paths:
       responses:
         "200":
           description: Foto aggiornata con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Utente non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
 
   /wasachat/{utente}/chats/gruppi/{chat}/aggiungi:
     parameters:
@@ -185,12 +247,28 @@ paths:
       responses:
         "200":
           description: Utente aggiunto con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Utente o gruppo non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
 
   /wasachat/{utente}/chats/{chat}:
     parameters:
@@ -222,12 +300,28 @@ paths:
       responses:
         "200":
           description: Messaggi restituiti con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaMessaggiChat'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Chat non trovata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
     post:
       tags: ["Chat"]
       summary: Invia messaggio
@@ -243,13 +337,28 @@ paths:
       responses:
         "200":
           description: Messaggio inviato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Chat non trovata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
-
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
     delete:
       tags: ["Gestione Gruppi"]
       summary: Esci dal gruppo
@@ -259,12 +368,28 @@ paths:
       responses:
         "200":
           description: Uscita dal gruppo avvenuta con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Gruppo non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
 
   /wasachat/{utente}/inoltro/{nuovachat}/messaggi/{messaggio}:
     parameters:
@@ -305,12 +430,28 @@ paths:
       responses:
         "200":
           description: Messaggio inoltrato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Messaggio o chat non trovati
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
 
   /wasachat/{utente}/chats/{chat}/messaggi/{messaggio}:
     parameters:
@@ -351,12 +492,28 @@ paths:
       responses:
         "200":
           description: Messaggio eliminato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Messaggio non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
 
   /wasachat/{utente}/messaggi/{messaggio}:
     parameters:
@@ -394,13 +551,28 @@ paths:
       responses:
         "200":
           description: Commento aggiunto con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Messaggio non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
-          
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
     delete:
       tags: ["Chat"]
       summary: Elimina commento
@@ -410,12 +582,28 @@ paths:
       responses:
         "200":
           description: Commento eliminato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Commento non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
 
   /wasachat/{utente}/gruppi/{chat}/nome:
     parameters:
@@ -453,12 +641,28 @@ paths:
       responses:
         "200":
           description: Nome gruppo modificato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Gruppo non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
 
   /wasachat/{groupid}/impostazioni/foto:
     parameters:
@@ -486,12 +690,28 @@ paths:
       responses:
         "200":
           description: Foto gruppo modificata con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
         "400":
           description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "404":
           description: Gruppo non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
         "500":
           description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
 
 components:
   schemas:
@@ -510,25 +730,9 @@ components:
           pattern: '^[a-zA-Z0-9_]+$'
 
     RispostaLogin:
-      type: object
       description: Risposta per login avvenuto con successo
-      properties:
-        user_id:
-          type: string
-          description: Identificativo univoco dell'utente
-          example: "user123"
-          minLength: 1
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9_-]+$'
-        session_token:
-          type: string
-          description: Token di sessione per l'autenticazione
-          example: "abc123xyz"
-          minLength: 10
-          maxLength: 255
 
     RispostaConversazioni:
-      type: object
       description: Elenco delle conversazioni dell'utente
       required:
         - chats
@@ -795,3 +999,11 @@ components:
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1048576
+
+    RispostaGenerica:
+      description: Risposta generica per operazioni riuscite
+      example: "Nome gruppo cambiato con successo"
+
+    ErroreGenerico:
+      description: Risposta per errori generici
+      example: "Errore lato client"

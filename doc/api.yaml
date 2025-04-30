@@ -42,7 +42,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaLogin'
+                $ref: '#/components/schemas/RispostaGenerica'
         '400':
           description: Errore generico lato utente
           content:
@@ -82,7 +82,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaLogin'
+                $ref: '#/components/schemas/RispostaGenerica'
         '400':
           description: Errore generico lato utente
           content:
@@ -1008,10 +1008,6 @@ components:
           maxLength: 50
           pattern: '^[a-zA-Z0-9_]+$'
 
-    RispostaLogin:
-      description: Risposta per login avvenuto con successo
-      example: Login effettuato con successo
-
     RispostaConversazioni:
       description: Elenco delle conversazioni dell'utente
       required:
@@ -1358,9 +1354,45 @@ components:
           maxLength: 1048576
 
     RispostaGenerica:
-      description: Risposta generica per operazioni riuscite
-      example: "Nome gruppo cambiato con successo"
+      type: object
+      description: Risposta generica
+      required:
+        - codice
+        - risposta
+      properties:
+        codice:
+          type: integer
+          description: codice di risposta
+          example: 200
+          minLength: 1
+          maxLength: 1048576
+          minimum: 200
+          maximum: 299
+        risposta:
+          type: string
+          description: risposta 
+          example: "messaggio di successo"
+          minLength: 1
+          maxLength: 1048576
 
     ErroreGenerico:
-      description: Risposta per errori generici
-      example: "Errore lato client"
+      type: object
+      description: Errore
+      required:
+        - codice
+        - errore
+      properties:
+        codice:
+          type: integer
+          description: codice di errore
+          example: 500
+          minLength: 1
+          maxLength: 1048576
+          minimum: 300
+          maximum: 599
+        errore:
+          type: string
+          description: errore
+          example: "errore"
+          minLength: 1
+          maxLength: 1048576

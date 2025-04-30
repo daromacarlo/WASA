@@ -13,25 +13,27 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, r *http.Requ
 	}
 
 	UtenteChiamante := ps.ByName("utente")
+
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		http.Error(w, "Formato della richiesta non valido", http.StatusBadRequest)
+		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
 
 	if len(input.Utente) == 0 {
-		http.Error(w, "Il nome è obbligatorio", http.StatusBadRequest)
+		CreaErroreJson(w, "Il nome dell'utente è obbligatorio", http.StatusBadRequest)
 		return
 	}
 
 	if len(UtenteChiamante) == 0 {
-		http.Error(w, "utente chiamante non esplicitato correttamente", http.StatusBadRequest)
+		CreaErroreJson(w, "Utente chiamante non esplicitato correttamente", http.StatusBadRequest)
 		return
 	}
 
 	_, err = rt.db.CreaConversazionePrivataDB(UtenteChiamante, input.Utente)
 	if err != nil {
-		http.Error(w, "Errore durante la creazione della conversazione: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante la creazione della conversazione: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	CreaRispostaJson(w, "Conversazione privata creata con successo", http.StatusOK)
 }

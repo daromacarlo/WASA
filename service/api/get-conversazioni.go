@@ -12,7 +12,7 @@ func (rt *_router) getMyConversation(w http.ResponseWriter, r *http.Request, ps 
 	lista, err := rt.db.GetConversazioni(chiamante)
 
 	if err != nil {
-		http.Error(w, "Errore durante il recupero della conversazione: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante il recupero della conversazione: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -22,7 +22,7 @@ func (rt *_router) getMyConversation(w http.ResponseWriter, r *http.Request, ps 
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(lista); err != nil {
-		http.Error(w, "Errore durante la codifica della risposta in JSON: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante la codifica della risposta in JSON: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

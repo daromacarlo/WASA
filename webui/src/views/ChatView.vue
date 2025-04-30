@@ -7,6 +7,9 @@
     <!-- Barra superiore per i gruppi -->
     <div v-if="isGroup" class="group-header">
       <div class="group-actions">
+        <button @click="mostraPartecipanti" class="group-action-button" title="Mostra partecipanti">
+          <span class="button-text">Partecipanti</span>
+        </button>
         <button @click="goToUpdateGroup" class="group-action-button" title="Modifica gruppo">
           <span class="button-text">Modifica</span>
         </button>
@@ -599,6 +602,13 @@ export default {
     },
 
     async goToUpdateGroup() {
+      this.$router.push({ 
+          name: 'ModifyGroup', 
+          params: { nickname: this.currentUser, chat: this.$route.params.chat } 
+        });
+    },
+
+    async mostraPartecipanti() {
       this.$router.push({ 
           name: 'ModifyGroup', 
           params: { nickname: this.currentUser, chat: this.$route.params.chat } 

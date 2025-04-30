@@ -1,4 +1,9 @@
 <template>
+
+    <button @click="goBack" class="cancel-button">
+      Indietro
+    </button>
+
     <div class="modifyGroup">
       <div class="container">
         <h1 class="title">Modifica profilo utente</h1>
@@ -11,8 +16,7 @@
           </button>
         </div>
       </div>
-  
-      <!-- Modale modifica nome -->
+
       <div v-if="showModifyNameModal" class="modal">
         <div class="modal-content">
           <h3>Modifica nome</h3>
@@ -37,8 +41,7 @@
           </div>
         </div>
       </div>
-  
-      <!-- Modale modifica foto -->
+
       <div v-if="showModifyPhotoModal" class="modal">
         <div class="modal-content">
           <h3>Modifica foto</h3>
@@ -219,12 +222,27 @@
         }
         
         alert(errorMessage);
-      }
+      },
+      goBack() {
+      const { nickname } = this.$route.params;
+      this.$router.push(`/wasachat/${nickname}/chats`);
+    },
     }
   };
   </script>
   
   <style scoped>
+
+.cancel-button {
+    padding: 10px 20px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 20px;
+  }
+
   .modifyGroup {
     background-color: #f7f7f7;
     display: flex;

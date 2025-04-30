@@ -7,65 +7,60 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// Funzione per registrare un nuovo utente
 func (rt *_router) register(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Nickname string `json:"nickname"`
 		Foto     string `json:"foto"`
 	}
-
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		http.Error(w, "Formato della richiesta non valido", http.StatusBadRequest)
+		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
-
 	if len(input.Nickname) == 0 {
-		http.Error(w, "Il nickname è obbligatorio", http.StatusBadRequest)
+		CreaErroreJson(w, "Il nickname è obbligatorio", http.StatusBadRequest)
 		return
 	}
-
 	if len(input.Foto) == 0 {
-		http.Error(w, "La foto è obbligatoria", http.StatusBadRequest)
+		CreaErroreJson(w, "La foto è obbligatoria", http.StatusBadRequest)
 		return
 	}
-
 	idFoto, err := rt.db.CreaFoto(input.Foto)
 	if err != nil {
-		http.Error(w, "Errore durante l'inserimento della foto profilo durante la registrazione: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante l'inserimento della foto profilo durante la registrazione: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 	err = rt.db.CreaUtente(input.Nickname, idFoto)
 	if err != nil {
-		http.Error(w, "Errore durante la creazione dell'utente: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante la creazione dell'utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	CreaRispostaJson(w, "Registrazione avvenuta con successo", http.StatusOK)
 }
 
+// Funzione per effettuare il login
 func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Nickname string `json:"nickname"`
 	}
-
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		http.Error(w, "Formato della richiesta non valido", http.StatusBadRequest)
+		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
-
 	if len(input.Nickname) == 0 {
-		http.Error(w, "Il nickname è obbligatorio", http.StatusBadRequest)
+		CreaErroreJson(w, "Il nickname è obbligatorio", http.StatusBadRequest)
 		return
 	}
-
 	utente, err := rt.db.Login(input.Nickname)
 	if err != nil {
-		http.Error(w, "Errore durante la verifica dell'utente: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante la verifica dell'utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 	if utente == "" {
-		http.Error(w, "Credenziali non valide", http.StatusUnauthorized)
+		CreaErroreJson(w, "Credenziali non valide", http.StatusBadRequest)
 		return
 	}
+	CreaRispostaJson(w, "Login effettuato con successo", http.StatusOK)
 }

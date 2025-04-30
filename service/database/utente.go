@@ -164,7 +164,6 @@ func (db *appdbimpl) ImpostaNome(nicknamePassato string, nuovoNickPassato string
 // Struttura per memorizzare il nome e la foto profilo dell'utente
 type Profilo struct {
 	Nickname string
-	Foto     *string
 }
 
 // Funzione di test.
@@ -192,10 +191,9 @@ func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, error)
 		return nil, fmt.Errorf("l'utente %s non fa parte del gruppo", chiamante)
 	}
 
-	query := `SELECT u.nickname, f.foto
+	query := `SELECT u.nickname
 			  FROM utente as u
-			  JOIN foto as f ON f.id = u.foto
-			  JOIN utente in gruppo as uig ON uig.utente = u.id
+			  JOIN utenteInGruppo as uig ON uig.utente = u.id
 			  WHERE uig.gruppo = ?`
 
 	rows, err := db.c.Query(query, chat)
@@ -203,21 +201,19 @@ func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, error)
 		return nil, fmt.Errorf("errore durante il recupero dei profili utente: %w", err)
 	}
 
-	var userProfiles []Profilo
+	var lista []Profilo
 
 	for rows.Next() {
 		var nickname string
-		var foto *string
 
-		if err := rows.Scan(&nickname, &foto); err != nil {
+		if err := rows.Scan(&nickname); err != nil {
 			return nil, fmt.Errorf("errore durante la lettura dei dati: %w", err)
 		}
 
-		userProfiles = append(userProfiles, Profilo{
+		lista = append(lista, Profilo{
 			Nickname: nickname,
-			Foto:     foto,
 		})
 	}
 
-	return userProfiles, nil
+	return lista, nil
 }

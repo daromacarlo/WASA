@@ -9,6 +9,7 @@ import ChatView from '../views/ChatView.vue';
 import ModifyGroup from '../views/ModifyGroup.vue';
 import ModifyUser from '../views/ModifyUser.vue';
 import InoltroView from '../views/InoltroView.vue';
+import GroupMembersView from '../views/GroupMembersView.vue';
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,11 @@ const router = createRouter({
       component: SearchUserView,  
     },
 
+    {
+      path: '/wasachat/:nickname/chats/:chat/partecipanti',
+      name: 'GroupMembersView',
+      component: GroupMembersView,  
+    },
 
     {
       path: '/wasachat/:nickname/chats/:chat',

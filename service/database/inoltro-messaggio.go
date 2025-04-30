@@ -78,14 +78,6 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 		if coinvolto == 0 {
 			return fmt.Errorf("l'utente non è membro del gruppo")
 		}
-	} else {
-		idPrivata, err := db.CercaConversazionePrivata(idChatNuova, utente_Passato_convertito)
-		if err != nil {
-			return fmt.Errorf("errore durante la verifica della conversazione privata: %w", err)
-		}
-		if idPrivata == 0 {
-			return fmt.Errorf("l'utente non è coinvolto nella conversazione privata")
-		}
 	}
 
 	esistenza, err := db.EsisteMessaggio(IdMessaggio)

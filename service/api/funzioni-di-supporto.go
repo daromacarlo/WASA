@@ -1,5 +1,11 @@
 package api
 
+import (
+	"encoding/json"
+	"net/http"
+	"strconv"
+)
+
 /*
 func ReadImageFile(path string) ([]byte, error) {
 	file, err := os.Open(path)
@@ -21,3 +27,21 @@ func ReadImageFile(path string) ([]byte, error) {
 	return
 }
 */
+
+func CreaErroreJson(w http.ResponseWriter, messaggio string, codice int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(codice)
+	_ = json.NewEncoder(w).Encode(map[string]string{
+		"errore": messaggio,
+		"codice": strconv.Itoa(codice),
+	})
+}
+
+func CreaRispostaJson(w http.ResponseWriter, messaggio string, codice int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(codice)
+	_ = json.NewEncoder(w).Encode(map[string]string{
+		"errore": messaggio,
+		"codice": strconv.Itoa(codice),
+	})
+}

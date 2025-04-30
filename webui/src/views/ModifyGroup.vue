@@ -1,4 +1,9 @@
 <template>
+
+    <button @click="goBack" class="cancel-button">
+      Indietro
+    </button>
+
     <div class="modifyGroup">
       <div class="container">
         <h1 class="title">Modifica gruppo</h1>
@@ -211,7 +216,11 @@
         }
         
         alert(errorMessage);
-      }
+      },
+      goBack() {
+      const { nickname, chat } = this.$route.params;
+      this.$router.push(`/wasachat/${nickname}/chats/${chat}`);
+    },
     }
   };
   </script>
@@ -246,6 +255,15 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
+  }
+  .cancel-button {
+    padding: 10px 20px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 20px;
   }
   
   .group-action-button {

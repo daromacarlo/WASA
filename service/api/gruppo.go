@@ -9,7 +9,7 @@ import (
 )
 
 // Funzione che serve a creare un gruppo dato un nome e una foto
-func (rt *_router) CreaGruppo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Nome string `json:"nome"`
 		Foto string `json:"foto"`
@@ -180,21 +180,18 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 func (rt *_router) IsGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	chatParam := ps.ByName("chat")
 
-	// Converti il parametro chat in intero
 	chatID, err := strconv.Atoi(chatParam)
 	if err != nil {
 		http.Error(w, "ID chat non valido", http.StatusBadRequest)
 		return
 	}
 
-	// Verifica se la chat è un gruppo
 	idGruppo, err := rt.db.CercaConversazioneGruppo(chatID)
 	if err != nil {
 		http.Error(w, "Errore interno del server", http.StatusInternalServerError)
 		return
 	}
 
-	// Prepara la risposta
 	response := struct {
 		IsGroup bool `json:"is_group"`
 		GroupID int  `json:"group_id,omitempty"`
@@ -206,7 +203,6 @@ func (rt *_router) IsGroup(w http.ResponseWriter, r *http.Request, ps httprouter
 		response.GroupID = idGruppo
 	}
 
-	// Imposta l'header e invia la risposta JSON
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Errore nella codifica della risposta", http.StatusInternalServerError)

@@ -7,7 +7,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) CreaConversazionePrivata(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) createPrivateConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Utente string `json:"utente"`
 	}

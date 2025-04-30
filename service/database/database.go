@@ -48,7 +48,7 @@ type AppDatabase interface {
 	CreaUtente(nicknamePassato string, idfotoPassata int) error
 	IdUtenteDaNickname(nicknamePassato string) (int, error)
 	NicknameUtenteDaId(idPassato int) (string, error)
-	VediProfili(nicknamePassato string) ([]Profilo, error)
+	UsersInGroup(nicknamePassato string, chat int) ([]Profilo, error)
 	Login(nicknamePassato string) (string, error)
 
 	// foto

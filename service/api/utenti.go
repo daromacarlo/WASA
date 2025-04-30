@@ -3,14 +3,21 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) VediProfili(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) usersInGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Ottieni il nickname dall'URL
 	chiamante := ps.ByName("utente")
-	lista, err := rt.db.VediProfili(chiamante)
+	gruppostr := ps.ByName("gruppo")
+	gruppo, err := strconv.Atoi(gruppostr)
+	if err != nil {
+		http.Error(w, "Errore durante la conversione del nome: "+err.Error(), http.StatusInternalServerError)
+	}
+
+	lista, err := rt.db.UsersInGroup(chiamante, gruppo)
 	if err != nil {
 		http.Error(w, "Errore durante il recupero degli utenti: "+err.Error(), http.StatusInternalServerError)
 		return

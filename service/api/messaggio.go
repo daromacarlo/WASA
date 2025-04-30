@@ -60,7 +60,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 }
 
-func (rt *_router) EliminaMessaggio(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	UtenteChiamante := ps.ByName("utente")
 	IDMessaggiostr := ps.ByName("messaggio")
 	IDChatstr := ps.ByName("chat")
@@ -84,7 +84,7 @@ func (rt *_router) EliminaMessaggio(w http.ResponseWriter, r *http.Request, ps h
 
 }
 
-func (rt *_router) commentMessagge(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Reazione string `json:"reazione"`
 	}

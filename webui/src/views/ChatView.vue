@@ -499,7 +499,7 @@ export default {
 
       try {
         const response = await this.$axios.post(
-          `/wasachat/${this.currentUser}/risposta/chats/${chatId}/${this.selectedMessage.message_id}`,
+          `/wasachat/${this.currentUser}/risposta/chats/${chatId}/messaggi/${this.selectedMessage.message_id}`,
           messageData
         );
 

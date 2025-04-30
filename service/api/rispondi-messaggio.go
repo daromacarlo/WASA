@@ -8,14 +8,14 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) RispondiAMessaggio(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) ansMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Testo string `json:"testo"`
 		Foto  string `json:"foto"`
 	}
 	UtenteChiamante := ps.ByName("utente")
 
-	IdMessaggio, err := strconv.Atoi(ps.ByName("idMessaggio"))
+	IdMessaggio, err := strconv.Atoi(ps.ByName("messaggio"))
 	if err != nil {
 		http.Error(w, "ID messaggio non valido", http.StatusBadRequest)
 		return

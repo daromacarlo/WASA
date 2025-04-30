@@ -7,7 +7,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) registrare(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) register(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Nickname string `json:"nickname"`
 		Foto     string `json:"foto"`

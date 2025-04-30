@@ -169,39 +169,50 @@ type Profilo struct {
 
 // Funzione di test.
 // Funzione per ottenere tutti i nomi e foto profilo degli utenti
-func (db *appdbimpl) VediProfili(chiamante string) ([]Profilo, error) {
-	// Query per ottenere il nickname e la foto profilo di tutti gli utenti
-	esiste, err := db.EsistenzaUtente(chiamante)
+func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, error) {
+	esiste, err := db.EsisteConversazione(chat)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente: %w", err)
+		return nil, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)
 	}
 	if !esiste {
-		return nil, fmt.Errorf("l'utente %s non esiste", chiamante)
+		return nil, fmt.Errorf("la conversazione con ID %d non esiste", chat)
+	}
+	esisteUtenteChiamante, err := db.EsistenzaUtente(chiamante)
+	if err != nil {
+		return nil, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente chiamante %s: %w", chiamante, err)
+	}
+	if !esisteUtenteChiamante {
+		return nil, fmt.Errorf("l'utente chiamante %s non esiste", chiamante)
+	}
+	chiamantePresente, err := db.UtenteCoinvoltoGruppo(chiamante, chat)
+	if err != nil {
+		return nil, fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
+	}
+	if chiamantePresente == 0 {
+		return nil, fmt.Errorf("l'utente %s non fa parte del gruppo", chiamante)
 	}
 
 	query := `SELECT u.nickname, f.foto
 			  FROM utente as u
-			  JOIN foto as f ON f.id = u.foto`
+			  JOIN foto as f ON f.id = u.foto
+			  JOIN utente in gruppo as uig ON uig.utente = u.id
+			  WHERE uig.gruppo = ?`
 
-	rows, err := db.c.Query(query)
+	rows, err := db.c.Query(query, chat)
 	if err != nil {
 		return nil, fmt.Errorf("errore durante il recupero dei profili utente: %w", err)
 	}
 
-	// Array per memorizzare i profili utente
 	var userProfiles []Profilo
 
-	// Itera sui risultati della query
 	for rows.Next() {
 		var nickname string
 		var foto *string
 
-		// Scansiona i dati della riga nella struttura
 		if err := rows.Scan(&nickname, &foto); err != nil {
 			return nil, fmt.Errorf("errore durante la lettura dei dati: %w", err)
 		}
 
-		// Aggiungi il profilo alla lista
 		userProfiles = append(userProfiles, Profilo{
 			Nickname: nickname,
 			Foto:     foto,

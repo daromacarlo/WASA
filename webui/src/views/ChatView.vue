@@ -610,7 +610,7 @@ export default {
 
     async mostraPartecipanti() {
       this.$router.push({ 
-          name: 'ModifyGroup', 
+          name: 'GroupMembersView', 
           params: { nickname: this.currentUser, chat: this.$route.params.chat } 
         });
     },

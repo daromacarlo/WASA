@@ -9,10 +9,10 @@ import (
 
 func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	chiamante := ps.ByName("utente")
-	lista, err := rt.db.GetConversazioni(chiamante)
+	lista, codiceErrore, err := rt.db.GetConversazioni(chiamante)
 
 	if err != nil {
-		CreaErroreJson(w, "Errore durante il recupero della conversazione: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante il recupero della conversazione: "+err.Error(), codiceErrore)
 		return
 	}
 

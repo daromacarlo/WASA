@@ -76,31 +76,31 @@ func (db *appdbimpl) EsistenzaUtente(nicknamePassato string) (bool, error) {
 }
 
 // IdUtenteDaNickname restituisce l'ID dell'utente dato il nickname
-func (db *appdbimpl) IdUtenteDaNickname(nicknamePassato string) (int, error) {
+func (db *appdbimpl) IdUtenteDaNickname(nicknamePassato string) (int, int, error) {
 	var id int
 	query := `SELECT id FROM utente WHERE nickname = ?;`
 	err := db.c.QueryRow(query, nicknamePassato).Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, fmt.Errorf("utente con nickname '%s' non trovato", nicknamePassato)
+			return 0, 404, fmt.Errorf("utente con nickname '%s' non trovato", nicknamePassato)
 		}
-		return 0, fmt.Errorf("errore durante il recupero dell'ID utente: %w", err)
+		return 0, 500, fmt.Errorf("errore durante il recupero dell'ID utente: %w", err)
 	}
-	return id, nil
+	return id, 0, nil
 }
 
 // NicknameUtenteDaId restituisce il nickname dell'utente dato il suo ID
-func (db *appdbimpl) NicknameUtenteDaId(idPassato int) (string, error) {
+func (db *appdbimpl) NicknameUtenteDaId(idPassato int) (string, int, error) {
 	var nickname string
 	query := `SELECT nickname FROM utente WHERE id = ?;`
 	err := db.c.QueryRow(query, idPassato).Scan(&nickname)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return "", fmt.Errorf("utente con ID '%d' non trovato", idPassato)
+			return "", 404, fmt.Errorf("utente con ID '%d' non trovato", idPassato)
 		}
-		return "", fmt.Errorf("errore durante il recupero del nickname: %w", err)
+		return "", 500, fmt.Errorf("errore durante il recupero del nickname: %w", err)
 	}
-	return nickname, nil
+	return nickname, 0, nil
 }
 
 // impostazioni utente
@@ -127,38 +127,38 @@ func (db *appdbimpl) ImpostaFotoProfilo(nicknamePassato string, idfotoPassata in
 }
 
 // ImpostaNome aggiorna il nickname dell'utente
-func (db *appdbimpl) ImpostaNome(nicknamePassato string, nuovoNickPassato string) error {
+func (db *appdbimpl) ImpostaNome(nicknamePassato string, nuovoNickPassato string) (int, error) {
 	// Verifica che l'utente esista
 	esiste, err := db.EsistenzaUtente(nicknamePassato)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo dell'esistenza dell'utente: %w", err)
+		return 500, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente: %w", err)
 	}
 	if !esiste {
-		return fmt.Errorf("l'utente %s non esiste", nicknamePassato)
+		return 404, fmt.Errorf("l'utente %s non esiste", nicknamePassato)
 	}
 
 	// Verifica che il nuovo nickname non sia già in uso
 	esisteNuovoNick, err := db.EsistenzaUtente(nuovoNickPassato)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo del nuovo nickname: %w", err)
+		return 500, fmt.Errorf("errore durante il controllo del nuovo nickname: %w", err)
 	}
 	if esisteNuovoNick {
-		return fmt.Errorf("il nickname %s è già in uso", nuovoNickPassato)
+		return 304, fmt.Errorf("il nickname %s è già in uso", nuovoNickPassato)
 	}
 
 	// Verifica che il nuovo nickname non sia uguale al vecchio
 	if nicknamePassato == nuovoNickPassato {
-		return fmt.Errorf("il nuovo nickname è uguale a quello vecchio")
+		return 304, fmt.Errorf("il nuovo nickname è uguale a quello vecchio")
 	}
 
 	// Aggiorna il nickname dell'utente
 	queryUpdateNome := `UPDATE utente SET nickname = ? WHERE nickname = ?`
 	_, err = db.c.Exec(queryUpdateNome, nuovoNickPassato, nicknamePassato)
 	if err != nil {
-		return fmt.Errorf("errore durante l'aggiornamento del nickname: %w", err)
+		return 500, fmt.Errorf("errore durante l'aggiornamento del nickname: %w", err)
 	}
 
-	return nil
+	return 0, nil
 }
 
 // Struttura per memorizzare il nome e la foto profilo dell'utente
@@ -168,37 +168,39 @@ type Profilo struct {
 
 // Funzione di test.
 // Funzione per ottenere tutti i nomi e foto profilo degli utenti
-func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, error) {
+func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, int, error) {
 	esiste, err := db.EsisteConversazione(chat)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)
+		return nil, 500, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)
 	}
 	if !esiste {
-		return nil, fmt.Errorf("la conversazione con ID %d non esiste", chat)
+		return nil, 404, fmt.Errorf("la conversazione con ID %d non esiste", chat)
 	}
 	esisteUtenteChiamante, err := db.EsistenzaUtente(chiamante)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente chiamante %s: %w", chiamante, err)
+		return nil, 500, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente chiamante %s: %w", chiamante, err)
 	}
 	if !esisteUtenteChiamante {
-		return nil, fmt.Errorf("l'utente chiamante %s non esiste", chiamante)
+		return nil, 404, fmt.Errorf("l'utente chiamante %s non esiste", chiamante)
 	}
-	chiamantePresente, err := db.UtenteCoinvoltoGruppo(chiamante, chat)
+	chiamantePresente, codiceErrore, err := db.UtenteCoinvoltoGruppo(chiamante, chat)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
+		return nil, codiceErrore, fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
 	}
 	if chiamantePresente == 0 {
-		return nil, fmt.Errorf("l'utente %s non fa parte del gruppo", chiamante)
+		return nil, 401, fmt.Errorf("l'utente %s non fa parte del gruppo", chiamante)
 	}
 
 	query := `SELECT u.nickname
 			  FROM utente as u
-			  JOIN utenteInGruppo as uig ON uig.utente = u.id
-			  WHERE uig.gruppo = ?`
+			  JOIN utenteingruppo as uig ON u.id = uig.utente
+			  JOIN gruppo as g ON g.id = uig.gruppo
+			  WHERE g.id = ?
+			  `
 
 	rows, err := db.c.Query(query, chat)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il recupero dei profili utente: %w", err)
+		return nil, 500, fmt.Errorf("errore durante il recupero dei profili utente: %w", err)
 	}
 
 	var lista []Profilo
@@ -207,7 +209,7 @@ func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, error)
 		var nickname string
 
 		if err := rows.Scan(&nickname); err != nil {
-			return nil, fmt.Errorf("errore durante la lettura dei dati: %w", err)
+			return nil, 500, fmt.Errorf("errore durante la lettura dei dati: %w", err)
 		}
 
 		lista = append(lista, Profilo{
@@ -215,5 +217,5 @@ func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, error)
 		})
 	}
 
-	return lista, nil
+	return lista, 0, nil
 }

@@ -18,10 +18,10 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	lista, err := rt.db.GetConversazione(chiamante, chat)
+	lista, codiceErrore, err := rt.db.GetConversazione(chiamante, chat)
 
 	if err != nil {
-		CreaErroreJson(w, "Errore durante il recupero della conversazione: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante il recupero della conversazione: "+err.Error(), codiceErrore)
 		return
 	}
 

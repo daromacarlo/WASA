@@ -15,10 +15,10 @@ type Conversazione struct {
 	IsGruppo bool    `json:"isgruppo"`
 }
 
-func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversazione, error) {
-	utente_Passato, err := db.IdUtenteDaNickname(utente_Passato_string)
+func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversazione, int, error) {
+	utente_Passato, codiceErrore, err := db.IdUtenteDaNickname(utente_Passato_string)
 	if err != nil {
-		return nil, err
+		return nil, codiceErrore, err
 	}
 
 	queryConversazioniPrivate := `
@@ -59,7 +59,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 	var conversazioni []Conversazione
 	rowsPrivate, err := db.c.Query(queryConversazioniPrivate, utente_Passato, utente_Passato, utente_Passato, utente_Passato)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il recupero delle conversazioni private: %w", err)
+		return nil, 500, fmt.Errorf("errore durante il recupero delle conversazioni private: %w", err)
 	}
 
 	var idsConversazioniPrivate []int
@@ -67,7 +67,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 		var conv Conversazione
 		var foto sql.NullString
 		if err := rowsPrivate.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &foto, &conv.IsGruppo); err != nil {
-			return nil, fmt.Errorf("errore durante la lettura delle conversazioni private: %w", err)
+			return nil, 500, fmt.Errorf("errore durante la lettura delle conversazioni private: %w", err)
 		}
 		if foto.Valid && foto.String != "" {
 			conv.Foto = &foto.String
@@ -83,7 +83,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 
 	rowsGruppo, err := db.c.Query(queryConversazioniGruppo, utente_Passato)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il recupero delle conversazioni di gruppo: %w", err)
+		return nil, 500, fmt.Errorf("errore durante il recupero delle conversazioni di gruppo: %w", err)
 	}
 
 	var idsConversazioniGruppo []int
@@ -91,7 +91,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 		var conv Conversazione
 		var foto sql.NullString
 		if err := rowsGruppo.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &foto, &conv.IsGruppo); err != nil {
-			return nil, fmt.Errorf("errore durante la lettura delle conversazioni di gruppo: %w", err)
+			return nil, 500, fmt.Errorf("errore durante la lettura delle conversazioni di gruppo: %w", err)
 		}
 		if foto.Valid && foto.String != "" {
 			conv.Foto = &foto.String
@@ -107,17 +107,17 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 
 	for _, idConv := range idsConversazioniPrivate {
 		if err := db.SegnaMessaggiPrivatiRicevuti(utente_Passato_string, idConv); err != nil {
-			return nil, fmt.Errorf("errore durante la segnalazione dei messaggi privati come ricevuti: %w", err)
+			return nil, 500, fmt.Errorf("errore durante la segnalazione dei messaggi privati come ricevuti: %w", err)
 		}
 	}
 
 	for _, idConv := range idsConversazioniGruppo {
 		if err := db.SegnaMessaggiGruppoRicevuti(utente_Passato_string, idConv); err != nil {
-			return nil, fmt.Errorf("errore durante la segnalazione dei messaggi di gruppo come ricevuti: %w", err)
+			return nil, 500, fmt.Errorf("errore durante la segnalazione dei messaggi di gruppo come ricevuti: %w", err)
 		}
 		err = db.CheckRicevimentoMessaggiGruppo(idConv)
 		if err != nil {
-			return nil, fmt.Errorf("errore durante il check di lettura dei messaggi: %w", err)
+			return nil, 500, fmt.Errorf("errore durante il check di lettura dei messaggi: %w", err)
 		}
 	}
 
@@ -131,5 +131,5 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 		return *conversazioni[i].Time > *conversazioni[j].Time
 	})
 
-	return conversazioni, nil
+	return conversazioni, 0, nil
 }

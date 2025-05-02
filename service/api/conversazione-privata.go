@@ -30,9 +30,9 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	_, err = rt.db.CreaConversazionePrivataDB(UtenteChiamante, input.Utente)
+	_, codiceErrore, err := rt.db.CreaConversazionePrivataDB(UtenteChiamante, input.Utente)
 	if err != nil {
-		CreaErroreJson(w, "Errore durante la creazione della conversazione: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante la creazione della conversazione: "+err.Error(), codiceErrore)
 		return
 	}
 	CreaRispostaJson(w, "Conversazione privata creata con successo", http.StatusOK)

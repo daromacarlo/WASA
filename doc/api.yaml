@@ -21,6 +21,50 @@ tags:
     description: Operazioni di creazione conversazioni private
 
 paths:
+  /check/{chat}:
+    parameters:
+    - name: chat
+      in: path
+      required: true
+      description: ID del gruppo
+      schema:
+        type: integer
+        example: 4212
+        minimum: 1
+        maximum: 99999999999
+    get:
+      tags: ["Home"]
+      summary: "Visualizza le conversazioni"
+      description: |-
+        Restituisce true se la chat nell'url è un gruppo altrimenti false
+      operationId: isGroup
+      responses:
+        "200":
+          description: Risposta visualizzata correttamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaIsGroup'
+        "400":
+          description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+        "404":
+          description: chat non trovata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+        "500":
+          description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+
+  
   /wasachat:
     post:
       tags: ["Accesso e Registrazione"]
@@ -559,6 +603,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
                 
+                
+  /inoltro/{utente}/a/{destinatario}/inoltro/messaggi/{messaggio}:
+    parameters:
+      - name: utente
+        in: path
+        required: true
+        description: Nickname dell'utente inviante
+        schema:
+          type: string
+          example: "Carlo"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
+      - name: destinatario
+        in: path
+        required: true
+        description: Nickname dell'utente, ricevente
+        schema:
+          type: string
+          example: "Carlo"
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
+      - name: messaggio
+        in: path
+        required: true
+        description: ID del messaggio da inoltrare
+        schema:
+          type: integer
+          example: 4212
+          minimum: 1
+          maximum: 99999999999
+    post:
+      tags: ["Chat"]
+      summary: Inoltra messaggio a una nuova chat
+      description: |-
+        Inoltra un messaggio ad una nuova chat, una chat non esistente.
+      operationId: forwardMessageToNewChat
+      responses:
+        "200":
+          description: Messaggio inoltrato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaGenerica'
+        "400":
+          description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+        "404":
+          description: Messaggio o chat non trovati
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+        "500":
+          description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+                
   /wasachat/{utente}/risposta/chats/{chat}/messaggi/{messaggio}:
     parameters:
       - name: utente
@@ -1008,6 +1116,22 @@ components:
           maxLength: 50
           pattern: '^[a-zA-Z0-9_]+$'
 
+    RispostaIsGroup:
+      type: object
+      description: Indica se la conversazione è di gruppo e opzionalmente l'ID del gruppo se effettivamente è un gruppo
+      required:
+        - is_group
+      properties:
+        is_group:
+          type: boolean
+          description: Indica se la conversazione è un gruppo
+        group_id:
+          type: integer
+          format: int64
+          description: ID del gruppo (presente solo se è un gruppo
+          minimum: 1
+          maximum: 999999999999999999
+    
     RispostaConversazioni:
       description: Elenco delle conversazioni dell'utente
       required:

@@ -4,34 +4,30 @@ import (
 	"fmt"
 )
 
-func (db *appdbimpl) GetConversazione(utentePassato string, conversazionePassata int) ([]MessageData, error) {
-	// Controllo se la chat esiste
+func (db *appdbimpl) GetConversazione(utentePassato string, conversazionePassata int) ([]MessageData, int, error) {
 	esistenza, err := db.EsisteConversazione(conversazionePassata)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante la verifica di esistenza: %w", err)
+		return nil, 500, fmt.Errorf("errore durante la verifica di esistenza: %w", err)
 	}
 	if !esistenza {
-		return nil, fmt.Errorf("errore, la chat non esiste")
+		return nil, 404, fmt.Errorf("errore, la chat non esiste o non è stata trovata nel database")
 	}
 
-	tipoConversazione, err := db.CercaConversazioneGruppo(conversazionePassata)
+	tipoConversazione, codiceErrore, err := db.CercaConversazioneGruppo(conversazionePassata)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il controllo del tipo di conversazione: %w", err)
+		return nil, codiceErrore, fmt.Errorf("errore durante il controllo del tipo di conversazione: %w", err)
 	}
 	if tipoConversazione > 0 {
-		// La conversazione è un gruppo, chiama GetConversazioneGruppo
 		return db.GetConversazioneGruppo(utentePassato, conversazionePassata)
 	} else {
 		nome, err := db.GetNomeUtenteCoinvolto(conversazionePassata, utentePassato)
 		if err != nil {
-			return nil, fmt.Errorf("errore durante il controllo del tipo di conversazione: %w", err)
+			return nil, 500, fmt.Errorf("errore durante il recupero del nome dell'utente coinvolto: %w", err)
 		}
-		// La conversazione è privata, chiama GetConversazionePrivata
 		return db.GetConversazionePrivata(utentePassato, nome)
 	}
 }
 
-// Creo uno struct per contenere i messaggi
 type MessageData struct {
 	MessageID int        `json:"message_id"`
 	Autore    string     `json:"autore"`
@@ -45,22 +41,21 @@ type MessageData struct {
 	Risposta  *int       `json:"risposta"`
 }
 
-// Creo uno struct per contenere i commenti
 type Commento struct {
 	CommentID int    `json:"comment_id"`
 	Autore    string `json:"autore"`
 	Reazione  string `json:"reazione"`
 }
 
-func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Passato string) ([]MessageData, error) {
-	conversazioneID, err := db.EsisteConversazioneTraUtenti(utente1_Passato, utente2_Passato)
+func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Passato string) ([]MessageData, int, error) {
+	conversazioneID, codiceErrore, err := db.EsisteConversazioneTraUtenti(utente1_Passato, utente2_Passato)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante la ricerca della conversazione: %w", err)
+		return nil, codiceErrore, fmt.Errorf("errore durante la ricerca della conversazione: %w", err)
 	}
 
 	err = db.LeggiMessaggiPrivati(utente2_Passato, conversazioneID)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante la modifica dello stato dei messaggi: %w", err)
+		return nil, 500, fmt.Errorf("errore durante la modifica dello stato dei messaggi: %w", err)
 	}
 
 	querySelect := `
@@ -73,7 +68,7 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 
 	rows, err := db.c.Query(querySelect, conversazioneID)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il recupero dei messaggi: %w", err)
+		return nil, 500, fmt.Errorf("errore durante il recupero dei messaggi: %w", err)
 	}
 
 	var messageData []MessageData
@@ -90,12 +85,12 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 		var risposta *int
 
 		if err := rows.Scan(&messageID, &autore, &text, &foto, &time, &ricevuto, &letto, &inoltrato, &risposta); err != nil {
-			return nil, fmt.Errorf("errore durante la lettura dei dati: %w", err)
+			return nil, 500, fmt.Errorf("errore durante la lettura dei dati: %w", err)
 		}
 
-		commenti, err := db.GetCommentiMessaggio(messageID)
+		commenti, codiceErrore, err := db.GetCommentiMessaggio(messageID)
 		if err != nil {
-			return nil, fmt.Errorf("errore durante il recupero dei commenti per il messaggio %d: %w", messageID, err)
+			return nil, codiceErrore, fmt.Errorf("errore durante il recupero dei commenti per il messaggio %d: %w", messageID, err)
 		}
 
 		messageData = append(messageData, MessageData{
@@ -112,25 +107,25 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 		})
 	}
 
-	return messageData, nil
+	return messageData, 0, nil
 }
 
-func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversazione int) ([]MessageData, error) {
-	coinvolto, err := db.UtenteCoinvoltoGruppo(utente1_Passato, id_conversazione)
+func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversazione int) ([]MessageData, int, error) {
+	coinvolto, codiceErrore, err := db.UtenteCoinvoltoGruppo(utente1_Passato, id_conversazione)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il controllo della partecipazione dell'utente: %w", err)
+		return nil, codiceErrore, fmt.Errorf("errore durante il controllo della partecipazione dell'utente: %w", err)
 	}
 	if coinvolto == 0 {
-		return nil, fmt.Errorf("l'utente %s non fa parte della conversazione %d", utente1_Passato, id_conversazione)
+		return nil, 401, fmt.Errorf("l'utente %s non fa parte della conversazione %d", utente1_Passato, id_conversazione)
 	}
 
 	err = db.LeggiMessaggiGruppo(utente1_Passato, id_conversazione)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante la modifica dei messaggi: %w", err)
+		return nil, 418, fmt.Errorf("errore durante la modifica dei messaggi: %w", err)
 	}
 	err = db.CheckLetturaMessaggiGruppo(id_conversazione)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il check di lettura dei messaggi: %w", err)
+		return nil, 500, fmt.Errorf("errore durante il check di lettura dei messaggi: %w", err)
 	}
 
 	querySelect := `
@@ -143,7 +138,7 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 
 	rows, err := db.c.Query(querySelect, id_conversazione)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il recupero dei messaggi: %w", err)
+		return nil, 500, fmt.Errorf("errore durante il recupero dei messaggi: %w", err)
 	}
 
 	var messageData []MessageData
@@ -154,18 +149,18 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 		var text *string
 		var foto *string
 		var time string
-		var ricevuto bool
 		var letto bool
+		var ricevuto bool
 		var inoltrato bool
 		var risposta *int
 
 		if err := rows.Scan(&messageID, &autore, &text, &foto, &time, &letto, &ricevuto, &inoltrato, &risposta); err != nil {
-			return nil, fmt.Errorf("errore durante la lettura dei dati: %w", err)
+			return nil, 500, fmt.Errorf("errore durante la lettura dei dati: %w", err)
 		}
 
-		commenti, err := db.GetCommentiMessaggio(messageID)
+		commenti, codiceErrore, err := db.GetCommentiMessaggio(messageID)
 		if err != nil {
-			return nil, fmt.Errorf("errore durante il recupero dei commenti per il messaggio %d: %w", messageID, err)
+			return nil, codiceErrore, fmt.Errorf("errore durante il recupero dei commenti per il messaggio %d: %w", messageID, err)
 		}
 
 		messageData = append(messageData, MessageData{
@@ -182,10 +177,10 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 		})
 	}
 
-	return messageData, nil
+	return messageData, 0, nil
 }
 
-func (db *appdbimpl) GetCommentiMessaggio(messageID int) ([]Commento, error) {
+func (db *appdbimpl) GetCommentiMessaggio(messageID int) ([]Commento, int, error) {
 	querySelect := `
 		SELECT c.id, c.autore, c.reazione
 		FROM commento c
@@ -193,7 +188,7 @@ func (db *appdbimpl) GetCommentiMessaggio(messageID int) ([]Commento, error) {
 
 	rows, err := db.c.Query(querySelect, messageID)
 	if err != nil {
-		return nil, fmt.Errorf("errore durante il recupero dei commenti: %w", err)
+		return nil, 500, fmt.Errorf("errore durante il recupero dei commenti: %w", err)
 	}
 
 	var commenti []Commento
@@ -204,7 +199,7 @@ func (db *appdbimpl) GetCommentiMessaggio(messageID int) ([]Commento, error) {
 		var reazione string
 
 		if err := rows.Scan(&commentID, &autore, &reazione); err != nil {
-			return nil, fmt.Errorf("errore durante la lettura dei dati del commento: %w", err)
+			return nil, 500, fmt.Errorf("errore durante la lettura dei dati del commento: %w", err)
 		}
 
 		commenti = append(commenti, Commento{
@@ -214,5 +209,5 @@ func (db *appdbimpl) GetCommentiMessaggio(messageID int) ([]Commento, error) {
 		})
 	}
 
-	return commenti, nil
+	return commenti, 0, nil
 }

@@ -53,18 +53,18 @@ func (rt *_router) ansMessage(w http.ResponseWriter, r *http.Request, ps httprou
 			CreaErroreJson(w, "Errore durante l'inserimento della foto per la risposta: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = rt.db.RispondiMessaggioFoto(UtenteChiamante, Conversazione, IdMessaggio, idFoto)
+		codiceErrore, err := rt.db.RispondiMessaggioFoto(UtenteChiamante, Conversazione, IdMessaggio, idFoto)
 		if err != nil {
-			CreaErroreJson(w, "Errore durante la risposta con foto: "+err.Error(), http.StatusInternalServerError)
+			CreaErroreJson(w, "Errore durante la risposta con foto: "+err.Error(), codiceErrore)
 			return
 		}
 		CreaRispostaJson(w, "Risposta con foto inviata con successo", http.StatusOK)
 		return
 	}
 
-	err = rt.db.RispondiMessaggioTesto(UtenteChiamante, Conversazione, IdMessaggio, input.Testo)
+	codiceErrore, err := rt.db.RispondiMessaggioTesto(UtenteChiamante, Conversazione, IdMessaggio, input.Testo)
 	if err != nil {
-		CreaErroreJson(w, "Errore durante l'inserimento del messaggio di risposta: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante l'inserimento del messaggio di risposta: "+err.Error(), codiceErrore)
 		return
 	}
 	CreaRispostaJson(w, "Risposta inviata con successo", http.StatusOK)

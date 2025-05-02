@@ -43,18 +43,18 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 			CreaErroreJson(w, "Errore durante l'inserimento della foto del messaggio: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		_, err = rt.db.CreaMessaggioFotoDB(UtenteChiamante, Conversazione, idFoto)
+		codiceErrore, _, err := rt.db.CreaMessaggioFotoDB(UtenteChiamante, Conversazione, idFoto)
 		if err != nil {
-			CreaErroreJson(w, "Errore durante l'inserimento del messaggio con foto: "+err.Error(), http.StatusInternalServerError)
+			CreaErroreJson(w, "Errore durante l'inserimento del messaggio con foto: "+err.Error(), codiceErrore)
 			return
 		}
 		CreaRispostaJson(w, "Messaggio con foto inviato con successo", http.StatusCreated)
 		return
 	}
 
-	_, err = rt.db.CreaMessaggioTestualeDB(UtenteChiamante, Conversazione, input.Testo)
+	codiceErrore, _, err := rt.db.CreaMessaggioTestualeDB(UtenteChiamante, Conversazione, input.Testo)
 	if err != nil {
-		CreaErroreJson(w, "Errore durante l'inserimento del messaggio: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante l'inserimento del messaggio: "+err.Error(), codiceErrore)
 		return
 	}
 
@@ -108,9 +108,9 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	err = rt.db.AggiungiCommento(UtenteChiamante, IDMessaggio, input.Reazione)
+	codiceErrore, err := rt.db.AggiungiCommento(UtenteChiamante, IDMessaggio, input.Reazione)
 	if err != nil {
-		CreaErroreJson(w, "Errore durante la scrittura del commento: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante la scrittura del commento: "+err.Error(), codiceErrore)
 		return
 	}
 

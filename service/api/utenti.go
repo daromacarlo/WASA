@@ -17,9 +17,9 @@ func (rt *_router) usersInGroup(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
-	lista, err := rt.db.UsersInGroup(chiamante, gruppo)
+	lista, codiceErrore, err := rt.db.UsersInGroup(chiamante, gruppo) // <-- ordine corretto
 	if err != nil {
-		CreaErroreJson(w, "Errore durante il recupero degli utenti: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante il recupero degli utenti: "+err.Error(), codiceErrore)
 		return
 	}
 	if len(lista) == 0 {
@@ -86,9 +86,9 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	err = rt.db.ImpostaNome(UtenteChiamante, input.Nome)
+	codiceErrore, err := rt.db.ImpostaNome(UtenteChiamante, input.Nome)
 	if err != nil {
-		CreaErroreJson(w, "Errore durante l'aggiornamento del nome: "+err.Error(), http.StatusInternalServerError)
+		CreaErroreJson(w, "Errore durante l'aggiornamento del nome: "+err.Error(), codiceErrore)
 		return
 	}
 

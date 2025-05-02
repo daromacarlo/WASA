@@ -5,6 +5,10 @@
       Annulla
     </button>
 
+    <button @click="openNewChatModal" class="button">
+      Nuova chat
+    </button>
+
     <!-- Lista delle conversazioni -->
     <div class="chats-container">
       <h2>Seleziona una chat per inoltrare il messaggio:</h2>
@@ -28,6 +32,32 @@
       </ul>
       <p v-else>Nessuna conversazione trovata.</p>
     </div>
+
+    <!-- Modale nuova chat -->
+    <div v-if="showAddMemberModal" class="modal">
+      <div class="modal-content">
+        <h3>Cerca una persona</h3>
+        <input 
+          v-model="newMemberName" 
+          type="text" 
+          placeholder="Inserisci il nickname dell'utente" 
+          class="modal-input"
+          @keyup.enter="forwardToNewUser"
+          :disabled="addingMember"
+        />
+        <div class="modal-buttons">
+          <button 
+            @click="forwardToNewUser"
+            class="modal-button confirm"
+            :disabled="!newMemberName || addingMember"
+          >
+            <span v-if="addingMember">Inoltrando...</span>
+            <span v-else>Inoltra</span>
+          </button>
+          <button @click="closeNewChatModal" class="modal-button cancel">Annulla</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -37,13 +67,14 @@ export default {
     return {
       chats: [],
       loading: false,
-      error: null,
-      messageToForward: null
+      messageToForward: null,
+      showAddMemberModal: false,
+      newMemberName: "",
+      addingMember: false
     };
   },
   async created() {
     await this.loadChats();
-    
     if (this.$route.params.message) {
       this.messageToForward = this.$route.params.message;
     }
@@ -60,8 +91,8 @@ export default {
           return chat;
         });
       } catch (e) {
-        this.error = "Errore durante il caricamento delle conversazioni.";
-        console.error(e);
+        console.error("Errore durante il caricamento delle conversazioni:", e);
+        alert("Errore durante il caricamento delle conversazioni.");
       } finally {
         this.loading = false;
       }
@@ -84,39 +115,78 @@ export default {
 
     async forwardToChat(chat) {
       const nickname = this.$route.params.nickname;
-      const currentChatId = this.$route.params.chat;
       const messageId = this.$route.params.message;
       const destinationChatId = chat.chat_id;
-      
+
       if (messageId) {
         try {
           this.loading = true;
-          await this.$axios.post(
+          const response = await this.$axios.post(
             `/wasachat/${nickname}/inoltro/${destinationChatId}/messaggi/${messageId}`
           );
-          
-          // Ritorna automaticamente alla chat di origine dopo l'inoltro
-          this.goBack();
-          
-          // Mostra un messaggio di successo (opzionale)
-          this.$toast.success('Messaggio inoltrato con successo!');
+
+          if (response.status >= 200 && response.status < 300) {
+            alert("Messaggio inoltrato con successo!");
+            this.goBack();
+          } else {
+            console.error("Errore nella risposta del server:", response);
+            alert("Errore durante l'inoltro del messaggio.");
+          }
         } catch (error) {
           console.error("Errore durante l'inoltro del messaggio:", error);
-          this.error = "Errore durante l'inoltro del messaggio";
-          this.$toast.error('Errore durante l\'inoltro del messaggio');
+          alert("Errore durante l'inoltro del messaggio.");
         } finally {
           this.loading = false;
         }
       } else {
         this.$router.push(`/wasachat/${nickname}/chats/${destinationChatId}`);
       }
+    },
+
+    openNewChatModal() {
+      this.showAddMemberModal = true;
+      this.newMemberName = "";
+      this.addingMember = false;
+    },
+
+    closeNewChatModal() {
+      this.showAddMemberModal = false;
+      this.newMemberName = "";
+      this.addingMember = false;
+    },
+
+    async forwardToNewUser() {
+      if (!this.newMemberName) return;
+      this.addingMember = true;
+      const nickname = this.$route.params.nickname;
+      const destinatario = this.newMemberName;
+      const messaggio = this.$route.params.message;
+
+      try {
+        const response = await this.$axios.post(
+          `/inoltro/${nickname}/a/${destinatario}/inoltro/messaggi/${messaggio}`
+        );
+
+        if (response.status >= 200 && response.status < 300) {
+          alert("Messaggio inoltrato con successo!");
+          this.closeNewChatModal();
+          this.goBack();
+        } else {
+          console.error("Errore nella risposta del server:", response);
+          alert("Errore durante l'inoltro del messaggio.");
+        }
+      } catch (error) {
+        console.error("Errore durante l'inoltro del messaggio a nuovo utente:", error);
+        alert("Errore durante l'inoltro del messaggio.");
+      } finally {
+        this.addingMember = false;
+      }
     }
-  },
+  }
 };
 </script>
 
 <style scoped>
-/* Stili rimangono identici alla versione precedente */
 .chats-container {
   padding: 20px;
   max-width: 600px;
@@ -194,8 +264,50 @@ li:hover {
   color: #999;
 }
 
-.error-message {
-  color: red;
-  margin-top: 10px;
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-button.confirm {
+  background-color: #4caf50;
+  color: white;
+}
+
+.modal-button.cancel {
+  background-color: #f44336;
+  color: white;
 }
 </style>

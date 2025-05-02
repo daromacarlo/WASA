@@ -4,167 +4,166 @@ import (
 	"fmt"
 )
 
-func (db *appdbimpl) AggiungiAGruppoDB(idConversazione int, UtenteChiamante string, UtenteDaAggiungere string) error {
+func (db *appdbimpl) AggiungiAGruppoDB(idConversazione int, UtenteChiamante string, UtenteDaAggiungere string) (int, error) {
 	esisteUtenteChiamante, err := db.EsistenzaUtente(UtenteChiamante)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo dell'esistenza dell'utente chiamante %s: %w", UtenteChiamante, err)
+		return 500, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente chiamante %s: %w", UtenteChiamante, err)
 	}
 	if !esisteUtenteChiamante {
-		return fmt.Errorf("l'utente chiamante %s non esiste", UtenteChiamante)
+		return 404, fmt.Errorf("l'utente chiamante %s non esiste", UtenteChiamante)
 	}
-	chiamantePresente, err := db.UtenteCoinvoltoGruppo(UtenteChiamante, idConversazione)
+	chiamantePresente, codiceErrore, err := db.UtenteCoinvoltoGruppo(UtenteChiamante, idConversazione)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
+		return codiceErrore, fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
 	}
 	if chiamantePresente == 0 {
-		return fmt.Errorf("l'utente %s non fa parte del gruppo", UtenteChiamante)
+		return 401, fmt.Errorf("l'utente %s non fa parte del gruppo", UtenteChiamante)
 	}
 	esisteUtentedaAggiungere, err := db.EsistenzaUtente(UtenteDaAggiungere)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo dell'esistenza dell'utente da aggiungere %s: %w", UtenteDaAggiungere, err)
+		return 500, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente da aggiungere %s: %w", UtenteDaAggiungere, err)
 	}
 	if !esisteUtentedaAggiungere {
-		return fmt.Errorf("l'utente da aggiungere %s non esiste", UtenteDaAggiungere)
+		return 404, fmt.Errorf("l'utente da aggiungere %s non esiste", UtenteDaAggiungere)
 	}
-	utenteGiaPresente, err := db.UtenteCoinvoltoGruppo(UtenteDaAggiungere, idConversazione)
+	utenteGiaPresente, codiceErrore, err := db.UtenteCoinvoltoGruppo(UtenteDaAggiungere, idConversazione)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
+		return codiceErrore, fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
 	}
 	if utenteGiaPresente > 0 {
-		return fmt.Errorf("l'utente %s è già presente nel gruppo", UtenteDaAggiungere)
+		return 304, fmt.Errorf("l'utente %s è già presente nel gruppo", UtenteDaAggiungere)
 	}
-	utenteDaAggiungere_convertito, err := db.IdUtenteDaNickname(UtenteDaAggiungere)
+	utenteDaAggiungere_convertito, codiceErrore, err := db.IdUtenteDaNickname(UtenteDaAggiungere)
 	if err != nil {
-		return fmt.Errorf("errore nella conversione del nickname %s in ID: %w", UtenteDaAggiungere, err)
+		return codiceErrore, fmt.Errorf("errore nella conversione del nickname %s in ID: %w", UtenteDaAggiungere, err)
 	}
 	esiste, err := db.EsisteConversazione(idConversazione)
 	if err != nil {
-		return fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)
+		return 500, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)
 	}
 	if !esiste {
-		return fmt.Errorf("la conversazione con ID %d non esiste", idConversazione)
+		return 404, fmt.Errorf("la conversazione con ID %d non esiste", idConversazione)
 	}
-	idGruppo, err := db.CercaConversazioneGruppo(idConversazione)
+	idGruppo, codiceErrore, err := db.CercaConversazioneGruppo(idConversazione)
 	if err != nil {
-		return fmt.Errorf("errore durante la ricerca del gruppo associato alla conversazione: %w", err)
+		return codiceErrore, fmt.Errorf("errore durante la ricerca del gruppo associato alla conversazione: %w", err)
 	}
 	queryDiInserimento := `INSERT INTO utenteingruppo (utente, gruppo) VALUES (?, ?);`
 	_, err = db.c.Exec(queryDiInserimento, utenteDaAggiungere_convertito, idGruppo)
 	if err != nil {
-		return fmt.Errorf("errore durante l'aggiunta dell'utente al gruppo: %w", err)
+		return 500, fmt.Errorf("errore durante l'aggiunta dell'utente al gruppo: %w", err)
 	}
-	return nil
+	return 0, nil
 }
 
-func (db *appdbimpl) LasciaGruppo(idConversazione int, UtenteChiamante string) error {
+func (db *appdbimpl) LasciaGruppo(idConversazione int, UtenteChiamante string) (int, error) {
 	esisteUtenteChiamante, err := db.EsistenzaUtente(UtenteChiamante)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo dell'esistenza dell'utente chiamante %s: %w", UtenteChiamante, err)
+		return 500, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente chiamante %s: %w", UtenteChiamante, err)
 	}
 	if !esisteUtenteChiamante {
-		return fmt.Errorf("l'utente chiamante %s non esiste", UtenteChiamante)
+		return 404, fmt.Errorf("l'utente chiamante %s non esiste", UtenteChiamante)
 	}
-	chiamantePresente, err := db.UtenteCoinvoltoGruppo(UtenteChiamante, idConversazione)
+	chiamantePresente, codiceErrore, err := db.UtenteCoinvoltoGruppo(UtenteChiamante, idConversazione)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
+		return codiceErrore, fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
 	}
 	if chiamantePresente == 0 {
-		return fmt.Errorf("l'utente %s non fa parte del gruppo", UtenteChiamante)
+		return 401, fmt.Errorf("l'utente %s non fa parte del gruppo", UtenteChiamante)
 	}
-	utenteChiamante_convertito, err := db.IdUtenteDaNickname(UtenteChiamante)
+	utenteChiamante_convertito, codiceErrore, err := db.IdUtenteDaNickname(UtenteChiamante)
 	if err != nil {
-		return fmt.Errorf("errore nella conversione del nickname %s in ID: %w", UtenteChiamante, err)
+		return codiceErrore, fmt.Errorf("errore nella conversione del nickname %s in ID: %w", UtenteChiamante, err)
 	}
 	esiste, err := db.EsisteConversazione(idConversazione)
 	if err != nil {
-		return fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)
+		return 500, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)
 	}
 	if !esiste {
-		return fmt.Errorf("la conversazione con ID %d non esiste", idConversazione)
+		return 404, fmt.Errorf("la conversazione con ID %d non esiste", idConversazione)
 	}
-	idGruppo, err := db.CercaConversazioneGruppo(idConversazione)
+	idGruppo, codiceErrore, err := db.CercaConversazioneGruppo(idConversazione)
 	if err != nil {
-		return fmt.Errorf("errore durante la ricerca del gruppo associato alla conversazione: %w", err)
+		return codiceErrore, fmt.Errorf("errore durante la ricerca del gruppo associato alla conversazione: %w", err)
 	}
 	queryDiInserimento := `DELETE from utenteingruppo WHERE utente = ? AND gruppo = ?;`
 	_, err = db.c.Exec(queryDiInserimento, utenteChiamante_convertito, idGruppo)
 	if err != nil {
-		return fmt.Errorf("errore durante la rimozione dell'utente al gruppo: %w", err)
+		return 500, fmt.Errorf("errore durante la rimozione dell'utente al gruppo: %w", err)
 	}
-	return nil
+	return 0, nil
 }
 
-// ImpostaFotoGruppo aggiorna la foto del gruppo
-func (db *appdbimpl) ImpostaFotoGruppo(UtenteChiamante string, id_foto_Passata int, id_gruppo_Passato int) error {
+func (db *appdbimpl) ImpostaFotoGruppo(UtenteChiamante string, id_foto_Passata int, id_gruppo_Passato int) (int, error) {
 	esiste, err := db.EsisteConversazione(id_gruppo_Passato)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo dell'esistenza della conversazione: %w", err)
+		return 500, fmt.Errorf("errore durante il controllo dell'esistenza della conversazione: %w", err)
 	}
 	if !esiste {
-		return fmt.Errorf("la conversazione specificata non esiste")
+		return 404, fmt.Errorf("la conversazione specificata non esiste")
 	}
 
-	tipoGruppo, err := db.CercaConversazioneGruppo(id_gruppo_Passato)
+	tipoGruppo, codiceErrore, err := db.CercaConversazioneGruppo(id_gruppo_Passato)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo del tipo di conversazione: %w", err)
+		return codiceErrore, fmt.Errorf("errore durante il controllo del tipo di conversazione: %w", err)
 	}
 	if tipoGruppo == 0 {
-		return fmt.Errorf("la conversazione specificata non è un gruppo")
+		return 400, fmt.Errorf("la conversazione specificata non è un gruppo")
 	}
-	coinvolto, err := db.UtenteCoinvoltoGruppo(UtenteChiamante, id_gruppo_Passato)
+	coinvolto, codiceErrore, err := db.UtenteCoinvoltoGruppo(UtenteChiamante, id_gruppo_Passato)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo della partecipazione dell'utente: %w", err)
+		return codiceErrore, fmt.Errorf("errore durante il controllo della partecipazione dell'utente: %w", err)
 	}
 	if coinvolto == 0 {
-		return fmt.Errorf("l'utente %s non fa parte del gruppo %d", UtenteChiamante, id_gruppo_Passato)
+		return 401, fmt.Errorf("l'utente %s non fa parte del gruppo %d", UtenteChiamante, id_gruppo_Passato)
 	}
 	query := `UPDATE gruppo SET foto = ? WHERE conversazione = ?`
 	_, err = db.c.Exec(query, id_foto_Passata, id_gruppo_Passato)
 	if err != nil {
-		return fmt.Errorf("errore durante l'aggiornamento della foto del gruppo: %w", err)
+		return 500, fmt.Errorf("errore durante l'aggiornamento della foto del gruppo: %w", err)
 	}
-	return nil
+	return 0, nil
 }
 
-func (db *appdbimpl) ImpostaNomeGruppo(UtenteChiamante string, nomeGruppo_Passato string, id_gruppo_Passato int) error {
+func (db *appdbimpl) ImpostaNomeGruppo(UtenteChiamante string, nomeGruppo_Passato string, id_gruppo_Passato int) (int, error) {
 	esiste, err := db.EsisteConversazione(id_gruppo_Passato)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo dell'esistenza della conversazione: %w", err)
+		return 500, fmt.Errorf("errore durante il controllo dell'esistenza della conversazione: %w", err)
 	}
 	if !esiste {
-		return fmt.Errorf("la conversazione specificata non esiste")
+		return 404, fmt.Errorf("la conversazione specificata non esiste")
 	}
-	tipoGruppo, err := db.CercaConversazioneGruppo(id_gruppo_Passato)
+	tipoGruppo, codiceErrore, err := db.CercaConversazioneGruppo(id_gruppo_Passato)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo del tipo di conversazione: %w", err)
+		return codiceErrore, fmt.Errorf("errore durante il controllo del tipo di conversazione: %w", err)
 	}
 	if tipoGruppo == 0 {
-		return fmt.Errorf("la conversazione specificata non è un gruppo")
+		return 400, fmt.Errorf("la conversazione specificata non è un gruppo")
 	}
 
-	coinvolto, err := db.UtenteCoinvoltoGruppo(UtenteChiamante, id_gruppo_Passato)
+	coinvolto, codiceErrore, err := db.UtenteCoinvoltoGruppo(UtenteChiamante, id_gruppo_Passato)
 	if err != nil {
-		return fmt.Errorf("errore durante il controllo della partecipazione dell'utente: %w", err)
+		return codiceErrore, fmt.Errorf("errore durante il controllo della partecipazione dell'utente: %w", err)
 	}
 	if coinvolto == 0 {
-		return fmt.Errorf("l'utente %s non fa parte del gruppo %d", UtenteChiamante, id_gruppo_Passato)
+		return 401, fmt.Errorf("l'utente %s non fa parte del gruppo %d", UtenteChiamante, id_gruppo_Passato)
 	}
 
 	var vecchioNome string
 	queryGetNome := `SELECT nome FROM gruppo WHERE conversazione = ?`
 	err = db.c.QueryRow(queryGetNome, id_gruppo_Passato).Scan(&vecchioNome)
 	if err != nil {
-		return fmt.Errorf("errore durante il recupero del nome del gruppo: %w", err)
+		return 500, fmt.Errorf("errore durante il recupero del nome del gruppo: %w", err)
 	}
 
 	if vecchioNome == nomeGruppo_Passato {
-		return fmt.Errorf("il nuovo nome del gruppo è uguale al vecchio")
+		return 304, fmt.Errorf("il nuovo nome del gruppo è uguale al vecchio")
 	}
 
 	queryUpdate := `UPDATE gruppo SET nome = ? WHERE conversazione = ?`
 	_, err = db.c.Exec(queryUpdate, nomeGruppo_Passato, id_gruppo_Passato)
 	if err != nil {
-		return fmt.Errorf("errore durante l'aggiornamento del nome del gruppo: %w", err)
+		return 500, fmt.Errorf("errore durante l'aggiornamento del nome del gruppo: %w", err)
 	}
-	return nil
+	return 0, nil
 }

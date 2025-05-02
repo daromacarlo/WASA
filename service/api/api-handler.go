@@ -21,7 +21,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.PUT("/wasachat/:utente/foto", rt.setMyPhoto)                                        // presente
 	rt.router.PUT("/wasachat/:utente/nome", rt.setMyUserName)                                     // presente
 	rt.router.GET("/wasachat/:utente/utenti/gruppi/:gruppo", rt.usersInGroup)                     // presente
-	rt.router.GET("/wasachat/:utente/chats", rt.getMyConversation)                                // presente
+	rt.router.GET("/wasachat/:utente/chats", rt.getMyConversations)                               // presente
 	rt.router.DELETE("/wasachat/:utente/messaggi/:messaggio", rt.deleteComment)                   // presente
 	rt.router.POST("/wasachat/:utente/messaggi/:messaggio", rt.commentMessage)                    // presente
 	rt.router.POST("/wasachat/:utente/risposta/chats/:chat/messaggi/:messaggio", rt.ansMessage)   // presente

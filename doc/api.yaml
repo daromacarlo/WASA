@@ -114,7 +114,7 @@ paths:
       description: |-
         Restituisce la lista delle conversazioni dell'utente
         in ordine cronologico inverso.
-      operationId: getMyConversation
+      operationId: getMyConversations
       responses:
         "200":
           description: Schermata principale visualizzata correttamente

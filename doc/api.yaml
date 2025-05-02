@@ -272,7 +272,7 @@ paths:
       summary: Crea conversazione privata
       description: |-
         Crea una nuova conversazione privata tra l'utente specificato e un altro utente.
-      operationId: creaConversazionePrivata
+      operationId: createPrivateConversation
       requestBody:
         content:
           application/json:
@@ -850,7 +850,7 @@ paths:
       summary: Modifica nome gruppo
       description: |-
         Modifica il nome del gruppo specificato.
-      operationId: modifiyGroupName
+      operationId: setGroupName
       requestBody:
         content:
           application/json:
@@ -959,7 +959,7 @@ paths:
       summary: Modifica foto gruppo
       description: |-
         Modifica la foto del gruppo specificato.
-      operationId: modifyGroupPhoto
+      operationId: setGroupPhoto
       requestBody:
         content:
           application/json:

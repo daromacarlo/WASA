@@ -1,11 +1,8 @@
 <template>
 	<div class="home">
 	  <div class="container">
-		<h1 class="title">Benvenuto su Wasachat!</h1>
-  
-		<div class="button-container">
-		  <button class="btn login-btn" @click="goToLogin">Accedi</button>
-		</div>
+		<h1 class="titolo">WASACHAT</h1>
+		<button class="bottone_login" @click="loggati">Accedi</button>
 	  </div>
 	</div>
   </template>
@@ -14,8 +11,7 @@
   export default {
 	name: 'Home',
 	methods: {
-	  goToLogin() {
-		// Naviga alla pagina di login
+	  loggati() {
 		this.$router.push('/login');
 	  },
 	},
@@ -23,57 +19,40 @@
   </script>
   
   <style scoped>
-  .home {
-	background-color: #f7f7f7;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	height: 100vh;
-	font-family: 'Arial', sans-serif;
-  }
-  
-  .container {
-	text-align: center;
-	background-color: white;
-	padding: 30px;
-	border-radius: 10px;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .title {
-	font-size: 40px;
-	color: #333;
-	margin-bottom: 10px;
-  }
-  
-  .subtitle {
-	font-size: 15px;
-	color: #777;
-	margin-bottom: 30px;
-  }
-  
-  .button-container {
-	display: flex;
-	justify-content: center;
-	gap: 20px;
-  }
-  
-  .btn {
-	padding: 10px 60px;
-	border: none;
-	border-radius: 5px;
-	font-size: 20px;
-	cursor: pointer;
-	transition: background-color 0.3s ease;
-  }
-  
-  .login-btn {
-	background-color: #7dac10;
-	color: white;
-  }
-  
-  .login-btn:hover {
-	background-color: #7dac10;
-  }
+   .home {
+      background-color: #f7e3b8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Roboto', sans-serif;
+    }
+    
+    .container {
+      text-align: center;
+      background-color: rgb(250, 172, 120);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    }
 
+	.titolo {
+		font-size: 100px;
+		color: #333;
+		margin-bottom: 20px;
+		border: 2px solid #333;
+		border-radius: 8px;   
+		padding: 10px;
+		-webkit-text-stroke: 2px white;
+	}
+
+    .bottone_login {
+      background-color: rgb(240, 97, 3);
+      color: rgb(221, 219, 219);
+      padding: 15px 40px;
+	  border-radius: 90px;
+	  font-size: 30px;
+    }
+    
   </style>
+  

@@ -34,7 +34,7 @@ paths:
         maximum: 99999999999
     get:
       tags: ["Home"]
-      summary: "Visualizza le conversazioni"
+      summary: "Controlla se una chat è un gruppo"
       description: |-
         Restituisce true se la chat nell'url è un gruppo altrimenti false
       operationId: isGroup
@@ -955,10 +955,10 @@ paths:
         pattern: '^[a-zA-Z0-9_]+$'
     post:
       tags: ["Creazione Gruppo"]
-      summary: Modifica nome gruppo
+      summary: Crea un gruppo
       description: |-
         Modifica il nome del gruppo specificato.
-      operationId: setGroupName
+      operationId: createGroup
       requestBody:
         content:
           application/json:
@@ -1018,7 +1018,7 @@ paths:
       summary: Modifica nome gruppo
       description: |-
         Modifica il nome del gruppo specificato.
-      operationId: createGroup
+      operationId: setGroupName
       requestBody:
         content:
           application/json:
@@ -1027,7 +1027,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Gruppo creato con successo
+          description: Nome gruppo modificata con successo
           content:
             application/json:
               schema:

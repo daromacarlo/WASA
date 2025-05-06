@@ -1,96 +1,118 @@
-
 <template>
+  <div class="login-view">
+    <button class="bottone-uscita" @click="vai_alla_home">Vai alla home</button>
     <div class="login-container">
-      <h2>Accedi</h2>
+      <h1 class="titolo">Accedi a WASACHAT</h1>
       <form @submit.prevent="login">
-        <input type="text" v-model="nickname" placeholder="Nickname" required />
-        <button type="submit" :disabled="loading">Accedi</button>
+        <input class="input" v-model="nickname" placeholder="Inserisci il tuo nome:"/>
+        <button class="bottone">Accedi</button>
       </form>
-      <p v-if="errormsg" class="error">{{ errormsg }}</p>
-      <p v-if="loading">Caricamento...</p>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        nickname: '', 
-        errormsg: null,
-        loading: false,
-        some_data: null,
-      };
-    },
-    methods: {
-  async login() {
-    if (!this.nickname.trim()) {
-      this.errormsg = "Inserisci un nickname valido!";
-      return;
-    }
+  </div>
+</template>
 
-    this.loading = true;
-    this.errormsg = null;
-
-    try {
-      // Effettua la richiesta di login
-      const response = await this.$axios.post("/wasachat", { nickname: this.nickname });
-      
-      if (response.status === 200) {
-        // Se il login è andato a buon fine, naviga alla pagina delle conversazioni
-        this.$router.push(`/wasachat/${this.nickname}/chats`);  // Passa il nickname come parametro nella URL
-      } else {
-        this.errormsg = "Errore durante il login. Riprova.";
-      }
-    } catch (e) {
-      // Gestisci gli errori (es. utente non trovato)
-      if (e.response && e.response.status === 404) {
-        this.errormsg = "Utente non trovato. Verifica il nickname.";
-      } else {
-        this.errormsg = "Errore nel tentativo di login. Riprova.";
-      }
-      console.error(e);
-    } finally {
-      this.loading = false;
-    }
+<script>
+export default {
+  data() {
+    return {
+      nickname: ''
+    };
   },
-    },
-  };
-  </script>
-  
-  <style scoped>
-  .login-container {
-    padding: 20px;
-    max-width: 400px;
-    margin: 0 auto;
-    text-align: center;
+
+  methods: {
+    async vai_alla_home() {
+      this.$router.push("/");
+      return;
+      },
+
+    async login() {
+      if (this.nickname === "") {
+        alert("Nickname nullo non valido");
+        return;
+      }
+
+      try {
+        const response = await this.$axios.post("/wasachat", { nickname: this.nickname });
+        const messaggio = response.data.errore;
+        const codice = parseInt(response.data.codice);
+
+        if (codice === 200) {
+          this.$router.push(`/wasachat/${this.nickname}/chats`);
+        } else {
+
+          alert(messaggio);
+        }
+      } catch (e) {
+        if (e.response) {
+          const messaggio = e.response.data.errore;
+          const codice = parseInt(e.response.data.codice);
+          alert(messaggio + ` (codice ${codice})`);
+        } else {
+          alert("Errore di rete o server non raggiungibile.");
+        }
+        console.error(e);
+      }
+    }
+  }
+};
+</script>
+
+<style scoped>
+  .login-view {
+    background-color: #f7e3b8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Roboto', sans-serif;
   }
   
-  input {
+  .login-container {
+    text-align: center;
+    background-color: rgb(250, 172, 120);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .titolo {
+    font-size: 100px;
+		color: #333;
+		margin-bottom: 20px;
+		padding: 10px;
+		-webkit-text-stroke: 2px white;
+  }
+
+  .input {
     display: block;
     width: 100%;
-    padding: 10px;
+    padding: 20px;
     margin: 10px 0;
     border: 1px solid #ccc;
     border-radius: 5px;
   }
-  
-  button {
-    padding: 10px 20px;
-    background-color: #7dac10;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+
+  .bottone {
+    background-color: rgb(240, 97, 3);
+    color: rgb(221, 219, 219);
+    padding: 20px 40px;
+    margin: 40px ;
+	  border-radius: 90px;
+	  font-size: 30px;
   }
+
+  .bottone-uscita {
+  background-color: rgb(197, 66, 66);
+  color: rgb(221, 219, 219);
+  padding: 20px 40px;
+  margin: 40px;
+  border-radius: 90px;
+  font-size: 15px;
   
-  button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-  
-  .error {
-    color: red;
-    font-size: 14px;
-  }
-  </style>
-  
+  position: fixed;
+  top: 10px;    
+  left: 10px;      
+}
+
+
+</style>

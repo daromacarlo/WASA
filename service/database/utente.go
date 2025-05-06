@@ -193,9 +193,10 @@ func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, int, e
 
 	query := `SELECT u.nickname
 			  FROM utente as u
-			  JOIN utenteingruppo as uig ON u.id = uig.utente
-			  JOIN gruppo as g ON g.id = uig.gruppo
-			  WHERE g.id = ?
+			  JOIN utenteingruppo as uig on u.id = uig.utente
+			  JOIN gruppo as g on uig.gruppo = g.id
+			  JOIN conversazione as c on c.id = g.conversazione
+			  WHERE c.id = ?
 			  `
 
 	rows, err := db.c.Query(query, chat)

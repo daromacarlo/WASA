@@ -29,9 +29,9 @@ paths:
       description: ID del gruppo
       schema:
         type: integer
-        example: 4212
+        example: 2
         minimum: 1
-        maximum: 99999999999
+        maximum: 1024
     get:
       tags: ["Home"]
       summary: "Controlla se una chat è un gruppo"
@@ -150,7 +150,7 @@ paths:
         type: string
         example: "Carlo"
         minLength: 1
-        maxLength: 999999999999
+        maxLength: 1024
         pattern: '^[a-zA-Z0-9_]+$'
     get:
       tags: ["Home"]
@@ -375,7 +375,7 @@ paths:
           type: integer
           example: 1
           minimum: 1
-          maximum: 999999999999
+          maximum: 1024
     post:
       tags: ["Gestione Gruppi"]
       summary: Aggiungi utente al gruppo
@@ -440,7 +440,7 @@ paths:
           type: integer
           example: 1
           minimum: 1
-          maximum: 999999999999
+          maximum: 1024
     get:
       tags: ["Chat"]
       summary: Ottieni messaggi chat
@@ -559,18 +559,18 @@ paths:
         description: ID della chat di destinazione
         schema:
           type: integer
-          example: 4235782
+          example: 2
           minimum: 1
-          maximum: 99999999999
+          maximum: 1024
       - name: messaggio
         in: path
         required: true
         description: ID del messaggio da inoltrare
         schema:
           type: integer
-          example: 4212
+          example: 2
           minimum: 1
-          maximum: 99999999999
+          maximum: 1024
     post:
       tags: ["Chat"]
       summary: Inoltra messaggio
@@ -632,9 +632,9 @@ paths:
         description: ID del messaggio da inoltrare
         schema:
           type: integer
-          example: 4212
+          example: 2
           minimum: 1
-          maximum: 99999999999
+          maximum: 1024
     post:
       tags: ["Chat"]
       summary: Inoltra messaggio a una nuova chat
@@ -685,18 +685,18 @@ paths:
         description: ID della chat in cui ci si trova
         schema:
           type: integer
-          example: 4235782
+          example: 2
           minimum: 1
-          maximum: 99999999999
+          maximum: 1024
       - name: messaggio
         in: path
         required: true
         description: ID del messaggio da inoltrare
         schema:
           type: integer
-          example: 4212
+          example: 2
           minimum: 1
-          maximum: 99999999999
+          maximum: 1024
     post:
       tags: ["Chat"]
       summary: Rispondi a messaggio
@@ -753,9 +753,9 @@ paths:
       description: ID della chat
       schema:
         type: number
-        example: 4235782
+        example: 2
         minimum: 1
-        maximum: 99999999999
+        maximum: 1024
         
     put:
       tags: ["Chat"]
@@ -807,18 +807,18 @@ paths:
       description: ID della chat
       schema:
         type: integer
-        example: 4235782
+        example: 2
         minimum: 1
-        maximum: 99999999999
+        maximum: 1024
     - name: messaggio
       in: path
       required: true
       description: ID del messaggio
       schema:
         type: integer
-        example: 4212
+        example: 2
         minimum: 1
-        maximum: 99999999999
+        maximum: 1024
     delete:
       tags: ["Chat"]
       summary: Elimina messaggio
@@ -869,9 +869,9 @@ paths:
       description: ID del messaggio
       schema:
         type: integer
-        example: 4212
+        example: 2
         minimum: 1
-        maximum: 99999999999
+        maximum: 1024
     put:
       tags: ["Chat"]
       summary: Commenta messaggio
@@ -1010,9 +1010,9 @@ paths:
       description: ID del gruppo
       schema:
         type: integer
-        example: 4212
+        example: 2
         minimum: 1
-        maximum: 99999999999
+        maximum: 1024
     put:
       tags: ["Gestione Gruppi"]
       summary: Modifica nome gruppo
@@ -1061,7 +1061,7 @@ paths:
         type: integer
         example: 2
         minimum: 1
-        maximum: 99999999999
+        maximum: 1024
     put:
       tags: ["Gestione Gruppi"]
       summary: Modifica foto gruppo
@@ -1130,7 +1130,7 @@ components:
           format: int64
           description: ID del gruppo (presente solo se è un gruppo
           minimum: 1
-          maximum: 999999999999999999
+          maximum: 1024
     
     RispostaConversazioni:
       description: Elenco delle conversazioni dell'utente
@@ -1141,7 +1141,7 @@ components:
           type: array
           description: Lista delle conversazioni
           minItems: 0
-          maxItems: 9999999999999999
+          maxItems: 1024
           items:
             $ref: '#/components/schemas/RiepilogoConversazione'
 
@@ -1154,7 +1154,7 @@ components:
           description: ID univoco della chat
           example: 21
           minimum: 1
-          maximum: 999999999999
+          maximum: 1024
         nome:
           type: string
           description: Nome della chat o gruppo
@@ -1167,7 +1167,7 @@ components:
           format: binary
           description: Immagine del profilo o foto del gruppo in formato base64
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
         time:
           type: string
           format: date-time
@@ -1211,7 +1211,7 @@ components:
           description: Contenuto base64 della nuova foto
           example: "dadasjbdajsvdjashvfjavfhvasja--"
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
 
     RichiestaAggiungiUtente:
       type: object
@@ -1224,7 +1224,7 @@ components:
           description: Nickname dell'utente da aggiungere
           example: "Luigi"
           minLength: 1
-          maxLength: 99999999999999
+          maxLength: 1024
           pattern: '^[a-zA-Z0-9_]+$'
 
     RispostaMessaggiChat:
@@ -1237,7 +1237,7 @@ components:
           type: array
           description: Lista dei messaggi
           minItems: 0
-          maxItems: 999999999999999999999
+          maxItems: 1024
           items:
             $ref: '#/components/schemas/Messaggio'
             
@@ -1251,7 +1251,7 @@ components:
           type: array
           description: Lista degli utenti nel gruppo
           minItems: 0
-          maxItems: 999999999999999999999
+          maxItems: 1024
           items:
             $ref: '#/components/schemas/Utenti'
         
@@ -1274,7 +1274,7 @@ components:
           description: contenuto base64 della foto profilo dell'utente
           example: "fasfhafaijfhijashfajhfijahfijahfijhaijfhaijfhasijfbaijfbi--"
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
             
     Messaggio:
       type: object
@@ -1291,9 +1291,9 @@ components:
         message_id:
           type: integer
           description: ID univoco del messaggio
-          example: 12345
+          example: 12
           minimum: 1
-          maximum: 99999999999
+          maximum: 1024
         autore:
           type: string
           description: Nickname dell'autore del messaggio
@@ -1313,7 +1313,7 @@ components:
           description: contenuto base64 dell'immagine allegata
           example: "fasfhafaijfhijashfajhfijahfijahfijhaijfhaijfhasijfbaijfbi--"
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
         time:
           type: string
           format: date-time
@@ -1343,9 +1343,9 @@ components:
         risposta:
           type: integer
           description: ID del messaggio a cui si sta rispondendo
-          example: 9876
+          example: 9
           minimum: 1
-          maximum: 99999999999
+          maximum: 1024
 
     RichiestaMessaggio:
       type: object
@@ -1363,7 +1363,7 @@ components:
           description: Percorso o contenuto base64 dell'immagine da allegare
           example: "/home/foto/bellafoto.png"
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
 
     RichiestaCommento:
       type: object
@@ -1390,9 +1390,9 @@ components:
         comment_id:
           type: integer
           description: ID univoco del commento
-          example: 56789
+          example: 2
           minimum: 1
-          maximum: 99999999999
+          maximum: 1024
         autore:
           type: string
           description: Nickname dell'autore del commento
@@ -1427,7 +1427,7 @@ components:
           description: Contenuto base64 della nuova foto
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
 
     RichiestaPerCreazioneGruppo:
       type: object
@@ -1448,7 +1448,7 @@ components:
           description: Contenuto base64 della nuova foto
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
           
     RichiestaNomeGruppo:
       type: object
@@ -1475,7 +1475,7 @@ components:
           description: Contenuto base64 della nuova foto
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
 
     RispostaGenerica:
       type: object
@@ -1489,7 +1489,7 @@ components:
           description: codice di risposta
           example: 200
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
           minimum: 200
           maximum: 299
         risposta:
@@ -1497,7 +1497,7 @@ components:
           description: risposta 
           example: "messaggio di successo"
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
 
     ErroreGenerico:
       type: object
@@ -1511,7 +1511,7 @@ components:
           description: codice di errore
           example: 500
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024
           minimum: 300
           maximum: 599
         errore:
@@ -1519,4 +1519,4 @@ components:
           description: errore
           example: "errore"
           minLength: 1
-          maxLength: 1048576
+          maxLength: 1024

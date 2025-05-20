@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 )
@@ -17,7 +18,7 @@ type Conversazione struct {
 
 func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversazione, int, error) {
 	utente_Passato, codiceErrore, err := db.IdUtenteDaNickname(utente_Passato_string)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return nil, codiceErrore, err
 	}
 
@@ -58,7 +59,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 
 	var conversazioni []Conversazione
 	rowsPrivate, err := db.c.Query(queryConversazioniPrivate, utente_Passato, utente_Passato, utente_Passato, utente_Passato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return nil, 500, fmt.Errorf("errore durante il recupero delle conversazioni private: %w", err)
 	}
 
@@ -81,8 +82,12 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 		idsConversazioniPrivate = append(idsConversazioniPrivate, conv.Id)
 	}
 
+	if err := rowsPrivate.Err(); err != nil {
+		return nil, 500, fmt.Errorf("errore durante l'iterazione delle conversazioni private")
+	}
+
 	rowsGruppo, err := db.c.Query(queryConversazioniGruppo, utente_Passato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return nil, 500, fmt.Errorf("errore durante il recupero delle conversazioni di gruppo: %w", err)
 	}
 
@@ -105,6 +110,10 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 		idsConversazioniGruppo = append(idsConversazioniGruppo, conv.Id)
 	}
 
+	if err := rowsPrivate.Err(); err != nil {
+		return nil, 500, fmt.Errorf("errore durante l'iterazione delle conversazioni di gruppo")
+	}
+
 	for _, idConv := range idsConversazioniPrivate {
 		if err := db.SegnaMessaggiPrivatiRicevuti(utente_Passato_string, idConv); err != nil {
 			return nil, 500, fmt.Errorf("errore durante la segnalazione dei messaggi privati come ricevuti: %w", err)
@@ -116,7 +125,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 			return nil, 500, fmt.Errorf("errore durante la segnalazione dei messaggi di gruppo come ricevuti: %w", err)
 		}
 		err = db.CheckRicevimentoMessaggiGruppo(idConv)
-		if err != nil {
+		if !errors.Is(err, nil) {
 			return nil, 500, fmt.Errorf("errore durante il check di lettura dei messaggi: %w", err)
 		}
 	}

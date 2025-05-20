@@ -19,7 +19,6 @@ tags:
     description: Operazioni di creazione dei gruppi
   - name: Creazione conversazioni private
     description: Operazioni di creazione conversazioni private
-
 paths:
   /check/{chat}:
     parameters:
@@ -33,8 +32,8 @@ paths:
         minimum: 1
         maximum: 1024
     get:
-      tags: ["Home"]
-      summary: "Controlla se una chat è un gruppo"
+      tags: ["Creazione Gruppo"]
+      summary: "Controlla se una chat è un gruppo (isGroup)"
       description: |-
         Restituisce true se la chat nell'url è un gruppo altrimenti false
       operationId: isGroup
@@ -63,14 +62,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-
-  
   /wasachat:
     post:
       tags: ["Accesso e Registrazione"]
-      summary: Login utente
+      summary: Login utente (doLogin)
       description: |-
-        Se l'utente non esiste, viene creato con la funzione registrare altrimenti,.
+        Se l'utente non esiste, viene creato con la funzione registrare altrimenti,
         Se l'utente esiste viene eseguito il login.
       operationId: doLogin
       requestBody:
@@ -105,10 +102,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-                
     put:
       tags: ["Accesso e Registrazione"]
-      summary: Registrazione utente
+      summary: Registrazione utente (register)
       description: |-
         Funzione che consente la registrazione utente, se il nome utente è già presente nel sistema 
         allora verrà eseguita la funzione di login
@@ -139,7 +135,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-
   /wasachat/{utente}/chats:
     parameters:
     - name: utente
@@ -151,10 +146,10 @@ paths:
         example: "Carlo"
         minLength: 1
         maxLength: 1024
-        pattern: '^[a-zA-Z0-9_]+$'
+        pattern: '^[a-zA-Z0-9._~-]+$'
     get:
       tags: ["Home"]
-      summary: "Visualizza le conversazioni"
+      summary: "Visualizza le conversazioni (getMyConversations)"
       description: |-
         Restituisce la lista delle conversazioni dell'utente
         in ordine cronologico inverso.
@@ -192,7 +187,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-
   /wasachat/{utente}/nome:
     parameters:
     - name: utente
@@ -204,10 +198,10 @@ paths:
         example: "Carlo"
         minLength: 1
         maxLength: 50
-        pattern: '^[a-zA-Z0-9_]+$'
+        pattern: '^[a-zA-Z0-9._~-]+$'
     put:
       tags: ["Profilo Utente"]
-      summary: Modifica nome utente
+      summary: Modifica nome utente (setMyUserName)
       description: |-
         Modifica il nome utente.
       operationId: setMyUserName
@@ -248,7 +242,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-
   /wasachat/{utente}/foto:
     parameters:
     - name: utente
@@ -260,10 +253,10 @@ paths:
         example: "Carlo"
         minLength: 1
         maxLength: 50
-        pattern: '^[a-zA-Z0-9_]+$'
+        pattern: '^[a-zA-Z0-9._~-]+$'
     put:
       tags: ["Profilo Utente"]
-      summary: Modifica foto profilo
+      summary: Modifica foto profilo (setMyPhoto)
       description: |-
         Imposta o modifica la foto profilo dell'utente.
       operationId: setMyPhoto
@@ -310,10 +303,10 @@ paths:
           example: "Carlo"
           minLength: 1
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          pattern: '^[a-zA-Z0-9._~-]+$'
     post:
       tags: ["Creazione conversazioni private"]
-      summary: Crea conversazione privata
+      summary: Crea conversazione privata (createPrivateConversation)
       description: |-
         Crea una nuova conversazione privata tra l'utente specificato e un altro utente.
       operationId: createPrivateConversation
@@ -354,7 +347,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-
   /wasachat/{utente}/chats/gruppi/{chat}/aggiungi:
     parameters:
       - name: utente
@@ -366,7 +358,9 @@ paths:
           example: "Carlo"
           minLength: 1
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          pattern: '^[a-zA-Z0-9._~-]+$'
+
+
       - name: chat
         in: path
         required: true
@@ -376,9 +370,9 @@ paths:
           example: 1
           minimum: 1
           maximum: 1024
-    post:
+    put:
       tags: ["Gestione Gruppi"]
-      summary: Aggiungi utente al gruppo
+      summary: Aggiungi utente al gruppo (addToGroup)
       description: |-
         Aggiunge un utente al gruppo specificato.
       operationId: addToGroup
@@ -419,7 +413,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-
   /wasachat/{utente}/chats/{chat}:
     parameters:
       - name: utente
@@ -431,7 +424,9 @@ paths:
           example: "Carlo"
           minLength: 1
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          pattern: '^[a-zA-Z0-9._~-]+$'
+
+
       - name: chat
         in: path
         required: true
@@ -443,7 +438,7 @@ paths:
           maximum: 1024
     get:
       tags: ["Chat"]
-      summary: Ottieni messaggi chat
+      summary: Ottieni messaggi chat (getConversation)
       description: |-
         Restituisce i messaggi della chat specificata.
       operationId: getConversation
@@ -474,7 +469,7 @@ paths:
                 $ref: '#/components/schemas/ErroreGenerico'
     post:
       tags: ["Chat"]
-      summary: Invia messaggio
+      summary: Invia messaggio (sendMessage)
       description: |-
         Invia un messaggio nella chat specificata.
       operationId: sendMessage
@@ -511,7 +506,7 @@ paths:
                 $ref: '#/components/schemas/ErroreGenerico'
     delete:
       tags: ["Gestione Gruppi"]
-      summary: Esci dal gruppo
+      summary: Esci dal gruppo (leaveGroup)
       description: |-
         L'utente esce dal gruppo specificato.
       operationId: leaveGroup
@@ -540,7 +535,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-
   /wasachat/{utente}/inoltro/{nuovachat}/messaggi/{messaggio}:
     parameters:
       - name: utente
@@ -552,7 +546,9 @@ paths:
           example: "Carlo"
           minLength: 1
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          pattern: '^[a-zA-Z0-9._~-]+$'
+
+
       - name: nuovachat
         in: path
         required: true
@@ -573,7 +569,7 @@ paths:
           maximum: 1024
     post:
       tags: ["Chat"]
-      summary: Inoltra messaggio
+      summary: Inoltra messaggio (forwardMessage)
       description: |-
         Inoltra un messaggio a un'altra chat.
       operationId: forwardMessage
@@ -602,8 +598,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-                
-                
   /inoltro/{utente}/a/{destinatario}/inoltro/messaggi/{messaggio}:
     parameters:
       - name: utente
@@ -615,7 +609,7 @@ paths:
           example: "Carlo"
           minLength: 1
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          pattern: '^[a-zA-Z0-9._~-]+$'
       - name: destinatario
         in: path
         required: true
@@ -625,7 +619,7 @@ paths:
           example: "Carlo"
           minLength: 1
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          pattern: '^[a-zA-Z0-9._~-]+$'
       - name: messaggio
         in: path
         required: true
@@ -637,7 +631,7 @@ paths:
           maximum: 1024
     post:
       tags: ["Chat"]
-      summary: Inoltra messaggio a una nuova chat
+      summary: Inoltra messaggio a una nuova chat (forwardMessageToNewChat)
       description: |-
         Inoltra un messaggio ad una nuova chat, una chat non esistente.
       operationId: forwardMessageToNewChat
@@ -666,7 +660,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-                
   /wasachat/{utente}/risposta/chats/{chat}/messaggi/{messaggio}:
     parameters:
       - name: utente
@@ -678,7 +671,8 @@ paths:
           example: "Carlo"
           minLength: 1
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          pattern: '^[a-zA-Z0-9._~-]+$'
+
       - name: chat
         in: path
         required: true
@@ -699,7 +693,7 @@ paths:
           maximum: 1024
     post:
       tags: ["Chat"]
-      summary: Rispondi a messaggio
+      summary: Rispondi a messaggio (ansMessage)
       description: |-
         Rispondi ad un messaggio a un messaggio.
       operationId: ansMessage
@@ -734,7 +728,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-                
   /wasachat/{utente}/utenti/gruppi/{gruppo}:     
     parameters:
     - name: utente
@@ -746,7 +739,8 @@ paths:
         example: "Carlo"
         minLength: 1
         maxLength: 50
-        pattern: '^[a-zA-Z0-9_]+$'
+        pattern: '^[a-zA-Z0-9._~-]+$'
+
     - name: gruppo
       in: path
       required: true
@@ -757,9 +751,9 @@ paths:
         minimum: 1
         maximum: 1024
         
-    put:
+    get:
       tags: ["Chat"]
-      summary: get Utenti presenti nel gruppo
+      summary: get Utenti presenti nel gruppo (usersInGroup)
       description: |-
        Vedi chi sono gli utenti preesnti nel gruppo.
       operationId: usersInGroup
@@ -788,7 +782,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-                
   /wasachat/{utente}/chats/{chat}/messaggi/{messaggio}:
     parameters:
     - name: utente
@@ -800,7 +793,7 @@ paths:
         example: "Carlo"
         minLength: 1
         maxLength: 50
-        pattern: '^[a-zA-Z0-9_]+$'
+        pattern: '^[a-zA-Z0-9._~-]+$'
     - name: chat
       in: path
       required: true
@@ -821,7 +814,7 @@ paths:
         maximum: 1024
     delete:
       tags: ["Chat"]
-      summary: Elimina messaggio
+      summary: Elimina messaggio (deleteMessage)
       description: |-
         Elimina un messaggio dalla chat.
       operationId: deleteMessage
@@ -850,7 +843,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-
   /wasachat/{utente}/messaggi/{messaggio}:
     parameters:
     - name: utente
@@ -862,7 +854,8 @@ paths:
         example: "Carlo"
         minLength: 1
         maxLength: 50
-        pattern: '^[a-zA-Z0-9_]+$'
+        pattern: '^[a-zA-Z0-9._~-]+$'
+
     - name: messaggio
       in: path
       required: true
@@ -872,9 +865,9 @@ paths:
         example: 2
         minimum: 1
         maximum: 1024
-    put:
+    post:
       tags: ["Chat"]
-      summary: Commenta messaggio
+      summary: Commenta messaggio (commentMessage)
       description: |-
         Aggiunge un commento a un messaggio.
       operationId: commentMessage
@@ -911,7 +904,7 @@ paths:
                 $ref: '#/components/schemas/ErroreGenerico'
     delete:
       tags: ["Chat"]
-      summary: Elimina commento
+      summary: Elimina commento (deleteComment)
       description: |-
         Elimina un commento da un messaggio.
       operationId: deleteComment
@@ -940,7 +933,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-                
   /wasachat/{utente}/gruppi:
     parameters:
     - name: utente
@@ -952,10 +944,10 @@ paths:
         example: "Carlo"
         minLength: 1
         maxLength: 50
-        pattern: '^[a-zA-Z0-9_]+$'
+        pattern: '^[a-zA-Z0-9._~-]+$'
     post:
       tags: ["Creazione Gruppo"]
-      summary: Crea un gruppo
+      summary: Crea un gruppo (createGroup)
       description: |-
         Modifica il nome del gruppo specificato.
       operationId: createGroup
@@ -990,8 +982,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-
-
   /wasachat/{utente}/gruppi/{chat}/nome:
     parameters:
     - name: utente
@@ -1003,7 +993,7 @@ paths:
         example: "Carlo"
         minLength: 1
         maxLength: 50
-        pattern: '^[a-zA-Z0-9_]+$'
+        pattern: '^[a-zA-Z0-9._~-]+$'
     - name: chat
       in: path
       required: true
@@ -1015,7 +1005,7 @@ paths:
         maximum: 1024
     put:
       tags: ["Gestione Gruppi"]
-      summary: Modifica nome gruppo
+      summary: Modifica nome gruppo (setGroupName)
       description: |-
         Modifica il nome del gruppo specificato.
       operationId: setGroupName
@@ -1050,10 +1040,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
-
-  /wasachat/{groupid}/impostazioni/foto:
+  /wasachat/{utente}/gruppi/{chat}/foto:
     parameters:
-    - name: groupid
+    - name: utente
+      in: path
+      required: true
+      description: Nickname dell'utente
+      schema:
+        type: string
+        example: "Carlo"
+        minLength: 1
+        maxLength: 50
+        pattern: '^[a-zA-Z0-9._~-]+$'
+    - name: chat
       in: path
       required: true
       description: ID del gruppo
@@ -1064,7 +1063,7 @@ paths:
         maximum: 1024
     put:
       tags: ["Gestione Gruppi"]
-      summary: Modifica foto gruppo
+      summary: Modifica foto gruppo (setGroupPhoto)
       description: |-
         Modifica la foto del gruppo specificato.
       operationId: setGroupPhoto
@@ -1114,7 +1113,8 @@ components:
           example: "Carlo"
           minLength: 1
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          pattern: '^.*$'
+
 
     RispostaIsGroup:
       type: object
@@ -1157,35 +1157,36 @@ components:
           maximum: 1024
         nome:
           type: string
-          description: Nome della chat o gruppo
-          example: "informatica 2024-2025"
+          description: nome
+          example: "Peppe idraulico"
           minLength: 1
           maxLength: 100
-          pattern: '^[a-zA-Z0-9_ -]+$'
+          pattern: '^.*$'
         foto:
           type: string
-          format: binary
-          description: Immagine del profilo o foto del gruppo in formato base64
+          description: Contenuto base64 della foto
+          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
+          pattern: '^.*$'
         time:
           type: string
           format: date-time
           description: Data e ora dell'ultimo messaggio in formato ISO 8601
           minLength: 20
           maxLength: 30
+          pattern: '^.*$'
         ultimosnip:
           type: string
           description: Anteprima dell'ultimo messaggio
           example: "AE"
           minLength: 0
           maxLength: 1000
-          pattern: '^[\s\S]*$'
+          pattern: '^.*$'
         isgruppo:
           type: boolean
           description: Indica se si tratta di una chat di gruppo
           example: false
-
     RichiestaNomeUtente:
       type: object
       description: Richiesta per modificare il nome utente
@@ -1194,12 +1195,11 @@ components:
       properties:
         nome:
           type: string
-          description: Nuovo nome utente
-          example: "daromacarlo"
+          description: nome
+          example: "Peppe idraulico"
           minLength: 1
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
-
+          maxLength: 100
+          pattern: '^.*$'
     RichiestaFotoProfilo:
       type: object
       description: Richiesta per modificare la foto profilo
@@ -1208,11 +1208,11 @@ components:
       properties:
         foto:
           type: string
-          description: Contenuto base64 della nuova foto
-          example: "dadasjbdajsvdjashvfjavfhvasja--"
+          description: Contenuto base64 della foto
+          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
-
+          pattern: '^.*$'
     RichiestaAggiungiUtente:
       type: object
       description: Richiesta per aggiungere un utente a un gruppo
@@ -1225,8 +1225,7 @@ components:
           example: "Luigi"
           minLength: 1
           maxLength: 1024
-          pattern: '^[a-zA-Z0-9_]+$'
-
+          pattern: '^.*$'
     RispostaMessaggiChat:
       type: object
       description: Elenco dei messaggi in una chat
@@ -1240,7 +1239,6 @@ components:
           maxItems: 1024
           items:
             $ref: '#/components/schemas/Messaggio'
-            
     RispostaUtenti:
       type: object
       description: Elenco dei utenti in un gruppo
@@ -1254,7 +1252,6 @@ components:
           maxItems: 1024
           items:
             $ref: '#/components/schemas/Utenti'
-        
     Utenti:
       type: object
       description: Utente, nome e immagine profilo
@@ -1264,18 +1261,18 @@ components:
       properties:
         nome:
           type: string
-          description: Nickname di un utente
-          example: "Marcolino"
+          description: nome
+          example: "Peppe idraulico"
           minLength: 1
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          maxLength: 100
+          pattern: '^.*$'
         foto:
           type: string
-          description: contenuto base64 della foto profilo dell'utente
-          example: "fasfhafaijfhijashfajhfijahfijahfijhaijfhaijfhasijfbaijfbi--"
+          description: Contenuto base64 della foto
+          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
-            
+          pattern: '^.*$'
     Messaggio:
       type: object
       description: Dettagli di un singolo messaggio
@@ -1296,24 +1293,25 @@ components:
           maximum: 1024
         autore:
           type: string
-          description: Nickname dell'autore del messaggio
+          description: Nickname dell'autore
           example: "Marcolino"
           minLength: 1
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          pattern: '^.*$'
         text:
           type: string
           description: Contenuto testuale del messaggio
           example: "Sei libero sabato?"
           minLength: 1
           maxLength: 1000
-          pattern: '^[\s\S]*$'
+          pattern: '^.*$'
         foto:
           type: string
-          description: contenuto base64 dell'immagine allegata
-          example: "fasfhafaijfhijashfajhfijahfijahfijhaijfhaijfhasijfbaijfbi--"
+          description: Contenuto base64 della foto
+          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
+          pattern: '^.*$'
         time:
           type: string
           format: date-time
@@ -1321,6 +1319,7 @@ components:
           example: "2025-03-15T14:30:00Z"
           minLength: 20
           maxLength: 30
+          pattern: '^.*$'
         ricevuto:
           type: boolean
           description: Indica se il messaggio è stato ricevuto
@@ -1346,7 +1345,6 @@ components:
           example: 9
           minimum: 1
           maximum: 1024
-
     RichiestaMessaggio:
       type: object
       description: Richiesta per inviare un messaggio
@@ -1357,14 +1355,14 @@ components:
           example: "Ti va di uscire insieme questo venerdì?"
           minLength: 1
           maxLength: 1000
-          pattern: '^[\s\S]*$'
+          pattern: '^.*$'
         foto:
           type: string
-          description: Percorso o contenuto base64 dell'immagine da allegare
-          example: "/home/foto/bellafoto.png"
+          description: Contenuto base64 della foto
+          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
-
+          pattern: '^.*$'
     RichiestaCommento:
       type: object
       description: Richiesta per aggiungere un commento
@@ -1377,8 +1375,7 @@ components:
           example: "👍"
           minLength: 1
           maxLength: 1000
-          pattern: '^[\p{Emoji}\p{So}\s]+$'
-
+          pattern: '^[\u0020-\u1FAFF]+$'
     Commento:
       type: object
       description: Dettagli di un singolo commento
@@ -1395,19 +1392,18 @@ components:
           maximum: 1024
         autore:
           type: string
-          description: Nickname dell'autore del commento
-          example: "Marco"
+          description: Nickname dell'autore
+          example: "Marcolino"
           minLength: 1
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
+          pattern: '^.*$'
         reazione:
           type: string
           description: Contenuto del commento (emoji o testo breve)
           example: "👍"
           minLength: 1
           maxLength: 10
-          pattern: '^[\p{Emoji}\p{So}\s]+$'
-          
+          pattern: '^[\u0020-\u1FAFF]+$'
     RichiestaPerCreazioneConversazionePrivata:
       type: object
       description: Richiesta creare conversazioni private
@@ -1417,18 +1413,18 @@ components:
       properties:
         nome:
           type: string
-          description: nome dell'utente da cercare
+          description: nome
           example: "Peppe idraulico"
           minLength: 1
           maxLength: 100
-          pattern: '^[a-zA-Z0-9_ -]+$'
+          pattern: '^.*$'
         foto:
           type: string
-          description: Contenuto base64 della nuova foto
+          description: Contenuto base64 della foto
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
-
+          pattern: '^.*$'
     RichiestaPerCreazioneGruppo:
       type: object
       description: Richiesta per creare gruppi
@@ -1438,18 +1434,18 @@ components:
       properties:
         nome:
           type: string
-          description: Nuovo nome del gruppo
-          example: "informatica 2024-2025"
+          description: nome
+          example: "Peppe idraulico"
           minLength: 1
           maxLength: 100
-          pattern: '^[a-zA-Z0-9_ -]+$'
+          pattern: '^.*$'
         foto:
           type: string
-          description: Contenuto base64 della nuova foto
+          description: Contenuto base64 della foto
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
-          
+          pattern: '^.*$'
     RichiestaNomeGruppo:
       type: object
       description: Richiesta per modificare il nome di un gruppo
@@ -1458,12 +1454,11 @@ components:
       properties:
         nome:
           type: string
-          description: Nuovo nome del gruppo
-          example: "informatica 2024-2025"
+          description: nome
+          example: "Peppe idraulico"
           minLength: 1
           maxLength: 100
-          pattern: '^[a-zA-Z0-9_ -]+$'
-
+          pattern: '^.*$'
     RichiestaFotoGruppo:
       type: object
       description: Richiesta per modificare la foto di un gruppo
@@ -1472,11 +1467,11 @@ components:
       properties:
         foto:
           type: string
-          description: Contenuto base64 della nuova foto
+          description: Contenuto base64 della foto
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
-
+          pattern: '^.*$'
     RispostaGenerica:
       type: object
       description: Risposta generica
@@ -1498,7 +1493,7 @@ components:
           example: "messaggio di successo"
           minLength: 1
           maxLength: 1024
-
+          pattern: '^.*$'
     ErroreGenerico:
       type: object
       description: Errore
@@ -1506,7 +1501,7 @@ components:
         - codice
         - errore
       properties:
-        codice:
+        codiceErrore:
           type: integer
           description: codice di errore
           example: 500
@@ -1517,6 +1512,7 @@ components:
         errore:
           type: string
           description: errore
+          pattern: '^.*$'
           example: "errore"
           minLength: 1
           maxLength: 1024

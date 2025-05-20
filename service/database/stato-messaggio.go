@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -16,7 +17,7 @@ func CreaTabellaStatoMessaggioPrivato(db *sql.DB) error {
 		FOREIGN KEY (messaggio) REFERENCES messaggio(id)
 	)`
 	_, err := db.Exec(query)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore creazione tabella statomessaggioprivato: %w", err)
 	}
 	return nil
@@ -28,7 +29,7 @@ func (db *appdbimpl) CreaStatoMessaggioPrivato(idmessaggio int) error {
 		"INSERT INTO statomessaggioprivato (messaggio, ricevuto, letto) VALUES (?, ?, ?)",
 		idmessaggio, false, false,
 	)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore creazione stato messaggio privato: %w", err)
 	}
 	return nil
@@ -45,7 +46,7 @@ func (db *appdbimpl) LeggiMessaggiPrivati(destinatario string, conversazioneID i
 		)`,
 		conversazioneID, destinatario,
 	)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore aggiornamento stato messaggi privati: %w", err)
 	}
 	return nil
@@ -62,7 +63,7 @@ func CreaTabellaStatoMessaggioGruppo(db *sql.DB) error {
 		FOREIGN KEY (messaggio) REFERENCES messaggio(id)
 	)`
 	_, err := db.Exec(query)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore creazione tabella statomessaggiogruppo: %w", err)
 	}
 	return nil
@@ -80,7 +81,7 @@ func CreaTabellaStatoMessaggioGruppoPersona(db *sql.DB) error {
 		FOREIGN KEY (utente) REFERENCES utente(nickname)
 	)`
 	_, err := db.Exec(query)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore creazione tabella statomessaggiogruppopersona: %w", err)
 	}
 	return nil
@@ -98,7 +99,7 @@ func CreaTabellaStatoMessaggioGruppoPersonaRicevimento(db *sql.DB) error {
 		FOREIGN KEY (utente) REFERENCES utente(nickname)
 	)`
 	_, err := db.Exec(query)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore creazione tabella statomessaggiogruppopersonaricevimento: %w", err)
 	}
 	return nil
@@ -110,7 +111,7 @@ func (db *appdbimpl) CreaStatoMessaggioGruppo(idmessaggio int) error {
 		"INSERT INTO statomessaggiogruppo (messaggio, ricevuto, letto) VALUES (?, ?, ?)",
 		idmessaggio, false, false,
 	)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore creazione stato messaggio gruppo: %w", err)
 	}
 	return nil
@@ -129,7 +130,7 @@ func (db *appdbimpl) LeggiMessaggiGruppo(utente string, conversazioneID int) err
 		ON CONFLICT DO NOTHING`,
 		utente, conversazioneID, utente,
 	)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore aggiornamento lettura messaggi gruppo: %w", err)
 	}
 	return nil
@@ -156,7 +157,7 @@ func (db *appdbimpl) CheckLetturaMessaggiGruppo(conversazioneID int) error {
 		)`,
 		conversazioneID, conversazioneID,
 	)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore verifica lettura messaggi gruppo: %w", err)
 	}
 	return nil
@@ -183,7 +184,7 @@ func (db *appdbimpl) CheckRicevimentoMessaggiGruppo(conversazioneID int) error {
 		)`,
 		conversazioneID, conversazioneID,
 	)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore verifica ricezione messaggi gruppo: %w", err)
 	}
 	return nil
@@ -200,7 +201,7 @@ func (db *appdbimpl) SegnaMessaggiPrivatiRicevuti(utente string, conversazioneID
 		)`,
 		conversazioneID, utente,
 	)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore aggiornamento ricezione messaggi privati: %w", err)
 	}
 	return nil
@@ -219,7 +220,7 @@ func (db *appdbimpl) SegnaMessaggiGruppoRicevuti(utente string, conversazioneID 
 		ON CONFLICT DO NOTHING`,
 		utente, conversazioneID, utente,
 	)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore aggiornamento ricezione messaggi gruppo: %w", err)
 	}
 	return nil

@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -16,7 +17,7 @@ func CreaTabellaUtente(db *sql.DB) error {
 			FOREIGN KEY (foto) REFERENCES foto(id)
 		);`
 	_, err := db.Exec(query)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore durante la creazione della tabella utente: %w", err)
 	}
 	return nil
@@ -35,7 +36,7 @@ func (db *appdbimpl) CreaUtente(nicknamePassato string, idfotoPassata int) error
 
 	// Eseguiamo la query e otteniamo il risultato
 	_, err = db.c.Exec(queryDiInserimento, nicknamePassato, idfotoPassata)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore inaspettato durante la creazione dell'utente: %w", err)
 	}
 	return nil
@@ -45,11 +46,11 @@ func (db *appdbimpl) Login(nicknamePassato string) (string, error) {
 	esistenza, err := db.EsistenzaUtente(nicknamePassato)
 	if !esistenza {
 		err = db.CreaUtente(nicknamePassato, 0)
-		if err != nil {
+		if !errors.Is(err, nil) {
 			return "", fmt.Errorf("errore durante la creazione del nuovo utente a seguito della sua non esistenza nel database")
 		}
 	}
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return "", fmt.Errorf("errore durante la verifica dell'esistenza dell'utente")
 	}
 
@@ -63,8 +64,8 @@ func (db *appdbimpl) EsistenzaUtente(nicknamePassato string) (bool, error) {
 	query := `SELECT COUNT(*) FROM utente WHERE nickname = ?;`
 	// Eseguiamo la query per verificare l'esistenza dell'utente
 	err := db.c.QueryRow(query, nicknamePassato).Scan(&count)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			// Se non ci sono righe, significa che l'utente non esiste
 			return false, nil
 		}
@@ -80,8 +81,8 @@ func (db *appdbimpl) IdUtenteDaNickname(nicknamePassato string) (int, int, error
 	var id int
 	query := `SELECT id FROM utente WHERE nickname = ?;`
 	err := db.c.QueryRow(query, nicknamePassato).Scan(&id)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, 404, fmt.Errorf("utente con nickname '%s' non trovato", nicknamePassato)
 		}
 		return 0, 500, fmt.Errorf("errore durante il recupero dell'ID utente: %w", err)
@@ -94,8 +95,8 @@ func (db *appdbimpl) NicknameUtenteDaId(idPassato int) (string, int, error) {
 	var nickname string
 	query := `SELECT nickname FROM utente WHERE id = ?;`
 	err := db.c.QueryRow(query, idPassato).Scan(&nickname)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return "", 404, fmt.Errorf("utente con ID '%d' non trovato", idPassato)
 		}
 		return "", 500, fmt.Errorf("errore durante il recupero del nickname: %w", err)
@@ -109,7 +110,7 @@ func (db *appdbimpl) NicknameUtenteDaId(idPassato int) (string, int, error) {
 func (db *appdbimpl) ImpostaFotoProfilo(nicknamePassato string, idfotoPassata int) error {
 	// Verifica che l'utente esista
 	esiste, err := db.EsistenzaUtente(nicknamePassato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore durante il controllo dell'esistenza dell'utente: %w", err)
 	}
 	if !esiste {
@@ -119,7 +120,7 @@ func (db *appdbimpl) ImpostaFotoProfilo(nicknamePassato string, idfotoPassata in
 	// Aggiorna la foto del profilo
 	queryUpdateFoto := `UPDATE utente SET foto = ? WHERE nickname = ?`
 	_, err = db.c.Exec(queryUpdateFoto, idfotoPassata, nicknamePassato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore durante l'aggiornamento della foto del profilo: %w", err)
 	}
 
@@ -130,7 +131,7 @@ func (db *appdbimpl) ImpostaFotoProfilo(nicknamePassato string, idfotoPassata in
 func (db *appdbimpl) ImpostaNome(nicknamePassato string, nuovoNickPassato string) (int, error) {
 	// Verifica che l'utente esista
 	esiste, err := db.EsistenzaUtente(nicknamePassato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente: %w", err)
 	}
 	if !esiste {
@@ -139,7 +140,7 @@ func (db *appdbimpl) ImpostaNome(nicknamePassato string, nuovoNickPassato string
 
 	// Verifica che il nuovo nickname non sia già in uso
 	esisteNuovoNick, err := db.EsistenzaUtente(nuovoNickPassato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il controllo del nuovo nickname: %w", err)
 	}
 	if esisteNuovoNick {
@@ -154,7 +155,7 @@ func (db *appdbimpl) ImpostaNome(nicknamePassato string, nuovoNickPassato string
 	// Aggiorna il nickname dell'utente
 	queryUpdateNome := `UPDATE utente SET nickname = ? WHERE nickname = ?`
 	_, err = db.c.Exec(queryUpdateNome, nuovoNickPassato, nicknamePassato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante l'aggiornamento del nickname: %w", err)
 	}
 
@@ -170,21 +171,21 @@ type Profilo struct {
 // Funzione per ottenere tutti i nomi e foto profilo degli utenti
 func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, int, error) {
 	esiste, err := db.EsisteConversazione(chat)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return nil, 500, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)
 	}
 	if !esiste {
 		return nil, 404, fmt.Errorf("la conversazione con ID %d non esiste", chat)
 	}
 	esisteUtenteChiamante, err := db.EsistenzaUtente(chiamante)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return nil, 500, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente chiamante %s: %w", chiamante, err)
 	}
 	if !esisteUtenteChiamante {
 		return nil, 404, fmt.Errorf("l'utente chiamante %s non esiste", chiamante)
 	}
 	chiamantePresente, codiceErrore, err := db.UtenteCoinvoltoGruppo(chiamante, chat)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return nil, codiceErrore, fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
 	}
 	if chiamantePresente == 0 {
@@ -200,7 +201,7 @@ func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, int, e
 			  `
 
 	rows, err := db.c.Query(query, chat)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return nil, 500, fmt.Errorf("errore durante il recupero dei profili utente: %w", err)
 	}
 
@@ -216,6 +217,10 @@ func (db *appdbimpl) UsersInGroup(chiamante string, chat int) ([]Profilo, int, e
 		lista = append(lista, Profilo{
 			Nickname: nickname,
 		})
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 500, fmt.Errorf("errore durante l'iterazione degli utenti")
 	}
 
 	return lista, 0, nil

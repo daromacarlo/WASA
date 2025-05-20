@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -15,7 +16,7 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, r *http.Requ
 	UtenteChiamante := ps.ByName("utente")
 
 	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
@@ -31,7 +32,7 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, r *http.Requ
 	}
 
 	_, codiceErrore, err := rt.db.CreaConversazionePrivataDB(UtenteChiamante, input.Utente)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante la creazione della conversazione: "+err.Error(), codiceErrore)
 		return
 	}

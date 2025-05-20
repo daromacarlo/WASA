@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -13,14 +14,14 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	chatStr := ps.ByName("chat")
 
 	chat, err := strconv.Atoi(chatStr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Il parametro 'gruppo' deve essere un numero intero valido", http.StatusBadRequest)
 		return
 	}
 
 	lista, codiceErrore, err := rt.db.GetConversazione(chiamante, chat)
 
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante il recupero della conversazione: "+err.Error(), codiceErrore)
 		return
 	}

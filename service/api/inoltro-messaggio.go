@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -14,19 +15,19 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	IdMessaggioStr := ps.ByName("messaggio")
 
 	IdMessaggio, err := strconv.Atoi(IdMessaggioStr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID messaggio non valido", http.StatusBadRequest)
 		return
 	}
 
 	NuovaConversazione, err := strconv.Atoi(NuovaConversazioneStr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID nuova conversazione non valido", http.StatusBadRequest)
 		return
 	}
 
 	codiceErrore, err := rt.db.InoltraMessaggio(UtenteChiamante, NuovaConversazione, IdMessaggio)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'inoltro del messaggio: "+err.Error(), codiceErrore)
 		return
 	}
@@ -41,13 +42,13 @@ func (rt *_router) forwardMessageToNewChat(w http.ResponseWriter, r *http.Reques
 	IdMessaggioStr := ps.ByName("messaggio")
 
 	IdMessaggio, err := strconv.Atoi(IdMessaggioStr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID messaggio non valido", http.StatusBadRequest)
 		return
 	}
 
 	codiceErrore, err := rt.db.InoltraMessaggioANuovaChat(UtenteChiamante, Destinatario, IdMessaggio)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'inoltro del messaggio: "+err.Error(), codiceErrore)
 		return
 	}

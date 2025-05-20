@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -17,7 +18,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	UtenteChiamante := ps.ByName("utente")
 
 	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
@@ -32,13 +33,13 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	idFoto, err := rt.db.CreaFoto(input.Foto)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'inserimento della foto del gruppo: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	codiceErrore, err := rt.db.CreaGruppoDB(UtenteChiamante, input.Nome, idFoto)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante la creazione del gruppo: "+err.Error(), codiceErrore)
 		return
 	}
@@ -63,7 +64,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	idConversazioneStr := ps.ByName("chat")
 
 	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
@@ -74,13 +75,13 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	idConversazione, err := strconv.Atoi(idConversazioneStr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID della conversazione non valido", http.StatusBadRequest)
 		return
 	}
 
 	codiceErrore, err := rt.db.AggiungiAGruppoDB(idConversazione, UtenteChiamante, input.Utente)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'aggiunta dell'utente: "+err.Error(), codiceErrore)
 		return
 	}
@@ -100,12 +101,12 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	UtenteChiamante := ps.ByName("utente")
 	idConversazioneStr := ps.ByName("chat")
 	idConversazione, err := strconv.Atoi(idConversazioneStr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID della conversazione non valido", http.StatusBadRequest)
 		return
 	}
 	codiceErrore, err := rt.db.LasciaGruppo(idConversazione, UtenteChiamante)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante la rimozione dell'utente: "+err.Error(), codiceErrore)
 		return
 	}
@@ -119,7 +120,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	}
 	UtenteChiamante := ps.ByName("utente")
 	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
@@ -129,19 +130,19 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	idFoto, err := rt.db.CreaFoto(input.Foto)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'inserimento della foto del gruppo: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	idConversazione, err := strconv.Atoi(idConversazioneStr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID della conversazione non valido", http.StatusBadRequest)
 		return
 	}
 
 	codiceErrore, err := rt.db.ImpostaFotoGruppo(UtenteChiamante, idFoto, idConversazione)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'aggiornamento della foto del gruppo: "+err.Error(), codiceErrore)
 		return
 	}
@@ -157,19 +158,19 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
 
 	idConversazione, err := strconv.Atoi(idConversazioneStr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID della conversazione non valido", http.StatusBadRequest)
 		return
 	}
 
 	codiceErrore, err := rt.db.ImpostaNomeGruppo(UtenteChiamante, input.Nome, idConversazione)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'aggiornamento del nome del gruppo: "+err.Error(), codiceErrore)
 		return
 	}
@@ -180,13 +181,13 @@ func (rt *_router) isGroup(w http.ResponseWriter, r *http.Request, ps httprouter
 	chatParam := ps.ByName("chat")
 
 	chatID, err := strconv.Atoi(chatParam)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID chat non valido", http.StatusBadRequest)
 		return
 	}
 
 	idGruppo, codiceErrore, err := rt.db.CercaConversazioneGruppo(chatID)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore interno del server: "+err.Error(), codiceErrore)
 		return
 	}

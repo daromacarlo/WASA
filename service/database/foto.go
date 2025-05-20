@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -13,7 +14,7 @@ func CreaTabellaFoto(db *sql.DB) error {
 			foto BLOB NOT NULL
 		);`
 	_, err := db.Exec(query)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore durante la creazione della tabella foto: %w", err)
 	}
 	return nil
@@ -23,11 +24,11 @@ func CreaTabellaFoto(db *sql.DB) error {
 func (db *appdbimpl) CreaFoto(foto_Passata string) (int, error) {
 	queryDiInserimento := `INSERT INTO foto (foto) VALUES (?);`
 	result, err := db.c.Exec(queryDiInserimento, foto_Passata)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 0, fmt.Errorf("errore durante la creazione della foto: %w", err)
 	}
 	ultimoIdInserito, err := result.LastInsertId()
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 0, fmt.Errorf("errore durante il recupero dell'ID dell'ultimo elemento inserito: %w", err)
 	}
 	return int(ultimoIdInserito), nil

@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -13,7 +14,7 @@ func CreaTabellaConversazione(db *sql.DB) error {
 	 	);`
 
 	_, err := db.Exec(query)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore durante la creazione della tabella conversazione: %w", err)
 	}
 	return nil
@@ -31,7 +32,7 @@ func CreaTabellaGruppo(db *sql.DB) error {
 		);`
 
 	_, err := db.Exec(query)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore durante la creazione della tabella gruppo: %w", err)
 	}
 	return nil
@@ -49,7 +50,7 @@ func CreaTabellaUtenteingruppo(db *sql.DB) error {
 		);`
 
 	_, err := db.Exec(query)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore durante la creazione della tabella utenteingruppo: %w", err)
 	}
 	return nil
@@ -69,7 +70,7 @@ func CreaTabellaConversazionePrivata(db *sql.DB) error {
 		);`
 
 	_, err := db.Exec(query)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore durante la creazione della tabella chatprivata: %w", err)
 	}
 	return nil

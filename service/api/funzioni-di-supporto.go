@@ -32,8 +32,8 @@ func CreaErroreJson(w http.ResponseWriter, messaggio string, codice int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(codice)
 	_ = json.NewEncoder(w).Encode(map[string]string{
-		"errore": messaggio,
-		"codice": strconv.Itoa(codice),
+		"errore":       messaggio,
+		"codiceErrore": strconv.Itoa(codice),
 	})
 }
 
@@ -41,7 +41,7 @@ func CreaRispostaJson(w http.ResponseWriter, messaggio string, codice int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(codice)
 	_ = json.NewEncoder(w).Encode(map[string]string{
-		"errore": messaggio,
-		"codice": strconv.Itoa(codice),
+		"risposta": messaggio,
+		"codice":   strconv.Itoa(codice),
 	})
 }

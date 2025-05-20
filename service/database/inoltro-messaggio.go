@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -23,8 +24,8 @@ func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_
 		&messaggioOriginale.Foto,
 	)
 
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 404, fmt.Errorf("nessun messaggio trovato con ID %d", idMessaggio)
 		}
 		return 500, fmt.Errorf("errore nel recupero del messaggio originale con ID %d: %w", idMessaggio, err)
@@ -32,27 +33,27 @@ func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_
 
 	queryDiInserimento := `INSERT INTO messaggio (testo, foto, conversazione, autore, tempo, inoltrato, risposta) VALUES (?, ?, ?, ?, ?, ?, ?);`
 	result, err := db.c.Exec(queryDiInserimento, messaggioOriginale.Testo, messaggioOriginale.Foto, conversazione_Passata, utente_Passato, time.Now(), true, nil)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante l'inserimento del messaggio modificato: %w", err)
 	}
 	lastInsertID, err := result.LastInsertId()
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il recupero dell'ID dell'ultimo messaggio: %w", err)
 	}
 
 	isGruppo, codiceErrore, err := db.CercaConversazioneGruppo(conversazione_Passata)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore durante la verifica del tipo di conversazione: %w", err)
 	}
 	if isGruppo > 0 {
 		err = db.CreaStatoMessaggioGruppo(int(lastInsertID))
-		if err != nil {
+		if !errors.Is(err, nil) {
 			return 500, fmt.Errorf("errore durante la creazione dello stato del messaggio: %w", err)
 		}
 		return 0, nil
 	} else {
 		err = db.CreaStatoMessaggioPrivato(int(lastInsertID))
-		if err != nil {
+		if !errors.Is(err, nil) {
 			return 500, fmt.Errorf("errore durante la creazione dello stato del messaggio: %w", err)
 		}
 		return 0, nil
@@ -61,16 +62,16 @@ func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_
 
 func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, IdMessaggio int) (int, error) {
 	utente_Passato_convertito, codiceErrore, err := db.IdUtenteDaNickname(utente_Passato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)
 	}
 	isGruppo, codiceErrore, err := db.CercaConversazioneGruppo(idChatNuova)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore durante la verifica del tipo di conversazione: %w", err)
 	}
 	if isGruppo > 0 {
 		coinvolto, codiceErrore, err := db.UtenteCoinvoltoGruppo(utente_Passato, idChatNuova)
-		if err != nil {
+		if !errors.Is(err, nil) {
 			return codiceErrore, fmt.Errorf("errore durante la verifica della partecipazione dell'utente al gruppo: %w", err)
 		}
 		if coinvolto == 0 {
@@ -79,23 +80,23 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 	}
 
 	esistenza, err := db.EsisteMessaggio(IdMessaggio)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il recupero dell'ID della conversazione per il messaggio con ID %d: %w", IdMessaggio, err)
 	}
 	if !esistenza {
 		return 404, fmt.Errorf("errore: il messaggio con ID %d non esiste", IdMessaggio)
 	}
 	conversazioneID, err := db.GetConversazioneIdByMessaggio(IdMessaggio)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il recupero dell'ID conversazione: %w", err)
 	}
 	isGruppo, codiceErrore, err = db.CercaConversazioneGruppo(conversazioneID)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore durante la verifica del tipo di conversazione: %w", err)
 	}
 	if isGruppo > 0 {
 		coinvolto, codiceErrore, err := db.UtenteCoinvoltoGruppo(utente_Passato, conversazioneID)
-		if err != nil {
+		if !errors.Is(err, nil) {
 			return codiceErrore, fmt.Errorf("errore durante la verifica della partecipazione dell'utente al gruppo: %w", err)
 		}
 		if coinvolto == 0 {
@@ -103,7 +104,7 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 		}
 	} else {
 		idPrivata, codiceErrore, err := db.CercaConversazionePrivata(conversazioneID, utente_Passato_convertito)
-		if err != nil {
+		if !errors.Is(err, nil) {
 			return codiceErrore, fmt.Errorf("errore durante la verifica della conversazione privata: %w", err)
 		}
 		if idPrivata == 0 {
@@ -111,7 +112,7 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 		}
 	}
 	codiceErrore, err = db.CopiaMessaggioCambiandoOraEMitente(IdMessaggio, utente_Passato, idChatNuova)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore durante la copia del messaggio: %w", err)
 	}
 
@@ -123,56 +124,56 @@ func (db *appdbimpl) InoltraMessaggioANuovaChat(utente_Passato string, utente2_P
 	if chat > 0 {
 		return 404, fmt.Errorf("chat già esistente tra i due utenti, non è stato inviato il messaggio con ID %d", IdMessaggio)
 	}
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore inaspettato %w", err)
 	}
 	utente_Passato_convertito, codiceErrore, err := db.IdUtenteDaNickname(utente_Passato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)
 	}
 	utente2_Passato_convertito, codiceErrore, err := db.IdUtenteDaNickname(utente2_Passato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)
 	}
 	esistenza, err := db.EsistenzaUtente(utente_Passato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il recupero dell'ID della conversazione per il messaggio con ID %d: %w", IdMessaggio, err)
 	}
 	if !esistenza {
 		return 404, fmt.Errorf("l'utente con ID %d non esiste %w", utente_Passato_convertito, err)
 	}
 	esistenza, err = db.EsistenzaUtente(utente2_Passato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il recupero dell'ID della conversazione per il messaggio con ID %d: %w", IdMessaggio, err)
 	}
 	if !esistenza {
 		return 404, fmt.Errorf("l'utente con ID %d non esiste %w", utente2_Passato_convertito, err)
 	}
 	esistenza, err = db.EsisteMessaggio(IdMessaggio)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il recupero dell'ID della conversazione per il messaggio con ID %d: %w", IdMessaggio, err)
 	}
 	if !esistenza {
 		return 404, fmt.Errorf("messaggio con ID %d non esiste %w", IdMessaggio, err)
 	}
 	esistenza, err = db.EsisteMessaggio(IdMessaggio)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il recupero dell'ID della conversazione per il messaggio con ID %d: %w", IdMessaggio, err)
 	}
 	if !esistenza {
 		return 404, fmt.Errorf("errore: il messaggio con ID %d non esiste", IdMessaggio)
 	}
 	conversazioneID, err := db.GetConversazioneIdByMessaggio(IdMessaggio)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il recupero dell'ID conversazione: %w", err)
 	}
 	isGruppo, codiceErrore, err := db.CercaConversazioneGruppo(conversazioneID)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore durante la verifica del tipo di conversazione: %w", err)
 	}
 	if isGruppo > 0 {
 		coinvolto, codiceErrore, err := db.UtenteCoinvoltoGruppo(utente_Passato, conversazioneID)
-		if err != nil {
+		if !errors.Is(err, nil) {
 			return codiceErrore, fmt.Errorf("errore durante la verifica della partecipazione dell'utente al gruppo: %w", err)
 		}
 		if coinvolto == 0 {
@@ -180,7 +181,7 @@ func (db *appdbimpl) InoltraMessaggioANuovaChat(utente_Passato string, utente2_P
 		}
 	} else {
 		idPrivata, codiceErrore, err := db.CercaConversazionePrivata(conversazioneID, utente_Passato_convertito)
-		if err != nil {
+		if !errors.Is(err, nil) {
 			return codiceErrore, fmt.Errorf("errore durante la verifica della conversazione privata: %w", err)
 		}
 		if idPrivata == 0 {
@@ -188,11 +189,11 @@ func (db *appdbimpl) InoltraMessaggioANuovaChat(utente_Passato string, utente2_P
 		}
 	}
 	nuovaConversazione, codiceErrore, err := db.CreaConversazionePrivataDB(utente_Passato, utente2_Passato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore durante la creazione della nuova conversazione privata: %w", err)
 	}
 	codiceErrore, err = db.CopiaMessaggioCambiandoOraEMitente(IdMessaggio, utente_Passato, nuovaConversazione)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return codiceErrore, fmt.Errorf("errore durante la copia del messaggio: %w", err)
 	}
 

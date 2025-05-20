@@ -33,7 +33,7 @@ export default {
 
       try {
         const response = await this.$axios.post("/wasachat", { nickname: this.nickname });
-        const messaggio = response.data.errore;
+        const messaggio = response.data.risposta;
         const codice = parseInt(response.data.codice);
 
         if (codice === 200) {
@@ -45,8 +45,8 @@ export default {
       } catch (e) {
         if (e.response) {
           const messaggio = e.response.data.errore;
-          const codice = parseInt(e.response.data.codice);
-          alert(messaggio + ` (codice ${codice})`);
+          const codice = parseInt(e.response.data.codiceErrore);
+          alert(messaggio + ` (codice ${codiceErrore})`);
         } else {
           alert("Errore di rete o server non raggiungibile.");
         }

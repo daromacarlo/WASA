@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -14,8 +15,8 @@ func (db *appdbimpl) GetConversazioneIdByMessaggio(idMessaggio int) (int, error)
 	`
 	var conversazioneID int
 	err := db.c.QueryRow(query, idMessaggio).Scan(&conversazioneID)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, fmt.Errorf("nessun messaggio trovato con l'ID %d", idMessaggio)
 		}
 		return 0, fmt.Errorf("errore durante il recupero dell'ID della conversazione: %w", err)
@@ -28,7 +29,7 @@ func (db *appdbimpl) EsisteMessaggio(idMessaggio int) (bool, error) {
 	var count int
 	query := "SELECT COUNT(*) FROM messaggio WHERE id = ?;"
 	err := db.c.QueryRow(query, idMessaggio).Scan(&count)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return false, fmt.Errorf("errore durante la verifica dell'esistenza del messaggio con ID %d: %w", idMessaggio, err)
 	}
 	return count > 0, nil
@@ -40,7 +41,7 @@ func (db *appdbimpl) EsisteConversazione(idConversazione int) (bool, error) {
 	// Query per verificare se esiste una conversazione con l'id specificato
 	query := `SELECT COUNT(*) FROM conversazione WHERE id = ?`
 	err := db.c.QueryRow(query, idConversazione).Scan(&count)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return false, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)
 	}
 
@@ -58,11 +59,11 @@ func (db *appdbimpl) EsisteConversazioneTraUtenti(utente1Passato string, utente2
 	var idConversazione int
 
 	utente1ID, codiceErrore, err := db.IdUtenteDaNickname(utente1Passato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 0, codiceErrore, fmt.Errorf("errore nella conversione del nickname %s in ID per utente1: %s", utente1Passato, err.Error())
 	}
 	utente2ID, codiceErrore, err := db.IdUtenteDaNickname(utente2Passato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 0, codiceErrore, fmt.Errorf("errore nella conversione del nickname %s in ID per utente2: %s", utente2Passato, err.Error())
 	}
 	// Cerchiamo l'id della conversazione
@@ -73,8 +74,8 @@ func (db *appdbimpl) EsisteConversazioneTraUtenti(utente1Passato string, utente2
 		WHERE (cp.utente1 = ? AND cp.utente2 = ?) OR (cp.utente1 = ? AND cp.utente2 = ?);`
 
 	err = db.c.QueryRow(query, utente1ID, utente2ID, utente2ID, utente1ID).Scan(&idConversazione)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, 0, nil
 		}
 		return 0, 500, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %s", err.Error())
@@ -86,14 +87,14 @@ func (db *appdbimpl) EsisteConversazioneTraUtenti(utente1Passato string, utente2
 // e il suo id viene ritornato
 func (db *appdbimpl) UtenteCoinvoltoPrivato(utentePassato string, destinatarioPassato string) (int, int, error) {
 	esiste, codiceErrore, err := db.EsisteConversazioneTraUtenti(utentePassato, destinatarioPassato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 0, codiceErrore, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %s", err.Error())
 	}
 	// caso in cui non esiste una conversazione privata tra i due utenti
 	if esiste == 0 {
 		// creo la conversazione
 		id, codiceErrore, err := db.CreaConversazionePrivataDB(utentePassato, destinatarioPassato)
-		if err != nil {
+		if !errors.Is(err, nil) {
 			return 0, codiceErrore, fmt.Errorf("errore durante la creazione della conversazione privata: %s", err.Error())
 		}
 		return id, 0, nil
@@ -111,8 +112,8 @@ func (db *appdbimpl) GetNomeUtenteCoinvolto(conversazioneID int, nomeUtentePassa
 
 	var utenteID int
 	err := db.c.QueryRow(queryUtenteID, nomeUtentePassato).Scan(&utenteID)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			// Se l'utente non esiste
 			return "", fmt.Errorf("utente con nome %s non trovato", nomeUtentePassato)
 		}
@@ -134,8 +135,8 @@ func (db *appdbimpl) GetNomeUtenteCoinvolto(conversazioneID int, nomeUtentePassa
 
 	var nomeUtenteCoinvolto string
 	err = db.c.QueryRow(queryVerificaPartecipazione, utenteID, utenteID, conversazioneID, utenteID, utenteID).Scan(&nomeUtenteCoinvolto)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			// Se non ci sono risultati, la conversazione non esiste o l'utente non è coinvolto
 			return "", fmt.Errorf("l'utente non è coinvolto in questa conversazione")
 		}
@@ -156,8 +157,8 @@ func (db *appdbimpl) CercaConversazionePrivata(conversazioneID int, utente_Passa
 
 	var conversazionePrivataID int
 	err := db.c.QueryRow(queryVerificaPartecipazione, conversazioneID, utente_Passato_convertito, utente_Passato_convertito).Scan(&conversazionePrivataID)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			// Se non ci sono risultati, la conversazione non esiste
 			return 0, 404, fmt.Errorf("la conversazione non esiste o l'utente non ne è coinvolto")
 		}
@@ -173,7 +174,7 @@ func (db *appdbimpl) CercaConversazionePrivata(conversazioneID int, utente_Passa
 func (db *appdbimpl) UtenteCoinvoltoGruppo(utentePassato string, conversazionePassata int) (int, int, error) {
 	// cerco l'id del gruppo
 	idGruppo, codiceErrore, err := db.CercaConversazioneGruppo(conversazionePassata)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 0, codiceErrore, fmt.Errorf("errore durante la ricerca dell'ID del gruppo: %w", err)
 	}
 	// caso in cui il gruppo non esiste
@@ -182,15 +183,15 @@ func (db *appdbimpl) UtenteCoinvoltoGruppo(utentePassato string, conversazionePa
 	}
 
 	idUtente, codiceErrore, err := db.IdUtenteDaNickname(utentePassato)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		return 0, codiceErrore, fmt.Errorf("errore durante la ricerca dell'ID utente: %w", err)
 	}
 
 	query := `SELECT 1 FROM utenteingruppo WHERE gruppo = ? AND utente = ?`
 	var result bool
 	err = db.c.QueryRow(query, idGruppo, idUtente).Scan(&result)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, 404, nil
 		}
 		return 0, 500, fmt.Errorf("errore durante la verifica dell'utente nel gruppo: %w", err)
@@ -208,8 +209,8 @@ func (db *appdbimpl) CercaConversazioneGruppo(conversazionePassata int) (int, in
 	var idGruppo int
 
 	err := db.c.QueryRow(query, conversazionePassata).Scan(&idGruppo)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, 404, nil
 		}
 		return 0, 500, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %w", err)

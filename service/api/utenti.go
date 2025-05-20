@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -12,13 +13,13 @@ func (rt *_router) usersInGroup(w http.ResponseWriter, r *http.Request, ps httpr
 	chiamante := ps.ByName("utente")
 	gruppostr := ps.ByName("gruppo")
 	gruppo, err := strconv.Atoi(gruppostr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante la conversione del nome: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	lista, codiceErrore, err := rt.db.UsersInGroup(chiamante, gruppo) // <-- ordine corretto
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante il recupero degli utenti: "+err.Error(), codiceErrore)
 		return
 	}
@@ -39,7 +40,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
@@ -50,13 +51,13 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	idFoto, err := rt.db.CreaFoto(input.Foto)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'inserimento della foto profilo nella funzione setMyPhoto: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	err = rt.db.ImpostaFotoProfilo(UtenteChiamante, idFoto)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'aggiornamento della foto profilo: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -71,13 +72,13 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
 
 	existe, err := rt.db.EsistenzaUtente(input.Nome)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante il controllo dell'esistenza del nome utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -87,7 +88,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	codiceErrore, err := rt.db.ImpostaNome(UtenteChiamante, input.Nome)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'aggiornamento del nome: "+err.Error(), codiceErrore)
 		return
 	}

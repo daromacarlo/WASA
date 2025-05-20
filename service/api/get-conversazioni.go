@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -11,7 +12,7 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 	chiamante := ps.ByName("utente")
 	lista, codiceErrore, err := rt.db.GetConversazioni(chiamante)
 
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante il recupero della conversazione: "+err.Error(), codiceErrore)
 		return
 	}

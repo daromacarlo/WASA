@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -14,7 +15,7 @@ func (rt *_router) register(w http.ResponseWriter, r *http.Request, ps httproute
 		Foto     string `json:"foto"`
 	}
 	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
@@ -27,12 +28,12 @@ func (rt *_router) register(w http.ResponseWriter, r *http.Request, ps httproute
 		return
 	}
 	idFoto, err := rt.db.CreaFoto(input.Foto)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'inserimento della foto profilo durante la registrazione: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	err = rt.db.CreaUtente(input.Nickname, idFoto)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante la creazione dell'utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -45,7 +46,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		Nickname string `json:"nickname"`
 	}
 	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
@@ -54,7 +55,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		return
 	}
 	utente, err := rt.db.Login(input.Nickname)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante la verifica dell'utente: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -18,12 +19,12 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	ConversazioneStr := ps.ByName("chat")
 
 	Conversazione, err := strconv.Atoi(ConversazioneStr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID conversazione non valido", http.StatusBadRequest)
 		return
 	}
 	err = json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Formato della richiesta non valido", http.StatusBadRequest)
 		return
 	}
@@ -39,12 +40,12 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 	if len(input.Testo) == 0 {
 		idFoto, err := rt.db.CreaFoto(input.Foto)
-		if err != nil {
+		if !errors.Is(err, nil) {
 			CreaErroreJson(w, "Errore durante l'inserimento della foto del messaggio: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		codiceErrore, _, err := rt.db.CreaMessaggioFotoDB(UtenteChiamante, Conversazione, idFoto)
-		if err != nil {
+		if !errors.Is(err, nil) {
 			CreaErroreJson(w, "Errore durante l'inserimento del messaggio con foto: "+err.Error(), codiceErrore)
 			return
 		}
@@ -53,7 +54,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	codiceErrore, _, err := rt.db.CreaMessaggioTestualeDB(UtenteChiamante, Conversazione, input.Testo)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'inserimento del messaggio: "+err.Error(), codiceErrore)
 		return
 	}
@@ -68,18 +69,18 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 	IDChatstr := ps.ByName("chat")
 
 	IDMessaggio, err := strconv.Atoi(IDMessaggiostr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID messaggio non valido", http.StatusBadRequest)
 		return
 	}
 	IDChat, err := strconv.Atoi(IDChatstr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID conversazione non valido", http.StatusBadRequest)
 		return
 	}
 
 	err = rt.db.EliminaMessaggio(UtenteChiamante, IDMessaggio, IDChat)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'eliminazione del messaggio: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -94,7 +95,7 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore nel parsing del corpo della richiesta: "+err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -103,13 +104,13 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 	IDMessaggiostr := ps.ByName("messaggio")
 
 	IDMessaggio, err := strconv.Atoi(IDMessaggiostr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID messaggio non valido", http.StatusBadRequest)
 		return
 	}
 
 	codiceErrore, err := rt.db.AggiungiCommento(UtenteChiamante, IDMessaggio, input.Reazione)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante la scrittura del commento: "+err.Error(), codiceErrore)
 		return
 	}
@@ -123,13 +124,13 @@ func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps http
 	IDMessaggiostr := ps.ByName("messaggio")
 
 	IDMessaggio, err := strconv.Atoi(IDMessaggiostr)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "ID commento non valido", http.StatusBadRequest)
 		return
 	}
 
 	err = rt.db.EliminaCommento(UtenteChiamante, IDMessaggio)
-	if err != nil {
+	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'eliminazione del commento: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

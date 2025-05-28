@@ -10,7 +10,7 @@
       </div>
     </div>
 
-    <ul v-if="messages.length > 0" class="messages_list" ref="messagesList">
+    <ul v-if="messages.length > 0" class="messages_list">
       <li
         v-for="message in messages"
         :key="message.message_id"
@@ -84,7 +84,7 @@
       </li>
     </ul>
     
-<ul v-if="messages.length > 0" class="messages_list" ref="messagesList">
+<ul v-if="messages.length > 0" class="messages_list">
 </ul>
 <p v-else class="no_messages">No messages yet.</p>
 
@@ -240,16 +240,26 @@ export default {
     this.currentUserId = response.data.id;
     await this.checkIfGroup();
     await this.loadMessages();
+    this.scrollToBottom();
   } catch (error) {
     console.error("Error:", error);
   }
 },
 
   methods: {
+    
+  scrollToBottom() {
+  this.$nextTick(() => {
+    const container = this.$el.querySelector('.messages_list');
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+     }
+    });
+  },
 
   goHome(){
     this.$router.push(`/wasachat/${this.currentUser}/chats`);
-      },
+  },
 
   isCurrentUser(idauthor) {
     if (idauthor == this.currentUserId){
@@ -560,16 +570,7 @@ export default {
         
         this.messages.push(message);
       }
-      const self = this; 
 
-    //auto_scroll
-    this.$nextTick(function() {
-      const container = self.$refs.messagesList;
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
-
-    });
   } catch (e) {
     if (e.response && e.response.data) {
       const messaggio = e.response.data.errore;
@@ -753,8 +754,11 @@ export default {
   background-color: #ffffff;
   border-radius: 1px;
   padding-bottom: 2px;
-  height: calc(100vh - 70px);
+  height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
 }
 
 .messages_container_private {
@@ -763,8 +767,11 @@ export default {
   background-color: #ffffff;
   border-radius: 1px;
   padding-bottom: 2px;
-  height: calc(100vh - 1px);
+  height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
 }
 
 .btn {
@@ -801,7 +808,7 @@ export default {
   list-style-type: none;
   padding: 20px;
   margin: 10px;
-  max-height: calc(100% - 120px);
+  max-height: calc(100vh - 140px);
   overflow-y: auto;
   scroll-behavior: smooth;
   width: 100%;

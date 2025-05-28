@@ -1,153 +1,122 @@
 <template>
-    <div>
-      <!-- Bottone Annulla -->
-      <button @click="goBack" class="cancel-button">
-        Indietro
-      </button>
-  
-      <!-- Lista dei partecipanti -->
-      <div class="chats-container">
-        <h2>Partecipanti della chat:</h2>
-        <ul v-if="chats.length > 0">
-          <li v-for="chat in chats" :key="chat.chat_id" @click="forwardToChat(chat)">
-            <div class="chat-item">
-              <div class="chat-info">
-                <p class="chat-name">{{ chat.Nickname}}</p>
-              </div>
-            </div>
-          </li>
-        </ul>
-        <p v-else>Nessuna conversazione trovata.</p>
-      </div>
+  <div class="container">
+    <button @click="goBack" class="goBack_btn">Go Back</button>
+
+    <h2 class="title">Partecipants</h2>
+
+    <div class="participants-box">
+      <ul v-if="chats.length > 0">
+        <li v-for="chat in chats" :key="chat.chat_id" class="participant-card">
+          <div class="participant-info">
+            <p class="participant-name">{{ chat.Nickname }}</p>
+          </div>
+        </li>
+      </ul>
+      <p v-else class="no-participants">No participants.</p>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        chats: [],
-        loading: false,
-        error: null,
-        messageToForward: null
-      };
-    },
-    async created() {
-      await this.loadChats();
-      
-      if (this.$route.params.message) {
-        this.messageToForward = this.$route.params.message;
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      chats: [],
+      error: null,
+      currentUser: this.$route.params.nickname,
+      chat: this.$route.params.chat
+    };
+  },
+  async created() {
+    await this.loadChats();
+    if (this.$route.params.message) {
+      this.messageToForward = this.$route.params.message;
+    }
+  },
+
+  methods: {
+    async loadChats() {
+      try {
+        const response = await this.$axios.get(`/wasachat/${this.currentUser}/utenti/gruppi/${this.chat}`);
+        this.chats = response.data;
+        const message = response.data.risposta;
+        if (message) {
+          alert(message);
+        }
+      } catch (e) {
+        if (e.response) {
+          const message = e.response.data.errore;
+          const codiceErrore = parseInt(e.response.data.codiceErrore);
+          alert(message + ` (codice ${codiceErrore})`);
+        } else {
+          alert("Error. Network error.");
+        }
+        console.error(e);
       }
     },
-    methods: {
-      async loadChats() {
-        const nickname = this.$route.params.nickname;
-        const gruppo = this.$route.params.chat;
-        try {
-          const response = await this.$axios.get(`/wasachat/${nickname}/utenti/gruppi/${gruppo}`); 
-          this.chats = response.data.map(chat => {
-            if (chat.foto && !chat.foto.startsWith('data:image')) {
-              chat.foto = `data:image/jpeg;base64,${chat.foto}`;
-            }
-            return chat;
-          });
-        } catch (e) {
-          this.error = "Errore durante il caricamento dei partecipanti.";
-          console.error(e);
-        } finally {
-          this.loading = false;
-        }
-      },
-
-      goBack() {
-        const { nickname, chat } = this.$route.params;
-        this.$router.push(`/wasachat/${nickname}/chats/${chat}`);
-      },
+    goBack() {
+      this.$router.push(`/wasachat/${this.currentUser}/chats/${this.chat}`);
     },
-  };
-  </script>
-  
-  <style scoped>
-  /* Stili rimangono identici alla versione precedente */
-  .chats-container {
-    padding: 20px;
-    max-width: 600px;
-    margin: 0 auto;
-    text-align: left;
+  },
+};
+</script>
+
+<style scoped>
+.container {
+  max-width: 700px;
+  margin: 60px auto 30px;
+  padding: 20px;
+}
+
+.title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.goBack_btn {
+  background-color: rgb(161, 63, 84);
+  color: rgb(221, 219, 219);
+  padding: 20px 40px;
+  margin: 40px;
+  border-radius: 90px;
+  font-size: 15px;
+  position: fixed;
+  top: 0px;
+  right: 40px;
+  border: none;
+  cursor: pointer;
   }
-  
-  .cancel-button {
-    padding: 10px 20px;
-    background-color: #f44336;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 20px;
-  }
-  
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  li {
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
-    cursor: pointer;
-  }
-  
-  li:hover {
-    background-color: #f5f5f5;
-  }
-  
-  .chat-item {
-    display: flex;
-    align-items: center;
-  }
-  
-  .chat-photo {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 10px;
-  }
-  
-  .chat-photo-placeholder {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-color: #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-    color: #666;
-    font-size: 0.8em;
-  }
-  
-  .chat-info {
-    flex-grow: 1;
-  }
-  
-  .chat-name {
-    font-weight: bold;
-    margin: 0;
-  }
-  
-  .chat-last-message {
-    margin: 5px 0;
-    color: #666;
-  }
-  
-  .chat-time {
-    margin: 0;
-    font-size: 0.9em;
-    color: #999;
-  }
-  
-  .error-message {
-    color: red;
-    margin-top: 10px;
-  }
-  </style>
+
+.participants-box {
+  background-color: rgb(209, 188, 230);
+  padding: 30px;
+  border-radius: 16px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.participant-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.participant-info {
+  flex-grow: 1;
+}
+.participant-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0;
+}
+
+</style>

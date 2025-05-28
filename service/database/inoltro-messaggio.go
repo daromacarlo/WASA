@@ -9,6 +9,11 @@ import (
 
 func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_Passato string, conversazione_Passata int) (int, error) {
 
+	utente_Passato_convertito, _, err := db.IdUtenteDaNickname(utente_Passato)
+	if !errors.Is(err, nil) {
+		return 0, fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
+	}
+
 	var messaggioOriginale struct {
 		Testo *string
 		Foto  *int
@@ -19,7 +24,7 @@ func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_
         FROM messaggio 
         WHERE id = ?;
     `
-	err := db.c.QueryRow(querySelect, idMessaggio).Scan(
+	err = db.c.QueryRow(querySelect, idMessaggio).Scan(
 		&messaggioOriginale.Testo,
 		&messaggioOriginale.Foto,
 	)
@@ -31,8 +36,8 @@ func (db *appdbimpl) CopiaMessaggioCambiandoOraEMitente(idMessaggio int, utente_
 		return 500, fmt.Errorf("errore nel recupero del messaggio originale con ID %d: %w", idMessaggio, err)
 	}
 
-	queryDiInserimento := `INSERT INTO messaggio (testo, foto, conversazione, autore, tempo, inoltrato, risposta) VALUES (?, ?, ?, ?, ?, ?, ?);`
-	result, err := db.c.Exec(queryDiInserimento, messaggioOriginale.Testo, messaggioOriginale.Foto, conversazione_Passata, utente_Passato, time.Now(), true, nil)
+	queryDiInserimento := `INSERT INTO messaggio (testo, foto, conversazione, autore, idautore, tempo, inoltrato, risposta) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
+	result, err := db.c.Exec(queryDiInserimento, messaggioOriginale.Testo, messaggioOriginale.Foto, conversazione_Passata, utente_Passato, utente_Passato_convertito, time.Now(), true, nil)
 	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante l'inserimento del messaggio modificato: %w", err)
 	}
@@ -120,6 +125,10 @@ func (db *appdbimpl) InoltraMessaggio(utente_Passato string, idChatNuova int, Id
 }
 
 func (db *appdbimpl) InoltraMessaggioANuovaChat(utente_Passato string, utente2_Passato string, IdMessaggio int) (int, error) {
+	if utente2_Passato == "" {
+		return 400, fmt.Errorf("richiesta mal formata, l'utente deve avere un nome")
+	}
+
 	chat, codiceErrore, err := db.EsisteConversazioneTraUtenti(utente_Passato, utente2_Passato)
 	if chat > 0 {
 		return 404, fmt.Errorf("chat già esistente tra i due utenti, non è stato inviato il messaggio con ID %d", IdMessaggio)

@@ -43,6 +43,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		CreaErroreJson(w, "Errore durante la creazione del gruppo: "+err.Error(), codiceErrore)
 		return
 	}
+	CreaRispostaJson(w, "Gruppo creato con successo", 200)
 }
 
 // test
@@ -85,6 +86,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		CreaErroreJson(w, "Errore durante l'aggiunta dell'utente: "+err.Error(), codiceErrore)
 		return
 	}
+	CreaRispostaJson(w, "Utente aggiunto", 200)
 }
 
 // test
@@ -146,6 +148,8 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		CreaErroreJson(w, "Errore durante l'aggiornamento della foto del gruppo: "+err.Error(), codiceErrore)
 		return
 	}
+	CreaRispostaJson(w, "foto gruppo cambiato", 200)
+	return
 }
 
 // Funzione per impostare un nome ad un gruppo
@@ -170,10 +174,13 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 	}
 
 	codiceErrore, err := rt.db.ImpostaNomeGruppo(UtenteChiamante, input.Nome, idConversazione)
-	if !errors.Is(err, nil) {
+	if err != nil {
 		CreaErroreJson(w, "Errore durante l'aggiornamento del nome del gruppo: "+err.Error(), codiceErrore)
 		return
 	}
+	CreaRispostaJson(w, "nome gruppo cambiato", 200)
+	return
+
 }
 
 // IsGroup verifica se la chat è un gruppo

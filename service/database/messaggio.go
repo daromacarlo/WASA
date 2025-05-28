@@ -12,6 +12,7 @@ func CreaTabellaMessaggio(db *sql.DB) error {
 		CREATE TABLE IF NOT EXISTS messaggio(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			autore TEXT NOT NULL,
+			idautore INTEGER NOT NULL,
 			conversazione INTEGER NOT NULL,
 			inoltrato BOOL NOT NULL default FALSE,
 			risposta INTEGER default NULL,
@@ -22,6 +23,7 @@ func CreaTabellaMessaggio(db *sql.DB) error {
 			tempo TIME,
 			FOREIGN KEY (foto) REFERENCES foto(id),
 			FOREIGN KEY (autore) REFERENCES utente(nickname),
+			FOREIGN KEY (idautore) REFERENCES utente(id),
 			FOREIGN KEY (conversazione) REFERENCES conversazione(id),
 			FOREIGN KEY (risposta) REFERENCES messaggio(id)
 		);`
@@ -37,9 +39,11 @@ func CreaTabellaCommento(db *sql.DB) error {
 		CREATE TABLE IF NOT EXISTS commento(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			autore TEXT NOT NULL,
+			idautore INTEGER NOT NULL,
 			messaggio INTEGER NOT NULL,
 			reazione TEXT NOT NULL,	
 			FOREIGN KEY (autore) REFERENCES utente(nickname),
+			FOREIGN KEY (idautore) REFERENCES utente(id),
 			FOREIGN KEY (messaggio) REFERENCES messaggio(id)
 		);`
 	_, err := db.Exec(query)
@@ -97,8 +101,12 @@ func (db *appdbimpl) CreaMessaggioTestualeDB(utentePassato string, conversazione
 }
 
 func (db *appdbimpl) inserisciMessaggio(conversazionePassata int, utente_Passato string, testoPassato string, isGruppo bool) (int, error) {
-	queryDiInserimento := `INSERT INTO messaggio (autore, conversazione, testo, tempo) VALUES (?, ?, ?, ?);`
-	result, err := db.c.Exec(queryDiInserimento, utente_Passato, conversazionePassata, testoPassato, time.Now())
+	utente_Passato_convertito, _, err := db.IdUtenteDaNickname(utente_Passato)
+	if !errors.Is(err, nil) {
+		return 0, fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
+	}
+	queryDiInserimento := `INSERT INTO messaggio (autore, idautore, conversazione, testo, tempo) VALUES (?, ?, ?, ?, ?);`
+	result, err := db.c.Exec(queryDiInserimento, utente_Passato, utente_Passato_convertito, conversazionePassata, testoPassato, time.Now())
 
 	if !errors.Is(err, nil) {
 		return 0, fmt.Errorf("errore durante la creazione del nuovo messaggio: %w", err)
@@ -171,8 +179,12 @@ func (db *appdbimpl) CreaMessaggioFotoDB(utentePassato string, conversazionePass
 }
 
 func (db *appdbimpl) inserisciMessaggioFoto(conversazionePassata int, utente_Passato string, fotoPassata int, isGruppo bool) (int, error) {
-	queryDiInserimento := `INSERT INTO messaggio (autore, conversazione, foto, tempo) VALUES (?, ?, ?, ?);`
-	result, err := db.c.Exec(queryDiInserimento, utente_Passato, conversazionePassata, fotoPassata, time.Now())
+	utente_Passato_convertito, _, err := db.IdUtenteDaNickname(utente_Passato)
+	if !errors.Is(err, nil) {
+		return 0, fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
+	}
+	queryDiInserimento := `INSERT INTO messaggio (autore, idautore, conversazione, foto, tempo) VALUES (?, ?, ?, ?, ?);`
+	result, err := db.c.Exec(queryDiInserimento, utente_Passato, utente_Passato_convertito, conversazionePassata, fotoPassata, time.Now())
 
 	if !errors.Is(err, nil) {
 		return 0, fmt.Errorf(": %w", err)
@@ -197,8 +209,12 @@ func (db *appdbimpl) inserisciMessaggioFoto(conversazionePassata int, utente_Pas
 }
 
 func (db *appdbimpl) EliminaMessaggio(utentePassato string, idmessaggio int, idchat int) error {
-	queryDiEliminazione := `DELETE FROM messaggio WHERE autore = ? AND id = ? AND conversazione = ?;`
-	result, err := db.c.Exec(queryDiEliminazione, utentePassato, idmessaggio, idchat)
+	utente_Passato_convertito, _, err := db.IdUtenteDaNickname(utentePassato)
+	if !errors.Is(err, nil) {
+		return fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
+	}
+	queryDiEliminazione := `DELETE FROM messaggio WHERE idautore = ? AND id = ? AND conversazione = ?;`
+	result, err := db.c.Exec(queryDiEliminazione, utente_Passato_convertito, idmessaggio, idchat)
 	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore durante l'eliminazione del messaggio: %w", err)
 	}
@@ -253,20 +269,20 @@ func (db *appdbimpl) AggiungiCommento(utentePassato string, messaggioPassato int
 		}
 	}
 
-	queryVerificaCommento := `SELECT id FROM commento WHERE autore = ? AND messaggio = ?;`
+	queryVerificaCommento := `SELECT id FROM commento WHERE idautore = ? AND messaggio = ?;`
 	var commentoId int
-	err = db.c.QueryRow(queryVerificaCommento, utentePassato, messaggioPassato).Scan(&commentoId)
+	err = db.c.QueryRow(queryVerificaCommento, utente_Passato_convertito, messaggioPassato).Scan(&commentoId)
 
 	switch {
 	case err == nil:
-		queryDiAggiornamento := `UPDATE commento SET reazione = ?, data_commento = CURRENT_TIMESTAMP WHERE id = ?;`
+		queryDiAggiornamento := `UPDATE commento SET reazione = ? WHERE id = ?;`
 		_, err = db.c.Exec(queryDiAggiornamento, reazionePassata, commentoId)
 		if err != nil {
 			return 500, fmt.Errorf("errore durante l'aggiornamento del commento: %w", err)
 		}
 	case errors.Is(err, sql.ErrNoRows):
-		queryDiInserimento := `INSERT INTO commento (autore, messaggio, reazione) VALUES (?, ?, ?);`
-		_, err = db.c.Exec(queryDiInserimento, utentePassato, messaggioPassato, reazionePassata)
+		queryDiInserimento := `INSERT INTO commento (autore, idautore, messaggio, reazione) VALUES (?, ?, ?, ?);`
+		_, err = db.c.Exec(queryDiInserimento, utentePassato, utente_Passato_convertito, messaggioPassato, reazionePassata)
 		if err != nil {
 			return 500, fmt.Errorf("errore durante l'inserimento del commento: %w", err)
 		}
@@ -280,15 +296,20 @@ func (db *appdbimpl) AggiungiCommento(utentePassato string, messaggioPassato int
 // EliminaCommento elimina un commento specifico di un utente dato l'ID del messaggio
 func (db *appdbimpl) EliminaCommento(utente string, idmessaggio int) error {
 	// Verifica che esista un commento dell'utente specifico per questo messaggio
+	utente_Passato_convertito, _, err := db.IdUtenteDaNickname(utente)
+	if !errors.Is(err, nil) {
+		return fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
+	}
+
 	var idcommento int
 
 	queryVerificaCommento := `
         SELECT id 
         FROM commento 
-        WHERE messaggio = ? AND autore = ?;
+        WHERE messaggio = ? AND idautore = ?;
     `
 
-	err := db.c.QueryRow(queryVerificaCommento, idmessaggio, utente).Scan(&idcommento)
+	err = db.c.QueryRow(queryVerificaCommento, idmessaggio, utente_Passato_convertito).Scan(&idcommento)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("nessun commento trovato per questo utente e messaggio")

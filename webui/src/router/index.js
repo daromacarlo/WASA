@@ -1,15 +1,14 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import LoginView from '../views/LoginView.vue';
-import RegisterView from '../views/RegisterView.vue';
 import UserChatsView from '../views/UserChatsView.vue'; 
 import CreateGroupView from '../views/CreateGroupView.vue'; 
 import SearchUserView from '../views/SearchUserView.vue';
 import ChatView from '../views/ChatView.vue';
 import ModifyGroup from '../views/ModifyGroup.vue';
 import ModifyUser from '../views/ModifyUser.vue';
-import InoltroView from '../views/InoltroView.vue';
 import GroupMembersView from '../views/GroupMembersView.vue';
+import ForwardView from '../views/ForwardView.vue';
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -17,23 +16,18 @@ const router = createRouter({
     {
       path: '/',
       name: 'Home',
-      component: HomeView,  // La pagina iniziale
+      component: HomeView, 
     },
     {
       path: '/login',
       name: 'Login',
-      component: LoginView,  // La pagina di login
+      component: LoginView,  
     },
     {
-      path: '/register',
-      name: 'Register',
-      component: RegisterView,  // La pagina di registrazione
-    },
-    {
-      path: '/wasachat/:nickname/chats',  // Nuova route per le chat dell'utente
+      path: '/wasachat/:nickname/chats', 
       name: 'UserChats',
-      component: UserChatsView,  // Componente che gestisce la visualizzazione delle chat
-      props: true,  // Passa i parametri della route come props al componente
+      component: UserChatsView,  
+      props: true, 
     },
     {
       path: '/wasachat/:nickname/chats/creategroup',
@@ -72,9 +66,9 @@ const router = createRouter({
     },
 
     {
-      path: '/wasachat/:nickname/:chat/inoltro/:message',
-      name: 'InoltroView',
-      component: InoltroView,  
+      path: '/wasachat/:nickname/:chat/forward/:message',
+      name: 'ForwardView',
+      component: ForwardView,  
     },
   ],
 });

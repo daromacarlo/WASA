@@ -6,6 +6,9 @@ import (
 )
 
 func (db *appdbimpl) AggiungiAGruppoDB(idConversazione int, UtenteChiamante string, UtenteDaAggiungere string) (int, error) {
+	if UtenteDaAggiungere == "" {
+		return 400, fmt.Errorf("richiesta malformata, inerisci un nome")
+	}
 	esisteUtenteChiamante, err := db.EsistenzaUtente(UtenteChiamante)
 	if !errors.Is(err, nil) {
 		return 500, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente chiamante %s: %w", UtenteChiamante, err)
@@ -32,7 +35,7 @@ func (db *appdbimpl) AggiungiAGruppoDB(idConversazione int, UtenteChiamante stri
 		return codiceErrore, fmt.Errorf("errore durante il controllo della presenza dell'utente nel gruppo: %w", err)
 	}
 	if utenteGiaPresente > 0 {
-		return 304, fmt.Errorf("l'utente %s è già presente nel gruppo", UtenteDaAggiungere)
+		return 400, fmt.Errorf("l'utente %s è già presente nel gruppo", UtenteDaAggiungere)
 	}
 	utenteDaAggiungere_convertito, codiceErrore, err := db.IdUtenteDaNickname(UtenteDaAggiungere)
 	if !errors.Is(err, nil) {
@@ -158,7 +161,7 @@ func (db *appdbimpl) ImpostaNomeGruppo(UtenteChiamante string, nomeGruppo_Passat
 	}
 
 	if vecchioNome == nomeGruppo_Passato {
-		return 304, fmt.Errorf("il nuovo nome del gruppo è uguale al vecchio")
+		return 400, fmt.Errorf("nuovo nome uguale al vecchi nome")
 	}
 
 	queryUpdate := `UPDATE gruppo SET nome = ? WHERE conversazione = ?`

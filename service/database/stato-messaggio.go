@@ -37,14 +37,19 @@ func (db *appdbimpl) CreaStatoMessaggioPrivato(idmessaggio int) error {
 
 // LeggiMessaggiPrivati marca i messaggi come letti e ricevuti
 func (db *appdbimpl) LeggiMessaggiPrivati(destinatario string, conversazioneID int) error {
-	_, err := db.c.Exec(`
+	utente_Passato_convertito, _, err := db.IdUtenteDaNickname(destinatario)
+	if !errors.Is(err, nil) {
+		return fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
+	}
+
+	_, err = db.c.Exec(`
 		UPDATE statomessaggioprivato 
 		SET letto = 1, ricevuto = 1 
 		WHERE messaggio IN (
 			SELECT id FROM messaggio 
-			WHERE conversazione = ? AND autore = ?
+			WHERE conversazione = ? AND idautore = ?
 		)`,
-		conversazioneID, destinatario,
+		conversazioneID, utente_Passato_convertito,
 	)
 	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore aggiornamento stato messaggi privati: %w", err)
@@ -76,9 +81,11 @@ func CreaTabellaStatoMessaggioGruppoPersona(db *sql.DB) error {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		messaggio INTEGER NOT NULL,
 		utente TEXT NOT NULL,
-		UNIQUE(messaggio, utente),
+		idutente INTEGER NOT NULL,
+		UNIQUE(messaggio, idutente),
 		FOREIGN KEY (messaggio) REFERENCES messaggio(id),
-		FOREIGN KEY (utente) REFERENCES utente(nickname)
+		FOREIGN KEY (utente) REFERENCES utente(nickname),
+		FOREIGN KEY (idutente) REFERENCES utente(id)
 	)`
 	_, err := db.Exec(query)
 	if !errors.Is(err, nil) {
@@ -94,9 +101,12 @@ func CreaTabellaStatoMessaggioGruppoPersonaRicevimento(db *sql.DB) error {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		messaggio INTEGER NOT NULL,
 		utente TEXT NOT NULL,
-		UNIQUE(messaggio, utente),
+		idutente INTEGER NOT NULL,
+		UNIQUE(messaggio, idutente),
 		FOREIGN KEY (messaggio) REFERENCES messaggio(id),
-		FOREIGN KEY (utente) REFERENCES utente(nickname)
+		FOREIGN KEY (utente) REFERENCES utente(nickname),
+		FOREIGN KEY (idutente) REFERENCES utente(id)
+
 	)`
 	_, err := db.Exec(query)
 	if !errors.Is(err, nil) {
@@ -120,15 +130,19 @@ func (db *appdbimpl) CreaStatoMessaggioGruppo(idmessaggio int) error {
 // LeggiMessaggiGruppo marca i messaggi di gruppo come letti dall'utente
 func (db *appdbimpl) LeggiMessaggiGruppo(utente string, conversazioneID int) error {
 	// Inserisce nella tabella statomessaggiogruppopersona i messaggi non ancora letti
-	_, err := db.c.Exec(`
-		INSERT INTO statomessaggiogruppopersona (messaggio, utente)
-		SELECT m.id, ?
+	utente_Passato_convertito, _, err := db.IdUtenteDaNickname(utente)
+	if !errors.Is(err, nil) {
+		return fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)
+	}
+	_, err = db.c.Exec(`
+		INSERT INTO statomessaggiogruppopersona (messaggio, utente, idutente)
+		SELECT m.id, ?, ? 
 		FROM messaggio m
 		JOIN statomessaggiogruppo smg ON smg.messaggio = m.id
-		JOIN utente u ON m.autore = u.nickname
-		WHERE m.conversazione = ? AND smg.letto = false AND u.nickname != ?
+		JOIN utente u ON m.idautore = u.id
+		WHERE m.conversazione = ? AND smg.letto = false AND u.id != ?
 		ON CONFLICT DO NOTHING`,
-		utente, conversazioneID, utente,
+		utente, utente_Passato_convertito, conversazioneID, utente_Passato_convertito,
 	)
 	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore aggiornamento lettura messaggi gruppo: %w", err)
@@ -192,14 +206,18 @@ func (db *appdbimpl) CheckRicevimentoMessaggiGruppo(conversazioneID int) error {
 
 // SegnaMessaggiPrivatiRicevuti marca i messaggi privati come ricevuti
 func (db *appdbimpl) SegnaMessaggiPrivatiRicevuti(utente string, conversazioneID int) error {
-	_, err := db.c.Exec(`
+	utente_Passato_convertito, _, err := db.IdUtenteDaNickname(utente)
+	if !errors.Is(err, nil) {
+		return fmt.Errorf("errore durante la conversione da nickname a id: %w", err)
+	}
+	_, err = db.c.Exec(`
 		UPDATE statomessaggioprivato
 		SET ricevuto = 1
 		WHERE messaggio IN (
 			SELECT id FROM messaggio
-			WHERE conversazione = ? AND autore != ?
+			WHERE conversazione = ? AND idautore != ?
 		)`,
-		conversazioneID, utente,
+		conversazioneID, utente_Passato_convertito,
 	)
 	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore aggiornamento ricezione messaggi privati: %w", err)
@@ -210,15 +228,20 @@ func (db *appdbimpl) SegnaMessaggiPrivatiRicevuti(utente string, conversazioneID
 // SegnaMessaggiGruppoRicevuti marca i messaggi di gruppo come ricevuti dall'utente
 func (db *appdbimpl) SegnaMessaggiGruppoRicevuti(utente string, conversazioneID int) error {
 	// Inserisce nella tabella statomessaggiogruppopersonaricevimento i messaggi non ancora ricevuti
-	_, err := db.c.Exec(`
-		INSERT INTO statomessaggiogruppopersonaricevimento (messaggio, utente)
-		SELECT m.id, ?
+	utente_Passato_convertito, _, err := db.IdUtenteDaNickname(utente)
+	if !errors.Is(err, nil) {
+		return fmt.Errorf("errore durante la conversione da nickname a ID: %w", err)
+	}
+
+	_, err = db.c.Exec(`
+		INSERT INTO statomessaggiogruppopersonaricevimento (messaggio, utente, idutente)
+		SELECT m.id, ?, ?
 		FROM messaggio m
 		JOIN statomessaggiogruppo smg ON smg.messaggio = m.id
 		JOIN utente u ON m.autore = u.nickname
-		WHERE m.conversazione = ? AND smg.ricevuto = false AND u.nickname != ?
+		WHERE m.conversazione = ? AND smg.ricevuto = false AND u.id != ?
 		ON CONFLICT DO NOTHING`,
-		utente, conversazioneID, utente,
+		utente, utente_Passato_convertito, conversazioneID, utente_Passato_convertito,
 	)
 	if !errors.Is(err, nil) {
 		return fmt.Errorf("errore aggiornamento ricezione messaggi gruppo: %w", err)

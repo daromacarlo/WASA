@@ -8,12 +8,13 @@ import (
 )
 
 type Conversazione struct {
-	Id       int     `json:"chat_id"`
-	Nome     string  `json:"nome"`
-	Foto     *string `json:"foto"`
-	Time     *string `json:"time"`
-	Ultimo   *string `json:"ultimosnip"`
-	IsGruppo bool    `json:"isgruppo"`
+	Id         int     `json:"chat_id"`
+	Nome       string  `json:"nome"`
+	Foto       *string `json:"foto"`
+	Time       *string `json:"time"`
+	Ultimo     *string `json:"ultimosnip"`
+	Ultimafoto *string `json:"ultimofoto"`
+	IsGruppo   bool    `json:"isgruppo"`
 }
 
 func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversazione, int, error) {
@@ -29,7 +30,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
                ELSE u1.nickname 
            END AS nome,
            MAX(m.tempo) AS time, 
-           m.testo AS ultimosnip,
+           m.testo AS ultimosnip, foto.foto AS ultimafoto,
            CASE 
                WHEN cp.utente1 = ? THEN f2.foto
                ELSE f1.foto
@@ -42,17 +43,19 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
     LEFT JOIN foto AS f1 ON f1.id = u1.foto
     LEFT JOIN foto AS f2 ON f2.id = u2.foto
     LEFT JOIN messaggio AS m ON m.conversazione = c.id
+	LEFT JOIN foto ON m.foto = foto.id
     WHERE cp.utente1 = ? OR cp.utente2 = ?
     GROUP BY c.id, nome, f1.foto, f2.foto
     `
 
 	queryConversazioniGruppo := `
-    SELECT c.id, g.nome, MAX(m.tempo) AS time, m.testo AS ultimosnip, f.foto AS foto, true AS isgruppo
+    SELECT c.id, g.nome, MAX(m.tempo) AS time, m.testo AS ultimosnip, foto.foto AS ultimafoto, f.foto AS foto, true AS isgruppo
     FROM conversazione AS c
     JOIN gruppo AS g ON g.conversazione = c.id
     JOIN utenteingruppo AS ug ON g.id = ug.gruppo
     JOIN foto AS f ON f.id = g.foto
     LEFT JOIN messaggio AS m ON m.conversazione = c.id
+	LEFT JOIN foto ON m.foto = foto.id
     WHERE ug.utente = ?
     GROUP BY c.id, g.nome, f.foto
     `
@@ -67,7 +70,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 	for rowsPrivate.Next() {
 		var conv Conversazione
 		var foto sql.NullString
-		if err := rowsPrivate.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &foto, &conv.IsGruppo); err != nil {
+		if err := rowsPrivate.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &conv.Ultimafoto, &foto, &conv.IsGruppo); err != nil {
 			return nil, 500, fmt.Errorf("errore durante la lettura delle conversazioni private: %w", err)
 		}
 		if foto.Valid && foto.String != "" {
@@ -76,7 +79,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 			conv.Foto = nil
 		}
 		if conv.Ultimo != nil && len(*conv.Ultimo) > 15 {
-			*conv.Ultimo = (*conv.Ultimo)[:15]
+			*conv.Ultimo = (*conv.Ultimo)[:15] + "..."
 		}
 		conversazioni = append(conversazioni, conv)
 		idsConversazioniPrivate = append(idsConversazioniPrivate, conv.Id)
@@ -95,7 +98,7 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 	for rowsGruppo.Next() {
 		var conv Conversazione
 		var foto sql.NullString
-		if err := rowsGruppo.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &foto, &conv.IsGruppo); err != nil {
+		if err := rowsGruppo.Scan(&conv.Id, &conv.Nome, &conv.Time, &conv.Ultimo, &conv.Ultimafoto, &foto, &conv.IsGruppo); err != nil {
 			return nil, 500, fmt.Errorf("errore durante la lettura delle conversazioni di gruppo: %w", err)
 		}
 		if foto.Valid && foto.String != "" {
@@ -104,13 +107,13 @@ func (db *appdbimpl) GetConversazioni(utente_Passato_string string) ([]Conversaz
 			conv.Foto = nil
 		}
 		if conv.Ultimo != nil && len(*conv.Ultimo) > 15 {
-			*conv.Ultimo = (*conv.Ultimo)[:15]
+			*conv.Ultimo = (*conv.Ultimo)[:15] + "..."
 		}
 		conversazioni = append(conversazioni, conv)
 		idsConversazioniGruppo = append(idsConversazioniGruppo, conv.Id)
 	}
 
-	if err := rowsPrivate.Err(); err != nil {
+	if err := rowsGruppo.Err(); err != nil {
 		return nil, 500, fmt.Errorf("errore durante l'iterazione delle conversazioni di gruppo")
 	}
 

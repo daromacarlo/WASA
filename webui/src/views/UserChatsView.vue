@@ -1,28 +1,16 @@
 <template>
   <div>
-    <!-- Bottone per creare un gruppo -->
-    <button type="submit" :disabled="loading" @click="goToCreateGroup">
-      {{ loading ? "Caricamento..." : "Crea Gruppo" }}
-    </button>
+    <div class="btn-c">  
+    <button class="btn" @click="createGroup">Create group</button>
+    <button class="btn" @click="searchUser">Search user</button>
+    <button class="btn" @click="profileSettings">Modify profile</button>
+    <button class="exit_btn" @click="logout">logout</button>
+    </div>
 
-    <!-- Bottone per cercare persone -->
-    <button type="submit" :disabled="loading" @click="goToSearchUser">
-      {{ loading ? "Caricamento..." : "Cerca Persone" }}
-    </button>
-
-    <button @click="goToModifyProfile" title="Modifica profilo">
-          <span class="button-text">Modifica profilo</span>
-    </button>
-
-    <button @click="logout" title="Logout">
-          <span class="logout">Logout</span>
-    </button>
-
-    <!-- Lista delle conversazioni -->
-    <div class="chats-container">
-      <h2>Le tue conversazioni:</h2>
+    <div class="cc">
+      <h2>Your conversations:</h2>
       <ul v-if="chats.length > 0">
-        <li v-for="chat in chats" :key="chat.chat_id" @click="goToChat(chat)">
+        <li v-for="chat in chats" :key="chat.chat_id" @click="viewChat(chat)">
           <div class="chat-item">
           <img
               v-if="chat.foto"
@@ -30,16 +18,22 @@
               class="chat-photo"
               @error="handleImageError"
             />
-            <div v-else class="chat-photo-placeholder">Nessuna foto</div>
+            <div v-else class="cpp">👤</div>
             <div class="chat-info">
               <p class="chat-name">{{ chat.nome }}</p>
               <p v-if="chat.ultimosnip" class="chat-last-message">{{ chat.ultimosnip }}</p>
+              <img
+              v-if="chat.ultimofoto"
+              :src="chat.ultimofoto"
+              class="photo-message"
+              @error="handleImageError"
+            />
               <p v-if="chat.time" class="chat-time">{{ formatTime(chat.time) }}</p>
             </div>
           </div>
         </li>
       </ul>
-      <p v-else>Nessuna conversazione trovata.</p>
+      <p v-else class = "no_conversations"> No conversations yet.</p>
     </div>
   </div>
 </template>
@@ -48,70 +42,68 @@
 export default {
   data() {
     return {
-      chats: [], // Lista delle conversazioni
-      loading: false, // Stato di caricamento per i bottoni
-      error: null, // Messaggio di errore
+      chats: [],
+      error: null, 
+      nickname : this.$route.params.nickname
     };
   },
   async created() {
-    await this.loadChats(); // Carica le conversazioni al momento della creazione del componente
+    await this.loadChats();
   },
   methods: {
-    // Carica le conversazioni
-    async loadChats() {
-      const nickname = this.$route.params.nickname;
-      try {
-        const response = await this.$axios.get(`/wasachat/${nickname}/chats`);
-        console.log(response.data); // Stampa i dati ricevuti dal backend
-
-        // Aggiungi l'intestazione Base64 se manca
-        this.chats = response.data.map(chat => {
-          if (chat.foto && !chat.foto.startsWith('data:image')) {
-            chat.foto = `data:image/jpeg;base64,${chat.foto}`;
-          }
-          return chat;
-        });
-      } catch (e) {
-        this.error = "Errore durante il caricamento delle conversazioni.";
-        console.error(e);
-      } finally {
-        this.loading = false;
+  async loadChats() {
+    let error = null;
+    try {
+      const response = await this.$axios.get('/wasachat/' + this.nickname + '/chats');
+      
+      this.chats = [];
+      for (let i = 0; i < response.data.length; i++) {
+        this.chats.push(response.data[i]);
       }
-    },
 
-    // Formatta il timestamp
+    } catch (e) {
+      error = e;
+      if (e.response && e.response.data) {
+        var message = e.response.data.errore;
+        var codiceErrore = parseInt(e.response.data.codiceErrore);
+        alert(message + ' (codice ' + codiceErrore + ')');
+      } else {
+        alert('Error: Network error');
+      }
+    } finally {
+      if (error) {
+        console.error(error);
+      }
+    }
+  },
+
     formatTime(time) {
       const date = new Date(time);
       return date.toLocaleString();
     },
 
-    // Gestisce gli errori di caricamento delle immagini
     handleImageError(event) {
-      console.error("Errore nel caricamento dell'immagine:", event);
-      event.target.src = "https://via.placeholder.com/50"; // Immagine di fallback
+      console.error("Error during the upload:", event);
+      event.target.src = "https://via.placeholder.com/50";
     },
 
-    goToModifyProfile() {
+    profileSettings() {
       const nickname = this.$route.params.nickname;
       this.$router.push(`/wasachat/${nickname}/settings`);
     },
 
-    // Reindirizza alla pagina di creazione del gruppo
-    goToCreateGroup() {
+    createGroup() {
       const nickname = this.$route.params.nickname;
       this.$router.push(`/wasachat/${nickname}/chats/creategroup`);
     },
 
-    // Reindirizza alla pagina di ricerca utenti
-    goToSearchUser() {
+    searchUser() {
       const nickname = this.$route.params.nickname;
       this.$router.push(`/wasachat/${nickname}/chats/searchuser`);
     },
 
-    // Reindirizza alla vista corretta in base al tipo di chat
-    goToChat(chat) {
+    viewChat(chat) {
       const nickname = this.$route.params.nickname;
-        // Se è un gruppo, reindirizza a GroupView
         this.$router.push(`/wasachat/${nickname}/chats/${chat.chat_id}`);
     },
 
@@ -120,13 +112,23 @@ export default {
     }
   },
 };
+
 </script>
 
 <style scoped>
-.chats-container {
+.btn-c{
+  text-align: center;
+  background-color: rgb(209, 188, 230);
+  padding: 40px;
+  border-bottom-right-radius: 90px;
+  text-align: left;
+  width: 70%;
+  position: fixed;
+}
+.cc {
   padding: 20px;
-  max-width: 600px;
-  margin: 0 auto;
+  padding-top: 180px; 
+  width: 100%;
   text-align: left;
 }
 
@@ -138,11 +140,11 @@ ul {
 li {
   padding: 10px;
   border-bottom: 1px solid #ccc;
-  cursor: pointer; /* Cambia il cursore per indicare che l'elemento è cliccabile */
+  cursor: pointer; 
 }
 
 li:hover {
-  background-color: #f5f5f5; /* Cambia il colore di sfondo al passaggio del mouse */
+  background-color: #f5f5f5;
 }
 
 .chat-item {
@@ -151,23 +153,30 @@ li:hover {
 }
 
 .chat-photo {
-  width: 50px;
-  height: 50px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  margin-right: 10px;
+  margin-right: 20px;
 }
 
-.chat-photo-placeholder {
-  width: 50px;
-  height: 50px;
+.photo-message{
+  width: 5%;
+  height: 5%;
+  max-width: 100;
+  max-height: 100s;
+}
+
+.cpp {
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background-color: #ccc;
+  background-color: #b5afb6;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 10px;
-  color: #666;
-  font-size: 0.8em;
+  font-size: 50px;
+  padding: 50px;
+  margin-right: 20px;
 }
 
 .chat-info {
@@ -190,32 +199,35 @@ li:hover {
   color: #999;
 }
 
-.logout{
-  margin: 0;
-  font-size: 0.9em;
-  color: #e90b0b;
+.btn {
+  background-color: rgb(125, 3, 240);
+  color: rgb(255, 255, 255);
+  padding: 20px 40px;
+  border-radius: 90px;
+  font-size: 15px;
+  margin-right: 30px;
+  margin-left: 30px;
 }
 
-button {
-  padding: 10px 20px;
-  background-color: #7dac10;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-bottom: 20px;
-  margin-top: 20px;
-  margin-left: 20px;
-  margin-right: 20px;
+.no_conversations {
+  max-width: 900px;
+  background-color: rgb(209, 188, 230);
+  margin: 180px auto;
+  font-size: 60px;
+  padding: 80px;
+  border-radius: 20px
 }
 
-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+  .exit_btn {
+  background-color: rgb(161, 63, 84);
+  color: rgb(221, 219, 219);
+  padding: 20px 40px;
+  margin: 40px;
+  border-radius: 90px;
+  font-size: 15px;
+  position: fixed;
+  top: 0px;    
+  right: 40px;      
 }
 
-.error-message {
-  color: red;
-  margin-top: 10px;
-}
 </style>

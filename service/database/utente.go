@@ -129,9 +129,17 @@ func (db *appdbimpl) ImpostaFotoProfilo(nicknamePassato string, idfotoPassata in
 
 // ImpostaNome aggiorna il nickname dell'utente
 func (db *appdbimpl) ImpostaNome(nicknamePassato string, nuovoNickPassato string) (int, error) {
+	if nicknamePassato == "" || nuovoNickPassato == "" {
+		return 400, fmt.Errorf("richiesta malformata")
+	}
+
+	if nicknamePassato == nuovoNickPassato {
+		return 409, fmt.Errorf("il nuovo nickname è uguale a quello vecchio")
+	}
+
 	// Verifica che l'utente esista
 	esiste, err := db.EsistenzaUtente(nicknamePassato)
-	if !errors.Is(err, nil) {
+	if err != nil {
 		return 500, fmt.Errorf("errore durante il controllo dell'esistenza dell'utente: %w", err)
 	}
 	if !esiste {
@@ -140,26 +148,21 @@ func (db *appdbimpl) ImpostaNome(nicknamePassato string, nuovoNickPassato string
 
 	// Verifica che il nuovo nickname non sia già in uso
 	esisteNuovoNick, err := db.EsistenzaUtente(nuovoNickPassato)
-	if !errors.Is(err, nil) {
+	if err != nil {
 		return 500, fmt.Errorf("errore durante il controllo del nuovo nickname: %w", err)
 	}
 	if esisteNuovoNick {
-		return 304, fmt.Errorf("il nickname %s è già in uso", nuovoNickPassato)
-	}
-
-	// Verifica che il nuovo nickname non sia uguale al vecchio
-	if nicknamePassato == nuovoNickPassato {
-		return 304, fmt.Errorf("il nuovo nickname è uguale a quello vecchio")
+		return 409, fmt.Errorf("il nickname %s è già in uso", nuovoNickPassato)
 	}
 
 	// Aggiorna il nickname dell'utente
 	queryUpdateNome := `UPDATE utente SET nickname = ? WHERE nickname = ?`
 	_, err = db.c.Exec(queryUpdateNome, nuovoNickPassato, nicknamePassato)
-	if !errors.Is(err, nil) {
+	if err != nil {
 		return 500, fmt.Errorf("errore durante l'aggiornamento del nickname: %w", err)
 	}
 
-	return 0, nil
+	return 200, nil
 }
 
 // Struttura per memorizzare il nome e la foto profilo dell'utente

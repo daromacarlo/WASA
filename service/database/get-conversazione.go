@@ -32,6 +32,7 @@ func (db *appdbimpl) GetConversazione(utentePassato string, conversazionePassata
 type MessageData struct {
 	MessageID int        `json:"message_id"`
 	Autore    string     `json:"autore"`
+	Idautore  int        `json:"idautore"`
 	Text      *string    `json:"text"`
 	Foto      *string    `json:"foto"`
 	Time      string     `json:"time"`
@@ -45,6 +46,7 @@ type MessageData struct {
 type Commento struct {
 	CommentID int    `json:"comment_id"`
 	Autore    string `json:"autore"`
+	Idautore  int    `json:"idautore"`
 	Reazione  string `json:"reazione"`
 }
 
@@ -60,7 +62,7 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 	}
 
 	querySelect := `
-		SELECT m.id, m.autore, m.testo, f.foto, m.tempo, sm.ricevuto, sm.letto, m.inoltrato, m.risposta
+		SELECT m.id, m.autore, m.idautore, m.testo, f.foto, m.tempo, sm.ricevuto, sm.letto, m.inoltrato, m.risposta
 		FROM messaggio m
 		JOIN statomessaggioprivato as sm on m.id = sm.messaggio 
 		LEFT JOIN foto as f on m.foto = f.id
@@ -77,6 +79,7 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 	for rows.Next() {
 		var messageID int
 		var autore string
+		var idautore int
 		var text *string
 		var foto *string
 		var time string
@@ -85,7 +88,7 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 		var inoltrato bool
 		var risposta *int
 
-		if err := rows.Scan(&messageID, &autore, &text, &foto, &time, &ricevuto, &letto, &inoltrato, &risposta); err != nil {
+		if err := rows.Scan(&messageID, &autore, &idautore, &text, &foto, &time, &ricevuto, &letto, &inoltrato, &risposta); err != nil {
 			return nil, 500, fmt.Errorf("errore durante la lettura dei dati: %w", err)
 		}
 
@@ -97,6 +100,7 @@ func (db *appdbimpl) GetConversazionePrivata(utente1_Passato string, utente2_Pas
 		messageData = append(messageData, MessageData{
 			MessageID: messageID,
 			Autore:    autore,
+			Idautore:  idautore,
 			Text:      text,
 			Foto:      foto,
 			Time:      time,
@@ -134,7 +138,7 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 	}
 
 	querySelect := `
-		SELECT m.id, m.autore, m.testo, f.foto, m.tempo, smg.letto, smg.ricevuto, m.inoltrato, m.risposta
+		SELECT m.id, m.autore ,m.idautore, m.testo, f.foto, m.tempo, smg.letto, smg.ricevuto, m.inoltrato, m.risposta
 		FROM messaggio m
 		JOIN statomessaggiogruppo as smg on smg.messaggio = m.id
 		LEFT JOIN foto as f on m.foto = f.id
@@ -151,6 +155,7 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 	for rows.Next() {
 		var messageID int
 		var autore string
+		var idautore int
 		var text *string
 		var foto *string
 		var time string
@@ -159,7 +164,7 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 		var inoltrato bool
 		var risposta *int
 
-		if err := rows.Scan(&messageID, &autore, &text, &foto, &time, &letto, &ricevuto, &inoltrato, &risposta); err != nil {
+		if err := rows.Scan(&messageID, &autore, &idautore, &text, &foto, &time, &letto, &ricevuto, &inoltrato, &risposta); err != nil {
 			return nil, 500, fmt.Errorf("errore durante la lettura dei dati: %w", err)
 		}
 
@@ -171,6 +176,7 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 		messageData = append(messageData, MessageData{
 			MessageID: messageID,
 			Autore:    autore,
+			Idautore:  idautore,
 			Text:      text,
 			Foto:      foto,
 			Time:      time,
@@ -191,7 +197,7 @@ func (db *appdbimpl) GetConversazioneGruppo(utente1_Passato string, id_conversaz
 
 func (db *appdbimpl) GetCommentiMessaggio(messageID int) ([]Commento, int, error) {
 	querySelect := `
-		SELECT c.id, c.autore, c.reazione
+		SELECT c.id, c.autore, c.idautore, c.reazione
 		FROM commento c
 		WHERE c.messaggio = ?;`
 
@@ -199,21 +205,28 @@ func (db *appdbimpl) GetCommentiMessaggio(messageID int) ([]Commento, int, error
 	if !errors.Is(err, nil) {
 		return nil, 500, fmt.Errorf("errore durante il recupero dei commenti: %w", err)
 	}
+	defer rows.Close()
 
 	var commenti []Commento
 
 	for rows.Next() {
 		var commentID int
 		var autore string
+		var idautore int
 		var reazione string
 
-		if err := rows.Scan(&commentID, &autore, &reazione); err != nil {
+		if err := rows.Scan(&commentID, &autore, &idautore, &reazione); err != nil {
 			return nil, 500, fmt.Errorf("errore durante la lettura dei dati del commento: %w", err)
+		}
+
+		if (reazione) == "" {
+			return nil, 400, fmt.Errorf("reazione vuota non consentita per il commento con ID %d", commentID)
 		}
 
 		commenti = append(commenti, Commento{
 			CommentID: commentID,
 			Autore:    autore,
+			Idautore:  idautore,
 			Reazione:  reazione,
 		})
 	}

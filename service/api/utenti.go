@@ -77,16 +77,6 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	existe, err := rt.db.EsistenzaUtente(input.Nome)
-	if !errors.Is(err, nil) {
-		CreaErroreJson(w, "Errore durante il controllo dell'esistenza del nome utente: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if existe {
-		CreaErroreJson(w, "Il nickname scritto è già in uso", http.StatusConflict)
-		return
-	}
-
 	codiceErrore, err := rt.db.ImpostaNome(UtenteChiamante, input.Nome)
 	if !errors.Is(err, nil) {
 		CreaErroreJson(w, "Errore durante l'aggiornamento del nome: "+err.Error(), codiceErrore)
@@ -94,4 +84,19 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	CreaRispostaJson(w, "Nome aggiornato con successo", http.StatusOK)
+}
+
+func (rt *_router) idFromName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	nickname := ps.ByName("utente")
+
+	id, codiceErrore, err := rt.db.IdUtenteDaNickname(nickname)
+	if err != nil {
+		CreaErroreJson(w, "Errore durante il recupero dell'ID: "+err.Error(), codiceErrore)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(struct {
+		ID int `json:"id"`
+	}{ID: id})
 }

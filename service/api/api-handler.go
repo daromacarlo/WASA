@@ -28,5 +28,6 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/wasachat/:utente/inoltro/:nuovachat/messaggi/:messaggio", rt.forwardMessage)              // presente in API
 	rt.router.POST("/inoltro/:utente/a/:destinatario/inoltro/messaggi/:messaggio", rt.forwardMessageToNewChat) // presente in API
 	rt.router.POST("/wasachat/:utente/conversazioniprivate", rt.createPrivateConversation)                     // presente in API
+	rt.router.GET("/wasachat/:utente", rt.idFromName)
 	return rt.router
 }

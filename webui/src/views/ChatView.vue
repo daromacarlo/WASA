@@ -1,50 +1,35 @@
 <template>
-  <div class="messages-container">
-    <button @click="goHome()" class="group-action-button danger" title="Torna alla home">
-      <span class="button-text">Menù principale</span>
-    </button>
-    
-    <!-- Barra superiore per i gruppi -->
-    <div v-if="isGroup" class="group-header">
-      <div class="group-actions">
-        <button @click="mostraPartecipanti" class="group-action-button" title="Mostra partecipanti">
-          <span class="button-text">Partecipanti</span>
-        </button>
-        <button @click="goToUpdateGroup" class="group-action-button" title="Modifica gruppo">
-          <span class="button-text">Modifica</span>
-        </button>
-        <button @click="openAddMemberModal" class="group-action-button" title="Aggiungi persone">
-          <span class="button-text">Aggiungi</span>
-        </button>
-        <button @click="showQuitModal = true" class="group-action-button danger" title="Esci dal gruppo">
-          <span class="button-text">Esci</span>
-        </button>
+  <div :class="isGroup ? 'messages_container_group' : 'messages_container_private'">
+    <button @click="goHome()" title="Go Back" class="goBack_btn">Go Back</button>
+    <div v-if="isGroup" class="group_header">
+      <div class="group_actions">
+        <button @click="showParticipants" title="Show participants" class="btn">Show participants</button>
+        <button @click="goToUpdateGroup" title="Modify group" class="btn">Modify group</button>
+        <button @click="openAddMemberModal" title="Add user" class="btn">Add user</button>
+        <button @click="openQuitModal" title="Quit group" class="quit_btn">Quit group</button>
       </div>
     </div>
 
-    <!-- Lista messaggi -->
-    <ul v-if="messages.length > 0" class="messages-list" ref="messagesList">
+    <ul v-if="messages.length > 0" class="messages_list" ref="messagesList">
       <li
         v-for="message in messages"
         :key="message.message_id"
-        class="message-item"
+        class="message_item"
         @click="openMessageModal(message)"
         :class="{ 
-          'message-item-right': isCurrentUser(message.autore),
-          'message-item-group': isGroup && !isCurrentUser(message.autore)
+          'message_item_right': isCurrentUser(message.idautore),
+          'message_item_group': isGroup && !isCurrentUser(message.idautore)
         }"
       >
-        <!-- Mostra nome autore nei gruppi -->
-        <div v-if="isGroup && !isCurrentUser(message.autore)" class="message-sender">
+
+        <div v-if="isGroup && !isCurrentUser(message.idautore)" class="message_sender">
           {{ message.autore }}
         </div>
 
-        <!-- Visualizzazione della risposta (se presente) -->
-        <div v-if="message.risposta" class="message-reply-container">
-          <div class="message-reply-preview">
-            <span class="reply-label">Risposta a:</span>
-            <!-- Mostra l'autore del messaggio originale nei gruppi -->
-            <span v-if="isGroup" class="reply-author">{{ getOriginalMessageAuthor(message.risposta) }}</span>
+        <div v-if="message.risposta" class="message_reply-container">
+          <div class="message_reply-preview">
+            <span class="reply-label">Answer to: </span>
+            <span class="reply-author">{{ getOriginalMessageAuthor(message.risposta) }}</span>
             <div class="reply-content">
               {{ getOriginalMessageText(message.risposta) }}
             </div>
@@ -52,167 +37,150 @@
         </div>
 
         <div v-if="message.inoltrato">
-          <span class="inoltrato-label">inoltrato</span>
+          <span class="forward_label">Forwarded</span>
         </div>
 
-        <!-- Messaggio di tipo foto -->
-        <div v-if="message.foto" class="message-photo-container">
+        <div v-if="message.foto" class="message_photo-container">
           <img
             :src="message.foto"
-            class="message-photo"
+            class="message_photo"
             @error="handleImageError"
           />
-          <div class="message-meta">
-            <p v-if="message.time" class="message-time">{{ formatTime(message.time) }}</p>
-            <p v-if="message.ricevuto && isCurrentUser(message.autore)" class="message-status">
-              {{ message.letto ? "✔️✔️" : "✔️" }}
+          <div>
+            <p v-if="message.time" class="message_time">{{ formatTime(message.time) }}</p>
+            <p v-if="isCurrentUser(message.idautore)" class="message_status">
+              {{ message.letto ? "read" : (message.ricevuto ? "received" : "sent") }}
             </p>
+            <div v-if="message.commenti && message.commenti.length > 0" class="message_reactions">
+              <div 
+                v-for="(comment, index) in message.commenti" 
+                :key="index" 
+                class="reaction_badge_text"
+                :title="comment.autore">
+                <span class="reaction_emoji_text">{{ comment.reazione }}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Messaggio di tipo testo -->
-        <div v-else class="message-text-container">
-          <p class="message-text">{{ message.text || "Nessun testo disponibile" }}</p>
-          <div class="message-meta">
-            <p v-if="message.time" class="message-time">{{ formatTime(message.time) }}</p>
-            <p v-if="message.ricevuto && isCurrentUser(message.autore)" class="message-status">
-              {{ message.letto ? "✔️✔️" : "✔️" }}
+        <div v-else class="message_text-container">
+          <p class="message_text">{{ message.text }}</p>
+          <div>
+            <p v-if="message.time" class="message_time">{{ formatTime(message.time) }}</p>
+            <p v-if="isCurrentUser(message.idautore)" class="message_status">
+              {{ message.letto ? "read" : (message.ricevuto ? "received" : "sent") }}
             </p>
-          </div>
-        </div>
-
-        <!-- Visualizzazione reazioni -->
-        <div v-if="message.commenti && message.commenti.length > 0" class="message-reactions">
-          <div 
-            v-for="(users, reaction) in groupReactionsByType(message.commenti)" 
-            :key="reaction" 
-            class="reaction-badge"
-            :title="users.join(', ')"
-          >
-            <span class="reaction-emoji">{{ reaction }}</span>
-            <span v-if="users.length > 1" class="reaction-count">{{ users.length }}</span>
+            <div v-if="message.commenti && message.commenti.length > 0" class="message_reactions">
+              <div 
+                v-for="(comment, index) in message.commenti" 
+                :key="index" 
+                class="reaction_badge_photo"
+                :title="comment.autore">
+                <span class="reaction_emoji_photo">{{ comment.reazione }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </li>
     </ul>
-    <p v-else class="no-messages">Nessun messaggio trovato.</p>
+    
+<ul v-if="messages.length > 0" class="messages_list" ref="messagesList">
+</ul>
+<p v-else class="no_messages">No messages yet.</p>
 
-    <!-- Barra input messaggi -->
-    <div class="message-input-container">
+    <div :class="isGroup ? 'message_input_group' : 'message_input_private'">
       <input
         v-model="newMessage"
         type="text"
-        placeholder="Scrivi un messaggio..."
-        class="message-input"
+        placeholder="..."
+        class="message_input"
         @keyup.enter="sendMessage"
       />
-      <button @click="selectPhoto" class="photo-button">
-        📷
-      </button>
-      <button @click="sendMessage" class="send-button">
-        Invia
-      </button>
+      <button @click="selectPhoto" class="btn_2">Send photo</button>
+      <button @click="sendMessage" class="btn_2">Send</button>
     </div>
 
-    <!-- Modale aggiunta membri -->
     <div v-if="showAddMemberModal" class="modal">
-      <div class="modal-content">
-        <h3>Aggiungi persone al gruppo</h3>
-        <input 
-          v-model="newMemberName" 
-          type="text" 
-          placeholder="Inserisci il nickname dell'utente" 
-          class="modal-input"
-          @keyup.enter="addUserToGroup(newMemberName)"
-          :disabled="addingMember"
-        />
-        <div class="modal-buttons">
-          <button 
-            @click="addUserToGroup(newMemberName)" 
-            class="modal-button confirm"
-            :disabled="!newMemberName || addingMember"
-          >
-            <span v-if="addingMember">Aggiungendo...</span>
-            <span v-else>Aggiungi</span>
-          </button>
-          <button @click="closeAddMemberModal" class="modal-button cancel">Annulla</button>
-        </div>
+      <div class="modal_content">
+        <h3>Add users to group</h3>
+        <form @submit.prevent="addUserToGroup(newMemberName)">
+          <input 
+            v-model="newMemberName" 
+            type="text" 
+            placeholder="Insert a nickname" 
+            class="modal_input"
+            required
+          />
+          <button type="submit" class="modal_btn">Add</button>
+          <button type="button" @click="closeAddMemberModal" class="modal_btn_gray">Go Back</button>
+        </form>
       </div>
     </div>
 
     <div v-if="showQuitModal" class="modal">
-      <div class="modal-content">
-        <h3>Esci dal gruppo</h3>
-        <p>Sei sicuro di voler uscire definitivamente da questo gruppo?</p>
-        <div class="modal-buttons">
-          <button @click="quitGroup" class="modal-button danger">Esci</button>
-          <button @click="showQuitModal = false" class="modal-button cancel">Annulla</button>
-        </div>
+      <div class="modal_content">
+        <h3>Quit group</h3>
+        <p>Are you sure?</p>
+        <button @click="quitGroup" class="modal_btn_red">Quit</button>
+        <button @click="showQuitModal = false" class="modal_btn_gray">Go Back</button>
       </div>
     </div>
 
     <div v-if="showMessageModal" class="modal">
-      <div class="modal-content">
-        <h3>Azioni sul messaggio:</h3>
-        <button @click="closeMessageModal" class="modal-button cancel">Annulla</button>
-        <button @click="openanswereMessageModal(selectedMessage)" class="modal-button">Rispondi</button>
-        <button @click="openCommentMessageModal(selectedMessage)" class="modal-button">Commenta</button>
-        <button @click="goShermataInoltro(selectedMessage)" class="modal-button">Inoltra</button>
+      <div class="modal_content">
+        <h3>Message actions:</h3>
+        <button @click="closeMessageModal" class="modal_btn_gray">Go Back</button>
+        <button @click="openanswereMessageModal(selectedMessage)" class="modal_btn">Answer</button>
+        <button @click="openCommentMessageModal(selectedMessage)" class="modal_btn">Comment</button>
+        <button @click="goToForwardView(selectedMessage)" class="modal_btn">Forward</button>
         <button 
-          v-if="selectedMessage && isCurrentUser(selectedMessage.autore)" 
+          v-if="selectedMessage && isCurrentUser(selectedMessage.idautore)" 
           @click="deleteMessage" 
-          class="modal-button danger"
+          class="modal_btn_red"
         >
-          Elimina
+          Delete
         </button>
         <button 
           v-if="hasUserCommented(selectedMessage)"
           @click="deleteUserComment(selectedMessage)"
-          class="modal-button danger"
+          class="modal_btn_red"
         >
-          Elimina mio commento
+          Delete comment
         </button>
       </div>
     </div>
 
     <div v-if="showanswereMessageModal" class="modal">
-      <div class="modal-content-large">
-        <h3>Rispondi al messaggio</h3>
-        <button @click="closeanswereMessageModal" class="modal-button cancel">
-          Annulla
-        </button>
+      <div class="modal_content-large">
+        <h3>Answer to message</h3>
+        <button @click="closeanswereMessageModal" class="modal_btn_gray">Go Back</button>
         <input
           v-model="ans"  
           type="text"
-          placeholder="Scrivi una risposta..."
-          class="message-input-ans"
+          placeholder="..."
+          class="message_input_ans"
           @keyup.enter="sendReplyMessage"  
         />
-        <button @click="ansselectPhoto" class="photo-button">
-          📷
-        </button>
-        <button @click="sendReplyMessage" class="send-button">Invia</button>
+        <button @click="ansselectPhoto" class="modal_btn">Send photo</button>
+        <button @click="sendReplyMessage" class="modal_btn">Send</button>
       </div>
     </div>
 
     <div v-if="showCommentMessageModal" class="modal">
-      <div class="modal-content">
-        <h3>Reagisci al messaggio</h3>
+      <div class="modal_content">
+        <h3>Comment message</h3>
         <div class="reactions-grid">
           <button 
             v-for="reaction in reactions" 
             :key="reaction" 
-            class="reaction-button"
-            :class="{ 'active': hasUserReacted(selectedMessage, reaction) }"
+            class="reaction_button"
+            :class="{reaction : hasUserReacted(selectedMessage, reaction) }"
             @click="toggleReaction(reaction)"
-            :title="getReactionName(reaction)"
           >
             {{ reaction }}
           </button>
         </div>
-        <button @click="closeCommentMessageModal" class="modal-button cancel">
-          Annulla
-        </button>
+        <button @click="closeCommentMessageModal" class="modal_btn_gray">Go back</button>
       </div>
     </div>
   </div>
@@ -222,24 +190,18 @@
 export default {
   data() {
     return {
-      reactions: ["❤️", "😂", "🥺", "👍", "😭"],
       messages: [],
       loading: false,
       error: null,
       newMessage: "",
       newPhoto: null,
-      currentUser: "",
       selectedMessage: null,
       ans: "",
       ansphoto: "",
-      
-      // Dati gruppo
       isGroup: false,
       groupId: null,
       groupName: "",
       groupMembersCount: 0,
-      
-      // Modali
       showAddMemberModal: false,
       showEditModal: false,
       showQuitModal: false,
@@ -248,520 +210,594 @@ export default {
       showCommentMessageModal: false,
       newMemberName: "",
       editedGroupName: "",
-      addingMember: false,
+      chatId : this.$route.params.chat,
+      currentUser : this.$route.params.nickname,
+      reactions: [
+                    "❤️",
+                    "👽",
+                    "😡",
+                    "🫡",
+                    "🤔",
+                    "🫢",
+                    "🔝",
+                    "🇮🇹",
+                    "🗿",
+                    "🤮",
+                    "😱",
+                    "🤓",
+                    "😂",
+                    "🥺",
+                    "👍",
+                    "😭"
+                  ],
     };
   },
 
   async created() {
-    this.currentUser = this.$route.params.nickname;
+
+  try {
+    const response = await this.$axios.get(`/wasachat/${this.currentUser}`);
+    this.currentUserId = response.data.id;
     await this.checkIfGroup();
     await this.loadMessages();
-  },
+  } catch (error) {
+    console.error("Error:", error);
+  }
+},
 
   methods: {
-    // Metodi per le reazioni
-    groupReactionsByType(comments) {
-      const grouped = {};
-      comments.forEach(comment => {
-        if (!grouped[comment.reazione]) {
-          grouped[comment.reazione] = [];
-        }
-        if (!grouped[comment.reazione].includes(comment.autore)) {
-          grouped[comment.reazione].push(comment.autore);
-        }
-      });
-      return grouped;
-    },
 
-    getReactionName(reaction) {
-      const names = {
-        "❤️":  "Mi piace",
-        "😂": "Divertente",
-        "🥺": "Carino",
-        "👍": "OK",
-        "😭": "Triste"
-      };
-      return names[reaction] || reaction;
-    },
+  goHome(){
+    this.$router.push(`/wasachat/${this.currentUser}/chats`);
+      },
 
-    hasUserReacted(message, reaction) {
-      if (!message || !message.commenti) return false;
-      return message.commenti.some(comment => 
-        comment.autore === this.currentUser && comment.reazione === reaction
-      );
-    },
+  isCurrentUser(idauthor) {
+    if (idauthor == this.currentUserId){
+      return true
+    }
+    else{
+      return false
+    }
+  },
 
-    hasUserCommented(message) {
-      if (!message || !message.commenti) return false;
-      return message.commenti.some(comment => comment.autore === this.currentUser);
-    },
+  openCommentMessageModal(message) {
+    this.selectedMessage = message;
+    this.showCommentMessageModal = true;
+    this.showMessageModal = false;
+  },
 
-    async deleteUserComment(message) {
-      if (!message || !this.hasUserCommented(message)) return;
+  closeCommentMessageModal() {
+    this.showCommentMessageModal = false;
+  },
 
-      try {
-        // Trova il commento dell'utente corrente
-        const userComment = message.commenti.find(c => c.autore === this.currentUser);
-        if (!userComment) return;
+  openanswereMessageModal() {
+    this.showanswereMessageModal = true;
+    this.showMessageModal = false;
+  },
 
-        // Chiamata API per eliminare il commento
-        await this.$axios.delete(
-          `/wasachat/${this.currentUser}/messaggi/${this.selectedMessage.message_id}`
-        );
+  closeanswereMessageModal() {
+    this.showanswereMessageModal = false;
+    this.ans = "";
+    this.ansphoto = "";
+  },
 
-        // Aggiorna localmente la lista dei commenti
-        const messageIndex = this.messages.findIndex(
-          msg => msg.message_id === message.message_id
-        );
-        
-        if (messageIndex !== -1) {
-          this.messages[messageIndex].commenti = this.messages[messageIndex].commenti.filter(
-            c => c.commento_id !== userComment.commento_id
-          );
-        }
+  openAddMemberModal() {
+    this.showAddMemberModal = true;
+    this.newMemberName = "";
+    this.addingMember = false;
+  },
 
-        this.closeMessageModal();
-      } catch (error) {
-        console.error("Errore durante l'eliminazione del commento:", error);
-        alert(error.response?.data?.message || "Si è verificato un errore durante l'eliminazione del commento");
-      }
-      this.$router.go()
-    },
+  closeAddMemberModal() {
+    this.showAddMemberModal = false;
+    this.newMemberName = "";
+    this.addingMember = false;
+  },
 
-    async toggleReaction(reaction) {
-      if (!this.selectedMessage) return;
-      
-      try {
-        const chatId = this.$route.params.chat;
-        const nickname = this.$route.params.nickname;
-        const messageId = this.selectedMessage.message_id;
-        
-        const hasReacted = this.hasUserReacted(this.selectedMessage, reaction);
-        
-        await this.$axios.post(
-          `/wasachat/${nickname}/messaggi/${messageId}`,
-          { reazione: hasReacted ? null : reaction }
-        );
+  openMessageModal(message) {
+    this.selectedMessage = message;
+    this.showMessageModal = true;
+  },
+  
+  closeMessageModal() {
+    this.showMessageModal = false;
+    this.selectedMessage = null;
+  },
 
-        // Aggiorna localmente i commenti
-        const messageIndex = this.messages.findIndex(
-          msg => msg.message_id === messageId
-        );
-        
-        if (messageIndex !== -1) {
-          if (!this.messages[messageIndex].commenti) {
-            this.$set(this.messages[messageIndex], 'commenti', []);
-          }
-          
-          if (hasReacted) {
-            // Rimuovi la reazione dell'utente
-            this.messages[messageIndex].commenti = this.messages[messageIndex].commenti.filter(
-              c => !(c.autore === this.currentUser && c.reazione === reaction)
-            );
-          } else {
-            // Aggiungi la nuova reazione
-            this.messages[messageIndex].commenti.push({
-              autore: this.currentUser,
-              reazione: reaction,
-              commento_id: Date.now() // ID temporaneo, sarà sostituito dal backend
-            });
-          }
-        }
+  openQuitModal() {
+    this.showQuitModal = true;
+  },
 
-        this.closeCommentMessageModal();
-        
-      } catch (error) {
-        console.error("Errore durante l'invio della reazione:", error);
-        alert(error.response?.data?.message || "Si è verificato un errore durante l'invio della reazione");
-      }
-    },
+  closeQuitModal() {
+    this.showQuitModal = false;
+  },
 
-    // Metodi esistenti
-    async loadMessages() {
-      const chatId = this.$route.params.chat;
-      try {
-        this.loading = true;
-        const response = await this.$axios.get(`/wasachat/${this.currentUser}/chats/${chatId}`);
-        
-        this.messages = response.data.map((message) => {
-          if (message.foto && !message.foto.startsWith("data:image")) {
-            message.foto = `data:image/jpeg;base64,${message.foto}`;
-          }
-          // Assicurati che commenti sia sempre un array
-          message.commenti = message.commenti || [];
-          return message;
-        });
+  getOriginalMessageText(replyId) {
+  let originalMessage = null;
+  for (let i = 0; i < this.messages.length; i++) {
+    if (this.messages[i].message_id == replyId) {
+      originalMessage = this.messages[i];
+      break;
+    }
+  }
+  if (!originalMessage) {
+    return "(Erased message)";
+  }
+  if (originalMessage.foto) {
+    return "img";
+  }
+  if (originalMessage.text) {
+    const text = originalMessage.text;
+    if (text.length > 15) {
+      return text.substring(0, 15) + "...";
+    }
+    return text;
+    }
+  },
 
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
-      } catch (e) {
-        this.error = "Errore durante il caricamento dei messaggi.";
-        console.error(e);
-      } finally {
-        this.loading = false;
-      }
-    },
+  getOriginalMessageAuthor(replyId) {
+  let originalMessage = null;
+  for (let i = 0; i < this.messages.length; i++) {
+    if (this.messages[i].message_id == replyId) {
+      originalMessage = this.messages[i];
+      break;
+    }
+  }
+    if (!originalMessage) {
+      return "(Erased): ";
+    }
+    else{
+      return originalMessage.autore
+    } 
+   },
 
-    async deleteMessage() {
-      if (!this.selectedMessage) return;
-      
-      const chatId = this.$route.params.chat;
-      try {
-        await this.$axios.delete(
-          `/wasachat/${this.currentUser}/chats/${chatId}/messaggi/${this.selectedMessage.message_id}`
-        );
-        this.messages = this.messages.filter(
-          msg => msg.message_id !== this.selectedMessage.message_id
-        );
-        this.closeMessageModal();
-      } catch (error) {
-        console.error("Errore:", error);
-        alert("Si è verificato un errore durante l'eliminazione del messaggio");
-      }
-    },
-
-    async sendMessage() {
-      if (this.newMessage.trim() || this.newPhoto) {
-        const messageData = {
-          testo: this.newMessage.trim(),
-          foto: this.newPhoto || "",
+   //from stackOverflow
+  ansselectPhoto() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          this.ansphoto = e.target.result;
+          await this.sendReplyMessage();
         };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
+  },
+   //from stackOverflow
+  selectPhoto() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          this.newPhoto = e.target.result;
+          await this.sendMessage();
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
+  },
 
-        const chatId = this.$route.params.chat;
+  formatTime(time) {
+    const date = new Date(time);
+    return date.toLocaleString();
+  },
 
-        try {
-          const newMessage = {
-            message_id: Date.now(),
-            autore: this.currentUser,
-            text: this.newMessage.trim(),
-            foto: this.newPhoto || null,
-            time: new Date().toISOString(),
-            letto: false,
-            ricevuto: false,
-            commenti: []
-          };
-          
-          this.messages.push(newMessage);
-          this.newMessage = "";
-          this.newPhoto = null;
-          
-          await this.$axios.post(
-            `/wasachat/${this.currentUser}/chats/${chatId}`,
-            messageData
-          );
+  async checkIfGroup() {
+    try {
+      const response = await this.$axios.get(`/check/${this.chatId}`);
+      this.isGroup = response.data.is_group;
+      if (this.isGroup) {
+        this.groupId = response.data.group_id;
+      }
+    } catch (error) {
+      if (error.response) {
+        const messaggio = error.response.data.errore;
+        const codiceErrore = parseInt(error.response.data.codiceErrore);
+        alert(messaggio + ` (codice ${codiceErrore})`);
+      } else {
+        alert("Error: Network error.");
+      }
+    }
+  },
 
-          this.$router.go();
-          
-        } catch (error) {
-          console.error("Errore durante l'invio del messaggio:", error);
-          this.messages = this.messages.filter(m => m.message_id !== newMessage.message_id);
-          alert("Errore durante l'invio del messaggio. Riprova.");
+  hasUserReacted(message, reaction) {
+  for (let i = 0; i < message.commenti.length; i++) {
+    if (message.commenti[i].autore == this.currentUser && 
+        message.commenti[i].reazione == reaction) {
+      return true;
+      }
+   }
+    return false;
+  },
+
+  hasUserCommented(message) {
+    for (let i = 0; i < message.commenti.length; i++) {
+      if (message.commenti[i].idautore == this.currentUserId) {
+        return true;
+      }
+    }
+    return false;
+  },
+
+  async deleteUserComment(message) {
+  try {
+    let userComment = null;
+    for (let i = 0; i < message.commenti.length; i++) {
+      if (message.commenti[i].idautore == this.currentUserId) {
+        userComment = message.commenti[i];
+        break;
+      }
+    }
+    
+    if (!userComment) return;
+
+    const response = await this.$axios.delete(
+      `/wasachat/${this.currentUser}/messaggi/${this.selectedMessage.message_id}`
+    );
+
+    let messageIndex = -1;
+    for (let i = 0; i < this.messages.length; i++) {
+      if (this.messages[i].message_id == message.message_id) {
+        messageIndex = i;
+        break;
+      }
+    }
+
+    if (messageIndex !== -1) {
+      const filteredComments = [];
+      for (let i = 0; i < this.messages[messageIndex].commenti.length; i++) {
+        if (this.messages[messageIndex].commenti[i].commento_id !== userComment.commento_id) {
+          filteredComments.push(this.messages[messageIndex].commenti[i]);
         }
       }
-    },
+      this.messages[messageIndex].commenti = filteredComments;
+    }
 
-    openCommentMessageModal(message) {
-      this.selectedMessage = message;
-      this.showCommentMessageModal = true;
-      this.showMessageModal = false;
-    },
+    this.$router.go();
+    this.closeMessageModal();
+  } catch (error) {
+    if (error.response) {
+      const messaggio = error.response.data.errore;
+      const codiceErrore = parseInt(error.response.data.codiceErrore);
+      alert(messaggio + ` (codice ${codiceErrore})`);
+    } else {
+      alert("Error: Network error.");
+    }
+    this.$router.go();
+   }
+  },
 
-    closeCommentMessageModal() {
-      this.showCommentMessageModal = false;
-    },
+  async goToUpdateGroup() {
+  this.$router.push({ 
+      name: 'ModifyGroup', 
+      params: { nickname: this.currentUser, chat: this.$route.params.chat } 
+    });
+  },
+  
+  async toggleReaction(reaction) {
+  try {
+    const messageId = this.selectedMessage.message_id;
+    const hasReacted = this.hasUserReacted(this.selectedMessage, reaction);
 
-    openanswereMessageModal() {
-      if (!this.selectedMessage) return;
-      this.showanswereMessageModal = true;
-      this.showMessageModal = false;
-    },
+    if (hasReacted) {
+      this.closeCommentMessageModal();
+      return;
+    }
+    
+    const response = await this.$axios.post(
+      `/wasachat/${this.currentUser}/messaggi/${messageId}`,
+      { reazione: hasReacted ? null : reaction }
+    );
 
-    closeanswereMessageModal() {
-      this.showanswereMessageModal = false;
-      this.ans = "";
-      this.ansphoto = "";
-    },
+    for (let i = 0; i < this.messages.length; i++) {
+      const msg = this.messages[i];
 
-    async sendReplyMessage() {
-      if (!this.selectedMessage) {
-        alert("Seleziona un messaggio a cui rispondere");
-        return;
+      if (msg.message_id == messageId) {
+        if (!msg.commenti) {
+          this.$set(this.messages[i], 'commenti', []);
+        }
+
+        if (hasReacted) {
+          const filteredComments = [];
+          for (let j = 0; j < msg.commenti.length; j++) {
+            const comment = msg.commenti[j];
+            if (!(comment.idautore == this.currentUserId && comment.reazione == reaction)) {
+              filteredComments.push(comment);
+            }
+          }
+          this.messages[i].commenti = filteredComments;
+        } else {
+          this.messages[i].commenti.push({
+            idautore: this.currentUserId,
+            reazione: reaction,
+            commento_id: Date.now()
+          });
+        }
+        break;
+      }
+    }
+
+    this.$router.go();
+    this.closeCommentMessageModal();
+
+  } catch (error) {
+    if (error.response) {
+      const messaggio = error.response.data.errore;
+      const codiceErrore = parseInt(error.response.data.codiceErrore);
+      alert(messaggio + ' (codice ' + codiceErrore + ')');
+    } else {
+      alert("Errore: Errore di rete.");
+    }
+    this.$router.go();
+   }
+  },
+
+  async loadMessages() {
+    try {
+      const response = await this.$axios.get(`/wasachat/${this.currentUser}/chats/${this.chatId}`);
+
+      this.messages = [];
+      for (let index = 0; index < response.data.length; index++) {
+        const message = response.data[index];
+        
+        if (message.foto && !message.foto.startsWith("data:image")) {
+          message.foto = 'data:image/jpeg;base64,' + message.foto;
+        }
+        
+        if (!Array.isArray(message.commenti)) {
+          message.commenti = [];
+        }
+        
+        this.messages.push(message);
+      }
+      const self = this; 
+
+    //auto_scroll
+    this.$nextTick(function() {
+      const container = self.$refs.messagesList;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
       }
 
-      if (!this.ans.trim() && !this.ansphoto) {
-        alert("Inserisci un messaggio o seleziona una foto");
-        return;
-      }
+    });
+  } catch (e) {
+    if (e.response && e.response.data) {
+      const messaggio = e.response.data.errore;
+      const codiceErrore = parseInt(e.response.data.codiceErrore);
+      alert(messaggio + ' (codice ' + codiceErrore + ')');
+    }
+    console.error(e);
+    }
+  },
 
-      const chatId = this.$route.params.chat;
+  async deleteMessage() {
+    try {
+      const response = await this.$axios.delete(
+        `/wasachat/${this.currentUser}/chats/${this.chatId}/messaggi/${this.selectedMessage.message_id}`
+      );
+        this.$router.go()
+
+      this.closeMessageModal();
+    } catch (error) {
+      if (error.response) {
+        const messaggio = error.response.data.errore;
+        const codiceErrore = parseInt(error.response.data.codiceErrore);
+        alert(messaggio + ` (codice ${codiceErrore})`);
+      } else {
+        alert("Error: Network error");
+      }
+    }
+  },
+
+  async sendMessage() {
+    {
       const messageData = {
-        testo: this.ans.trim(),
-        foto: this.ansphoto || "",
+        testo: this.newMessage.trim(),
+        foto: this.newPhoto || "",
       };
-
       try {
-        const response = await this.$axios.post(
-          `/wasachat/${this.currentUser}/risposta/chats/${chatId}/messaggi/${this.selectedMessage.message_id}`,
-          messageData
-        );
-
-        const newReply = {
-          message_id: response.data.message_id,
+        const newMessage = {
+          message_id: Date.now(),
           autore: this.currentUser,
-          text: this.ans.trim(),
-          foto: this.ansphoto || null,
+          text: this.newMessage.trim(),
+          foto: this.newPhoto || null,
           time: new Date().toISOString(),
-          risposta: this.selectedMessage.message_id,
           letto: false,
           ricevuto: false,
           commenti: []
         };
-        this.messages.push(newReply);
+        
+        this.messages.push(newMessage);
+        this.newMessage = "";
+        this.newPhoto = null;
+        
+        const response =  await this.$axios.post(
+          `/wasachat/${this.currentUser}/chats/${this.chatId}`,
+          messageData
+        );
 
         this.$router.go();
-
-      } catch (error) {
-        console.error("Errore durante l'invio della risposta:", error);
-        alert(error.response?.data?.message || "Errore durante l'invio della risposta");
-      } finally {
-        this.ans = "";
-        this.ansphoto = "";
-        this.closeanswereMessageModal();
-      }
-    },
-
-    ansselectPhoto() {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.onchange = async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = async (e) => {
-            this.ansphoto = e.target.result;
-            await this.sendReplyMessage();
-          };
-          reader.readAsDataURL(file);
-        }
-      };
-      input.click();
-    },
-
-    selectPhoto() {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.onchange = async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = async (e) => {
-            this.newPhoto = e.target.result;
-            await this.sendMessage();
-          };
-          reader.readAsDataURL(file);
-        }
-      };
-      input.click();
-    },
-
-    formatTime(time) {
-      const date = new Date(time);
-      return date.toLocaleString();
-    },
-
-    handleImageError(event) {
-      console.error("Errore nel caricamento dell'immagine:", event);
-      event.target.src = "https://via.placeholder.com/150";
-    },
-
-    isCurrentUser(author) {
-      return author === this.currentUser;
-    },
-
-    scrollToBottom() {
-      const container = this.$refs.messagesList;
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
-    },
-
-    async checkIfGroup() {
-      const chatId = this.$route.params.chat;
-      try {
-        const response = await this.$axios.get(`/check/${chatId}`);
-        this.isGroup = response.data.is_group;
-        if (this.isGroup) {
-          this.groupId = response.data.group_id;
-        }
-      } catch (error) {
-        console.error("Errore nel verificare se è un gruppo:", error);
-      }
-    },
-
-    async goToUpdateGroup() {
-      this.$router.push({ 
-          name: 'ModifyGroup', 
-          params: { nickname: this.currentUser, chat: this.$route.params.chat } 
-        });
-    },
-
-    async mostraPartecipanti() {
-      this.$router.push({ 
-          name: 'GroupMembersView', 
-          params: { nickname: this.currentUser, chat: this.$route.params.chat } 
-        });
-    },
-
-    async goShermataInoltro() {
-      this.$router.push({ 
-          name: 'InoltroView', 
-          params: { nickname: this.currentUser, chat: this.$route.params.chat, message: this.selectedMessage.message_id } 
-        });
-    },
-
-    async goHome() {
-      this.$router.push({ 
-          name: 'UserChats', 
-          params: { nickname: this.currentUser} 
-        });
-    },
-
-    async quitGroup() {
-      const nickname = this.$route.params.nickname;
-      const chat = this.$route.params.chat;
-      try {
-        await this.$axios.delete(`/wasachat/${nickname}/chats/${chat}`);
-        this.$router.push({ 
-          name: 'UserChats', 
-          params: { nickname: this.currentUser } 
-        });
-      } catch (error) {
-        console.error("Errore durante l'uscita dal gruppo:", error);
-        alert("Si è verificato un errore durante l'uscita dal gruppo");
-      } finally {
-        this.showQuitModal = false;
-      }
-    },
-
-    openAddMemberModal() {
-      this.showAddMemberModal = true;
-      this.newMemberName = "";
-      this.addingMember = false;
-    },
-
-    closeAddMemberModal() {
-      this.showAddMemberModal = false;
-      this.newMemberName = "";
-      this.addingMember = false;
-    },
-
-    async addUserToGroup(nickname) {
-      if (!nickname || !nickname.trim()) {
-        alert("Inserisci un nickname valido");
-        return;
-      }
-
-      try {
-        this.addingMember = true;
-        const currentUser = this.$route.params.nickname;
-        const chatId = this.$route.params.chat;
-        
-        await this.$axios.put(
-          `/wasachat/${currentUser}/chats/gruppi/${chatId}/aggiungi`,
-          { utente_da_aggiungere: nickname.trim() }
-        );
-        
-        alert(`${nickname} è stato aggiunto al gruppo con successo!`);
-        this.closeAddMemberModal();
         
       } catch (error) {
-        console.error("Errore nell'aggiungere l'utente al gruppo:", error);
-        this.handleAddMemberError(error);
-      } finally {
-        this.addingMember = false;
-      }
-    },
-
-    handleAddMemberError(error) {
-      let errorMessage = "Si è verificato un errore durante l'aggiunta al gruppo";
       if (error.response) {
-        switch(error.response.status) {
-          case 400: errorMessage = "Richiesta malformata"; break;
-          case 401: errorMessage = "Non autorizzato"; break;
-          case 403: errorMessage = "Non hai i permessi per aggiungere membri"; break;
-          case 404: errorMessage = "Utente non trovato"; break;
-          case 409: errorMessage = "L'utente è già nel gruppo"; break;
-          case 500: errorMessage = "Errore lato server. Riprova più tardi"; break;
-        }
-      } else if (error.request) {
-        errorMessage = "Impossibile connettersi al server. Verifica la tua connessione";
+        const messaggio = error.response.data.errore;
+        const codiceErrore = parseInt(error.response.data.codiceErrore);
+        alert(messaggio + ` (codice ${codiceErrore})`);
+      } else {
+        alert("Error: Network error.");
       }
-      
-      alert(errorMessage);
-    },
-    
-    openMessageModal(message) {
-      this.selectedMessage = message;
-      this.showMessageModal = true;
-    },
-    
-    closeMessageModal() {
-      this.showMessageModal = false;
-      this.selectedMessage = null;
-    },
-
-    getOriginalMessageText(replyId) {
-      if (!replyId) return "(Nessun riferimento al messaggio)";
-      
-      const originalMessage = this.messages.find(msg => msg.message_id === replyId);
-      
-      if (!originalMessage) {
-        return "(Messaggio eliminato)";
-      }
-      
-      if (originalMessage.foto) {
-        return "📷 [Immagine]";
-      }
-      
-      return originalMessage.text 
-        ? originalMessage.text.substring(0, 50) + (originalMessage.text.length > 50 ? "..." : "")
-        : "(Messaggio senza testo)";
-    },
-
-    getOriginalMessageAuthor(replyId) {
-      if (!this.isGroup || !replyId) return "";
-      
-      const originalMessage = this.messages.find(msg => msg.message_id === replyId);
-      
-      if (!originalMessage) {
-        return "(Utente non più nel gruppo): ";
-      }
-      
-      return this.isCurrentUser(originalMessage.autore) 
-        ? "Te: " 
-        : `${originalMessage.autore}: `;
     }
+   }
+  },
+
+  async sendReplyMessage() {
+    const messageData = {
+      testo: this.ans.trim(),
+      foto: this.ansphoto || "",
+    };
+
+    try {
+      const response = await this.$axios.post(
+        `/wasachat/${this.currentUser}/risposta/chats/${this.chatId}/messaggi/${this.selectedMessage.message_id}`,
+        messageData
+      );
+
+      const newReply = {
+        message_id: response.data.message_id,
+        autore: this.currentUser,
+        text: this.ans.trim(),
+        foto: this.ansphoto || null,
+        time: new Date().toISOString(),
+        risposta: this.selectedMessage.message_id,
+        letto: false,
+        ricevuto: false,
+        commenti: []
+      };
+      this.messages.push(newReply);
+
+      this.$router.go();
+
+    } catch (error) {
+      if (error.response) {
+        const messaggio = error.response.data.errore;
+        const codiceErrore = parseInt(error.response.data.codiceErrore);
+        alert(messaggio + ` (codice ${codiceErrore})`);
+      } else {
+        alert("Error: Network error.");
+      }
+    } finally {
+      this.ans = "";
+      this.ansphoto = "";
+      this.closeanswereMessageModal();
+    }
+  },
+
+  async showParticipants() {
+    this.$router.push({ 
+        name: 'GroupMembersView', 
+        params: { nickname: this.currentUser, chat: this.$route.params.chat } 
+      });
+  },
+
+  async goToForwardView() {
+    this.$router.push({ 
+        name: 'ForwardView', 
+        params: { nickname: this.currentUser, chat: this.$route.params.chat, message: this.selectedMessage.message_id } 
+      });
+  },
+
+  async quitGroup() {
+    try {
+      const response = await this.$axios.delete(`/wasachat/${this.currentUser}/chats/${this.chatId}`);
+      this.$router.push({ 
+        name: 'UserChats', 
+        params: { nickname: this.currentUser } 
+      });
+            } catch (error) {
+      if (error.response) {
+        const messaggio = error.response.data.errore;
+        const codiceErrore = parseInt(error.response.data.codiceErrore);
+        alert(messaggio + ` (codice ${codiceErrore})`);
+      } else {
+        alert("Error: Network error.");
+      }
+    } finally {
+      this.closeQuitModal();
+    }
+  },
+
+  async addUserToGroup(nickname) {
+    try {
+      this.addingMember = true;
+      
+      const response = await this.$axios.put(
+        `/wasachat/${this.currentUser}/chats/gruppi/${this.chatId}/aggiungi`,
+        { utente_da_aggiungere: nickname.trim() }
+      );
+      
+      alert(response.data.risposta);
+      this.closeAddMemberModal();
+      
+    } catch (error) {
+      if (error.response) {
+        const messaggio = error.response.data.errore;
+        const codiceErrore = parseInt(error.response.data.codiceErrore);
+        alert(messaggio + ` (codice ${codiceErrore})`);
+      } else {
+        alert("Error: Network error.");
+      }
+    } finally {
+      this.addingMember = false;
+    }
+   },
   }
 };
+
 </script>
 
 <style scoped>
-.messages-container {
+.messages_container_group {
   padding: 10px;
-  max-width: 1500px;
+  max-width: 80%;
   margin: 0 auto;
   background-color: #ffffff;
   border-radius: 1px;
-  box-shadow: 0 4px 19px rgba(0, 0, 0, 0.1);
   padding-bottom: 2px;
   height: calc(100vh - 70px);
   overflow: hidden;
 }
 
-.messages-list {
+.messages_container_private {
+  max-width: 90%;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 1px;
+  padding-bottom: 2px;
+  height: calc(100vh - 1px);
+  overflow: hidden;
+}
+
+.btn {
+  background-color: rgb(125, 3, 240);
+  color: rgb(255, 255, 255);
+  border-radius: 90px;
+  font-size: 15px;
+  padding: 20px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+.quit_btn {
+  background-color: rgb(170, 86, 173);
+  color: rgb(255, 255, 255);
+  border-radius: 90px;
+  font-size: 15px;
+  padding: 20px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+.btn_2{
+  background-color: rgb(125, 3, 240);
+  color: rgb(255, 255, 255);
+  border-radius: 90px;
+  padding: 12px;
+  margin: 10px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.messages_list {
   list-style-type: none;
   padding: 20px;
   margin: 10px;
@@ -772,131 +808,125 @@ export default {
   box-sizing: border-box;
 }
 
-.message-item {
+.message_item {
   display: flex;
   align-items: flex-start;
   padding: 16px;
   margin-bottom: 16px;
-  background-color: #a1d1a1;
+  background-color: rgb(220, 213, 228);
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  max-width: 70%;
+  max-width: 60%;
+  cursor: pointer
 }
 
-.message-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.message-item-right {
+.message_item_right {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  margin-bottom: 16px;
   margin-left: auto;
-  background-color: #d1ecf1;
+  background-color: rgb(209, 188, 230);
+  border-radius: 10px;
+  max-width: 60%;
+  cursor: pointer
 }
 
-.message-item-group {
+.message_item_group {
+  border-radius: 10px;
+  max-width: 60%;
+  cursor: pointer;
   margin-right: auto;
-  background-color: #cadda5;
+  background-color: var(--random-group-color, rgb(220, 213, 228)); 
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  margin-bottom: 16px;
 }
 
-.message-sender {
+.message_sender {
   font-weight: bold;
-  font-size: 10px;
-  color: #41814c;
+  font-size: 20px;
+  color: #171529;
   margin-bottom: 50px; 
+  margin-right: 30px;
 }
 
-.message-photo-container {
+.message_photo-container {
   display: flex;
   flex-direction: column;
+  margin-right: 30px;
   align-items: center;
 }
 
-.message-photo {
-  max-width: 100%;
+.message_photo {
+  margin-right: 30px;
+  border-radius: 15px;
+  margin-bottom: 15px;
+  max-width: 75%;
   height: auto;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  max-height: 300px;
+  max-height: 250px;
 }
 
-.message-text-container {
+.message_text-container {
   display: flex;
   flex-direction: column;
 }
 
-.message-text {
+.message_text {
   margin: 10;
   color: #495057;
   font-size: 16px;
   margin-top: 5px;
   margin-left: 15px;
-  line-height: 1.6;
+  word-break: break-word;
+  hyphens: auto;
 }
 
-.message-meta {
-  display: flex;
-  flex-direction: column;
-  margin-top: 8px;
-}
-
-.message-time {
-  margin: 0;
+.message_time {
+  margin: 2px;
   color: #868e96;
   font-size: 12px;
 }
 
-.message-status {
-  margin: 0;
-  color: #868e96;
-  font-size: 12px;
-  font-style: italic;
+.message_status {
+  color: #0971d8;
+  font-size: 14px;
+  margin: 4px;
 }
 
-.message-reactions {
+.message_reactions {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   margin-top: 8px;
   padding-top: 4px;
-  border-top: 1px solid rgba(0,0,0,0.05);
 }
 
-.reaction-badge {
-  display: flex;
-  align-items: center;
+.reaction_badge_text {
   background-color: #f0f2f5;
   border-radius: 10px;
   padding: 2px 6px;
-  font-size: 12px;
-  cursor: default;
-  transition: background-color 0.2s;
+  font-size: 20px;
+  cursor: pointer;
 }
 
-.reaction-badge:hover {
-  background-color: #e4e6eb;
-}
-
-.reaction-emoji {
-  margin-right: 4px;
-}
-
-.reaction-count {
-  font-size: 11px;
-  color: #65676B;
-}
-
-.no-messages {
-  text-align: center;
-  color: #6c757d;
-  font-size: 16px;
-  padding: 24px;
-  background-color: #f8f9fa;
+.reaction_badge_photo {
+  background-color: #f0f2f5;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 2px 6px;
+  font-size: 20px;
+  cursor: pointer;
 }
 
-.message-input-container {
+.reaction_emoji_text {
+  margin-right: 1px;
+}
+
+.reaction_emoji_photo {
+  margin-right: 1px;
+}
+
+.message_input_group {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -904,14 +934,32 @@ export default {
   display: flex;
   align-items: center;
   padding: 10px;
-  background-color: #ffffff;
+  background-color: rgb(209, 188, 230);
   border-top: 1px solid #e0e0e0;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-  max-width: 1500px;
+  width: 95%;
+  border-radius: 20px;
   margin: 0 auto;
+  margin-bottom: 10px;
 }
 
-.message-input {
+.message_input_private {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: rgb(209, 188, 230);
+  border-top: 1px solid #e0e0e0;
+  width: 95%;
+  height: 120px;
+  border-radius: 20px;
+  margin: 0 auto;
+  margin-bottom: 10px;
+}
+
+.message_input {
   flex-grow: 1;
   padding: 10px;
   border: 1px solid #e0e0e0;
@@ -920,68 +968,18 @@ export default {
   font-size: 16px;
 }
 
-.photo-button,
-.send-button {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 20px;
-  background-color: #007bff;
-  color: #ffffff;
-  font-size: 16px;
-  cursor: pointer;
-  margin-left: 10px;
-  margin-bottom: 20px; 
-  margin-top: 20px;
-}
-
-.photo-button:hover,
-.send-button:hover {
-  background-color: #0056b3;
-}
-
-.group-header {
+.group_header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: rgb(209, 188, 230);
+  border-radius: 20px;
 }
 
-.group-actions {
+.group_actions {
   display: flex;
   gap: 10px;
-}
-
-.group-action-button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 20px;
-  background-color: #f0f0f0;
-  color: #495057;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.group-action-button:hover {
-  background-color: #e0e0e0;
-}
-
-.group-action-button.danger {
-  color: #dc3545;
-  background-color: #f8d7da;
-}
-
-.group-action-button.danger:hover {
-  background-color: #f1b0b7;
-}
-
-.button-text {
-  font-size: 14px;
 }
 
 .modal {
@@ -997,86 +995,71 @@ export default {
   z-index: 1000;
 }
 
-.modal-content {
+.modal_content {
   background-color: white;
   border-radius: 10px;
   padding: 20px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 4px 19px rgba(0, 0, 0, 0.1);
 }
 
-.modal-content-large {
+.modal_content-large {
   background-color: white;
   border-radius: 10px;
   padding: 30px;
-  width: 100%;
-  max-width:1000px;
+  max-width:1250px;
   max-height: 1000px;
-  box-shadow: 0 4px 19px rgba(0, 0, 0, 1);
 }
 
-.modal h3 {
-  margin-top: 0;
-  color: #495057;
-}
-
-.modal-input {
+.modal_input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #e0e0e0;
   border-radius: 20px;
   margin: 10px 0;
   font-size: 16px;
 }
 
-.modal-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-  margin: 10px 0;
-}
-
-.modal-button {
+.modal_btn {
   padding: 8px 15px;
-  border: none;
+  background-color: rgb(125, 3, 240);
+  color:rgb(255, 255, 255);
   border-radius: 20px;
   cursor: pointer;
+  gap: 10px;
+  margin-left: 10px;
   font-size: 14px;
   margin: 10px 0;
+  margin-right: 10px;
 }
 
-.modal-button.confirm {
-  background-color: #007bff;
-  color: white;
-}
-
-.modal-button.cancel {
+.modal_btn_gray {
+  border-radius: 20px;
+  cursor: pointer;
+  gap: 10px;
+  margin-left: 10px;
+  font-size: 14px;
+  margin: 10px 0;
+  margin-right: 10px;
+  padding: 8px 15px;
   background-color: #6c757d;
   color: white;
 }
 
-.modal-button.danger {
-  background-color: #dc3545;
+.modal_btn_red{
+  border-radius: 20px;
+  cursor: pointer;
+  gap: 10px;
+  margin-left: 10px;
+  font-size: 14px;
+  margin: 10px 0;
+  margin-right: 10px;
+  padding: 8px 15px;
+  background-color: rgb(161, 63, 84);
   color: white;
-  margin-top: 10px;
 }
 
-.modal-button.confirm:hover {
-  background-color: #0056b3;
-}
-
-.modal-button.cancel:hover {
-  background-color: #5a6268;
-}
-
-.modal-button.danger:hover {
-  background-color: #c82333;
-}
-
-.message-reply-container {
-  border-left: 3px solid #4CAF50;
+.message_reply-container {
+  border-left: 3px solid #000000;
   padding-left: 8px;
   margin-bottom: 8px;
   color: #666;
@@ -1089,56 +1072,27 @@ export default {
 }
 
 .reply-author {
-  color: #4CAF50;
+  color: #000000;
+  margin-right: 10px;
+
 }
 
-.reply-content {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.reactions-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin: 20px 0;
-  justify-items: center;
-}
-
-.reaction-button {
+.reaction_button {
   font-size: 24px;
-  padding: 8px;
-  border: none;
   background: none;
   cursor: pointer;
-  transition: all 0.2s;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.reaction-button:hover {
-  background-color: #f0f2f5;
-  transform: scale(1.2);
-}
-
-.reaction-button.active {
-  background-color: #e7f3ff;
-  transform: scale(1.1);
-}
-
-.inoltrato-label {
-  font-size: 0.8em;
+.forward_label {
+  font-size: 10px;
   color: #666;
-  font-style: italic;
   margin-bottom: 5px;
+  padding: 2px 6px;
+  border: 1px solid #666;
+  border-radius: 90px;
 }
 
-.message-input-ans {
+.message_input_ans {
   flex-grow: 1;
   padding: 10px;
   border: 1px solid #e0e0e0;
@@ -1147,5 +1101,35 @@ export default {
   font-size: 16px;
   width: 100%;
   margin-bottom: 10px;
+}
+
+.no_messages {
+  max-width: 700px;
+  background-color: rgb(209, 188, 230);
+  margin: 180px auto;
+  font-size: 60px;
+  padding: 80px;
+  border-radius: 20px
+}
+
+.no_conversations {
+  max-width: 700px;
+  background-color: rgb(209, 188, 230);
+  margin: 180px auto;
+  font-size: 60px;
+  padding: 80px;
+  border-radius: 20px
+}
+
+.goBack_btn {
+  background-color: rgb(161, 63, 84);
+  color: rgb(221, 219, 219);
+  padding: 20px 40px;
+  margin: 40px;
+  border-radius: 90px;
+  font-size: 15px;
+  position: fixed;
+  top: 0px;    
+  right: 10px;      
 }
 </style>

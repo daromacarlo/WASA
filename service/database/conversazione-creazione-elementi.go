@@ -19,7 +19,7 @@ func (db *appdbimpl) CreaConversazioneDB() (int, error) {
 	return int(LastInsertIdid), nil
 }
 
-// funzione che crea un gruppo e agginge al gruppo l'utente che lo ha creatos
+// funzione che crea un gruppo e agginge al gruppo l'utente che lo ha creato
 func (db *appdbimpl) CreaGruppoDB(UtenteChiamante string, nomeGruppo_Passato string, idfoto_Passata int) (int, error) {
 	esisteUtenteChiamante, err := db.EsistenzaUtente(UtenteChiamante)
 	if !errors.Is(err, nil) {
@@ -76,7 +76,7 @@ func (db *appdbimpl) CreaConversazionePrivataDB(utente1_Passato string, utente2_
 		return 0, codiceErrore, fmt.Errorf("errore durante la verifica dell'esistenza della conversazione: %s", err.Error())
 	}
 	if idConversazione > 0 {
-		return 0, 304, fmt.Errorf("la conversazione tra %s e %s esiste già", utente1_Passato, utente2_Passato)
+		return 0, 400, fmt.Errorf("l'utente %s ha afjsh", utente2_Passato)
 	}
 	idConversazione, err = db.CreaConversazioneDB()
 	if !errors.Is(err, nil) {

@@ -135,6 +135,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErroreGenerico'
+                
+  /wasachat/{utente}:
+    parameters:
+    - name: utente
+      in: path
+      required: true
+      description: Nickname dell'utente
+      schema:
+        type: string
+        example: "Carlo"
+        minLength: 1
+        maxLength: 50
+        pattern: '^[a-zA-Z0-9._~-]+$'
+    get:
+      tags: ["Profilo Utente"]
+      summary: Ritorna l'id dell'utente nell'url (idFromeName)
+      description: |-
+        Restituisce l'id dell'utente nell'url
+      operationId: idFromName
+      responses:
+        "200":
+          description: Risposta visualizzata correttamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RispostaIdFromName'
+        "400":
+          description: Errore lato client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+        "404":
+          description: chat non trovata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+        "500":
+          description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroreGenerico'
+                
   /wasachat/{utente}/chats:
     parameters:
     - name: utente
@@ -1187,6 +1232,7 @@ components:
           type: boolean
           description: Indica se si tratta di una chat di gruppo
           example: false
+
     RichiestaNomeUtente:
       type: object
       description: Richiesta per modificare il nome utente
@@ -1200,6 +1246,7 @@ components:
           minLength: 1
           maxLength: 100
           pattern: '^.*$'
+
     RichiestaFotoProfilo:
       type: object
       description: Richiesta per modificare la foto profilo
@@ -1213,6 +1260,7 @@ components:
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
+
     RichiestaAggiungiUtente:
       type: object
       description: Richiesta per aggiungere un utente a un gruppo
@@ -1226,6 +1274,7 @@ components:
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
+
     RispostaMessaggiChat:
       type: object
       description: Elenco dei messaggi in una chat
@@ -1239,6 +1288,7 @@ components:
           maxItems: 1024
           items:
             $ref: '#/components/schemas/Messaggio'
+
     RispostaUtenti:
       type: object
       description: Elenco dei utenti in un gruppo
@@ -1279,6 +1329,7 @@ components:
       required:
         - message_id
         - autore
+        - idautore
         - time
         - ricevuto
         - letto
@@ -1288,6 +1339,12 @@ components:
         message_id:
           type: integer
           description: ID univoco del messaggio
+          example: 12
+          minimum: 1
+          maximum: 1024
+        idautore:
+          type: integer
+          description: ID univoco del autore
           example: 12
           minimum: 1
           maximum: 1024
@@ -1472,6 +1529,22 @@ components:
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
+          
+    RispostaIdFromName:
+      type: object
+      description: Risposta per la funzione idFromName
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          description: id dell'utente cercato
+          example: 200
+          minLength: 1
+          maxLength: 1024
+          minimum: 1
+          maximum: 1024
+    
     RispostaGenerica:
       type: object
       description: Risposta generica
@@ -1498,7 +1571,7 @@ components:
       type: object
       description: Errore
       required:
-        - codice
+        - codiceErrore
         - errore
       properties:
         codiceErrore:

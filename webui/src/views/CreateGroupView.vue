@@ -1,15 +1,13 @@
 <template>
-  <div class="creategroup-container">
-    <h2>Crea il tuo gruppo</h2>
+    <button @click="goBack" class="goBack_btn">Go Back
+ </button>
+  <div class="cc">
+    <h2>Crete your group</h2>
     <form @submit.prevent="createGroup">
-      <input type="text" v-model="nome" placeholder="Nome Gruppo" required />
-      <!-- Input per selezionare l'immagine (solo JPEG) -->
-      <input type="file" @change="handleFileUpload" accept="image/jpeg" required />
-      <button type="submit" :disabled="loading">
-        {{ loading ? "Caricamento..." : "Crea gruppo" }}
-      </button>
+      <input type="text" v-model="name" placeholder="Group Name" required/>
+      <input type="file" @change="handleFileUpload" accept="image/jpeg" required/>
+      <button type="submit" class="btn">Create group</button>
     </form>
-    <p v-if="errorMsg" class="error-message">{{ errorMsg }}</p>
   </div>
 </template>
 
@@ -17,89 +15,85 @@
 export default {
   data() {
     return {
-      nome: '', // Nome del gruppo
-      foto: '', // Stringa Base64 dell'immagine
-      errorMsg: null, // Messaggio di errore
-      loading: false, // Stato di caricamento
+      name: '',
+      photo: '', 
+      error: null, 
+      currentUser: this.$route.params.nickname
     };
   },
   methods: {
-    // Gestisce la selezione del file
     handleFileUpload(event) {
-      const file = event.target.files[0]; // Ottieni il file selezionato
+      const file = event.target.files[0];
       if (file) {
-        // Verifica che il file sia un'immagine JPEG
         if (!file.type.match(/image\/jpeg/)) {
-          this.errorMsg = "Seleziona un'immagine in formato JPEG (.jpg o .jpeg).";
-          this.foto = ''; // Resetta la foto
+          this.error = "Select a valid file";
+          this.photo = '';
           return;
         }
-        this.convertToBase64(file); // Converti il file in Base64
+        this.convertToBase64(file); 
       } else {
-        this.errorMsg = "Seleziona un'immagine valida!";
+        this.error = "Select a valid image";
       }
     },
 
-    // Converte il file in una stringa Base64
     convertToBase64(file) {
       const reader = new FileReader();
       reader.onload = () => {
-        this.foto = reader.result; // Salva la stringa Base64
-        this.errorMsg = null; // Resetta il messaggio di errore
+        this.photo = reader.result; 
+        this.error = null;
       };
       reader.onerror = (error) => {
-        console.error("Errore durante la conversione del file:", error);
-        this.errorMsg = "Errore durante il caricamento dell'immagine.";
+        console.error("Error:", error);
+        this.error = "Errore during the upload of the image.";
       };
-      reader.readAsDataURL(file); // Avvia la conversione
+      reader.readAsDataURL(file);
     },
 
-    // Invia i dati al backend per creare il gruppo
     async createGroup() {
-      if (!this.nome.trim()) {
-        this.errorMsg = "Inserisci un nome valido per il gruppo!";
-        return;
-      }
-
-      if (!this.foto) {
-        this.errorMsg = "Seleziona un'immagine!";
-        return;
-      }
-
-      this.loading = true;
-      this.errorMsg = null;
-
+      this.error = null;
       try {
-        const nickname = this.$route.params.nickname; // Ottieni il nickname dall'URL
-        const response = await this.$axios.post(`/wasachat/${nickname}/gruppi`, {
-          nome: this.nome,
-          foto: this.foto, // Invia la stringa Base64
+        const response = await this.$axios.post(`/wasachat/${this.currentUser}/gruppi`, {
+          nome: this.name,
+          foto: this.photo,
         });
-
-        // Se la risposta ha successo (status 2xx), reindirizza alla pagina delle chat
-        if (response.status >= 200 && response.status < 300) {
-          alert("Gruppo creato con successo!");
-          this.$router.push(`/wasachat/${nickname}/chats`);
+        const message = response.data.risposta;
+        const codice = parseInt(response.data.codice);
+        if (response.codice >= 200 && response.codice < 300) {
+          this.$router.push(`/wasachat/${this.currentUser}/chats`);
+          alert(message);
         } else {
-          this.errorMsg = "Errore durante la creazione del gruppo. Riprova.";
+          this.$router.push(`/wasachat/${this.currentUser}/chats`);
+          alert(message)
         }
       } catch (e) {
-        console.error("Errore durante la creazione del gruppo:", e);
-        this.errorMsg = e.response?.data?.message || "Errore durante la creazione del gruppo. Riprova.";
-      } finally {
-        this.loading = false;
+        if (e.response) {
+          const message = e.response.data.errore;
+          const codiceErrore = parseInt(e.response.data.codiceErrore);
+          alert(message + ` (codice ${codiceErrore})`);
+        } else {
+          alert("Error: Network error.");
+        }
+      }finally {
+        console.error(e);
       }
     },
+    goBack() {
+      this.$router.push(`/wasachat/${this.currentUser}/chats`);
+      },
   },
 };
 </script>
 
 <style scoped>
-.creategroup-container {
-  padding: 20px;
-  max-width: 400px;
-  margin: 0 auto;
+.cc {
   text-align: center;
+  background-color: rgb(209, 188, 230);
+  padding: 40px;
+  border-radius: 12px;
+  width: 60%;
+  margin: auto;
+  border-radius: 5px;
+  margin-top: 300px;
 }
 
 input {
@@ -111,22 +105,30 @@ input {
   border-radius: 5px;
 }
 
-button {
-  padding: 10px 20px;
-  background-color: #7dac10;
-  color: white;
+.btn {
+  background-color: rgb(125, 3, 240);
+  color: rgb(255, 255, 255);
+  padding: 20px 40px;
+  border-radius: 90px;
+  font-size: 15px;
+  margin-right: 30px;
+  margin-left: 30px;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
-}
+  }
 
-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.error-message {
-  color: red;
-  margin-top: 10px;
-}
+  .goBack_btn {
+  background-color: rgb(161, 63, 84);
+  color: rgb(221, 219, 219);
+  padding: 20px 40px;
+  margin: 40px;
+  border-radius: 90px;
+  font-size: 15px;
+  position: fixed;
+  top: 0px;
+  right: 40px;
+  border: none;
+  cursor: pointer;
+  }
+  
 </style>

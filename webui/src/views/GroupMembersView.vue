@@ -37,17 +37,17 @@ export default {
   methods: {
     async loadChats() {
       try {
-        const response = await this.$axios.get(`/wasachat/${this.currentUser}/utenti/gruppi/${this.chat}`);
+        const response = await this.$axios.get(`/wasachat/${this.currentUser}/usercheck/groups/${this.chat}`);
         this.chats = response.data;
-        const message = response.data.risposta;
+        const message = response.data.response;
         if (message) {
           alert(message);
         }
       } catch (e) {
         if (e.response) {
-          const message = e.response.data.errore;
-          const codiceErrore = parseInt(e.response.data.codiceErrore);
-          alert(message + ` (codice ${codiceErrore})`);
+          const message = e.response.data.error;
+          const errorCode = parseInt(e.response.data.errorCode);
+          alert(message + ` (codice ${errorCode})`);
         } else {
           alert("Error. Network error.");
         }

@@ -1,191 +1,113 @@
 openapi: 3.0.3
 info:
-  title: API WASAtext
+  title: WASAtext API
   description: |-
-    API necessarie a WASAText.
+    APIs required for WASAtext.
   version: "1.0.0"
 tags:
-  - name: Accesso e Registrazione
-    description: Operazioni di autenticazione e gestione utente
+  - name: Login and Registration
+    description: Authentication and user management operations
   - name: Home
-    description: Operazioni relative alla schermata principale
-  - name: Profilo Utente
-    description: Operazioni di gestione del profilo utente
+    description: Main screen operations
+  - name: User Profile
+    description: User profile management operations
   - name: Chat
-    description: Operazioni relative alle chat e ai messaggi
-  - name: Gestione Gruppi
-    description: Operazioni di gestione dei gruppi
-  - name: Creazione Gruppo
-    description: Operazioni di creazione dei gruppi
-  - name: Creazione conversazioni private
-    description: Operazioni di creazione conversazioni private
+    description: Chat and message operations
+  - name: Group Management
+    description: Group management operations
+  - name: Group Creation
+    description: Group creation operations
+  - name: Private Conversation Creation
+    description: Private conversation creation operations
 paths:
   /check/{chat}:
-    parameters:
-    - name: chat
-      in: path
-      required: true
-      description: ID del gruppo
-      schema:
-        type: integer
-        example: 2
-        minimum: 1
-        maximum: 1024
-    get:
-      tags: ["Creazione Gruppo"]
-      summary: "Controlla se una chat è un gruppo (isGroup)"
-      description: |-
-        Restituisce true se la chat nell'url è un gruppo altrimenti false
-      operationId: isGroup
-      responses:
-        "200":
-          description: Risposta visualizzata correttamente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RispostaIsGroup'
-        "400":
-          description: Errore lato client
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-        "404":
-          description: chat non trovata
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-        "500":
-          description: Errore interno del server
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+      parameters:
+      - name: chat
+        in: path
+        required: true
+        description: Group ID
+        schema:
+          type: integer
+          example: 2
+          minimum: 1
+          maximum: 1024
+      get:
+        tags: ["Group Creation"]
+        summary: "Check if a chat is a group (isGroup)"
+        description: |-
+          Returns true if the chat in the URL is a group, otherwise returns false
+        operationId: isGroup
+        responses:
+          "200":
+            description: Response successfully retrieved
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ResponseIsGroup'
+          "400":
+            description: Client error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/GenericError'
+          "404":
+            description: Chat not found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/GenericError'
+          "500":
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/GenericError'
   /wasachat:
     post:
-      tags: ["Accesso e Registrazione"]
-      summary: Login utente (doLogin)
+      tags: ["Login and Registration"]
+      summary: "User login (doLogin)"
       description: |-
-        Se l'utente non esiste, viene creato con la funzione registrare altrimenti,
-        Se l'utente esiste viene eseguito il login.
+        If the user does not exist, they are registered automatically.
+        If the user exists, the login is performed.
       operationId: doLogin
       requestBody:
-        description: Credenziali utente (nome)
+        description: User credentials (name)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaLogin'
+              $ref: '#/components/schemas/LoginRequest'
         required: true
       responses:
         '201':
-          description: Accesso avvenuto con successo
+          description: Login successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         '400':
-          description: Errore generico lato utente
+          description: Client-side error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         '404':
-          description: Nome utente non trovato nel database
+          description: Username not found in database
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         '500':
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-    put:
-      tags: ["Accesso e Registrazione"]
-      summary: Registrazione utente (register)
-      description: |-
-        Funzione che consente la registrazione utente, se il nome utente è già presente nel sistema 
-        allora verrà eseguita la funzione di login
-      operationId: register
-      requestBody:
-        description: Credenziali utente (nome)
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RichiestaLogin'
-        required: true
-      responses:
-        '201':
-          description: Registrazione avvenuto con successo
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RispostaGenerica'
-        '400':
-          description: Errore generico lato utente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-        '500':
-          description: Errore interno del server
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-                
-  /wasachat/{utente}:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/chats:
     parameters:
-    - name: utente
+    - name: user
       in: path
       required: true
-      description: Nickname dell'utente
-      schema:
-        type: string
-        example: "Carlo"
-        minLength: 1
-        maxLength: 50
-        pattern: '^[a-zA-Z0-9._~-]+$'
-    get:
-      tags: ["Profilo Utente"]
-      summary: Ritorna l'id dell'utente nell'url (idFromeName)
-      description: |-
-        Restituisce l'id dell'utente nell'url
-      operationId: idFromName
-      responses:
-        "200":
-          description: Risposta visualizzata correttamente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RispostaIdFromName'
-        "400":
-          description: Errore lato client
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-        "404":
-          description: chat non trovata
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-        "500":
-          description: Errore interno del server
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-                
-  /wasachat/{utente}/chats:
-    parameters:
-    - name: utente
-      in: path
-      required: true
-      description: Nome dell'utente
+      description: username
       schema:
         type: string
         example: "Carlo"
@@ -194,717 +116,675 @@ paths:
         pattern: '^[a-zA-Z0-9._~-]+$'
     get:
       tags: ["Home"]
-      summary: "Visualizza le conversazioni (getMyConversations)"
+      summary: "View conversations (getMyConversations)"
       description: |-
-        Restituisce la lista delle conversazioni dell'utente
-        in ordine cronologico inverso.
+        Returns the list of the user's conversations
+        in reverse chronological order.
       operationId: getMyConversations
       responses:
         "200":
-          description: Schermata principale visualizzata correttamente
+          description: Home screen displayed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaConversazioni'
+                $ref: '#/components/schemas/ConversationsResponse'
               example:
                 chats:
                   - chat_id: 21
-                    nome: "informatica 2024-2025"
-                    foto: "base64encodedimagedaskjhdkjashdkjahkdjhakjdhakjhdaksjk--"
+                    name: "Computer Science 2024-2025"
+                    photo: "base64encodedimagedaskjhdkjashdkjahkdjhakjhdakjhdaksjk--"
                     time: "2025-03-15T14:30:00Z"
-                    ultimosnip: "AE"
-                    isgruppo: false
+                    last_snippet: "AE"
+                    is_group: false
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Utente non trovato
+          description: User not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/nome:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/usersettings/name:
     parameters:
-    - name: utente
+    - name: user
       in: path
       required: true
-      description: Nickname dell'utente
+      description: username
       schema:
         type: string
         example: "Carlo"
         minLength: 1
-        maxLength: 50
+        maxLength: 1024
         pattern: '^[a-zA-Z0-9._~-]+$'
     put:
-      tags: ["Profilo Utente"]
-      summary: Modifica nome utente (setMyUserName)
+      tags: ["User Profile"]
+      summary: "Update username (setMyUserName)"
       description: |-
-        Modifica il nome utente.
+        Updates the username.
       operationId: setMyUserName
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaNomeUtente'
+              $ref: '#/components/schemas/NameRequest'
         required: true
       responses:
         "200":
-          description: Nome aggiornato con successo
+          description: Username updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "202":
-          description: Nome uguale al precedente
+          description: Username unchanged (same as previous)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Utente non trovato
+          description: User not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/foto:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/usersettings/photo:
     parameters:
-    - name: utente
+    - name: user
       in: path
       required: true
-      description: Nickname dell'utente
+      description: username
       schema:
         type: string
         example: "Carlo"
         minLength: 1
-        maxLength: 50
+        maxLength: 1024
         pattern: '^[a-zA-Z0-9._~-]+$'
     put:
-      tags: ["Profilo Utente"]
-      summary: Modifica foto profilo (setMyPhoto)
+      tags: ["User Profile"]
+      summary: "Update profile photo (setMyPhoto)"
       description: |-
-        Imposta o modifica la foto profilo dell'utente.
+        Sets or updates the user's profile picture.
       operationId: setMyPhoto
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaFotoProfilo'
+              $ref: '#/components/schemas/PhotoRequest'
         required: true
       responses:
         "200":
-          description: Foto aggiornata con successo
+          description: Profile picture updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Utente non trovato
+          description: User not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-
-  /wasachat/{utente}/conversazioniprivate:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/privateconversation:
     parameters:
-      - name: utente
-        in: path
-        required: true
-        description: Nickname dell'utente
-        schema:
-          type: string
-          example: "Carlo"
-          minLength: 1
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9._~-]+$'
+    - name: user
+      in: path
+      required: true
+      description: username
+      schema:
+        type: string
+        example: "Carlo"
+        minLength: 1
+        maxLength: 1024
+        pattern: '^[a-zA-Z0-9._~-]+$'
     post:
-      tags: ["Creazione conversazioni private"]
-      summary: Crea conversazione privata (createPrivateConversation)
+      tags: ["Private Conversation Creation"]
+      summary: "Create private conversation (createPrivateConversation)"
       description: |-
-        Crea una nuova conversazione privata tra l'utente specificato e un altro utente.
+        Creates a new private conversation between the specified user and another user.
       operationId: createPrivateConversation
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaPerCreazioneConversazionePrivata'
+              $ref: '#/components/schemas/PrivateConversationRequest'
         required: true
       responses:
         "200":
-          description: Conversazione privata creata con successo
+          description: Private conversation created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "202":
-          description: Conversazione privata già esistente tra i due utenti
+          description: Private conversation already exists between these users
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Utente non trovato
+          description: User not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/chats/gruppi/{chat}/aggiungi:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/groups/{chat}/add:
     parameters:
-      - name: utente
-        in: path
-        required: true
-        description: Nickname dell'utente
-        schema:
-          type: string
-          example: "Carlo"
-          minLength: 1
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9._~-]+$'
-
-
-      - name: chat
-        in: path
-        required: true
-        description: ID del gruppo
-        schema:
-          type: integer
-          example: 1
-          minimum: 1
-          maximum: 1024
+    - name: user
+      in: path
+      required: true
+      description: username
+      schema:
+        type: string
+        example: "Carlo"
+        minLength: 1
+        maxLength: 1024
+        pattern: '^[a-zA-Z0-9._~-]+$'
+    - name: chat
+      in: path
+      required: true
+      description: Group ID
+      schema:
+        type: integer
+        example: 2
+        minimum: 1
+        maximum: 1024
     put:
-      tags: ["Gestione Gruppi"]
-      summary: Aggiungi utente al gruppo (addToGroup)
+      tags: ["Group Management"]
+      summary: "Add user to group (addToGroup)"
       description: |-
-        Aggiunge un utente al gruppo specificato.
+        Adds a user to the specified group.
       operationId: addToGroup
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaAggiungiUtente'
+              $ref: '#/components/schemas/AddUserRequest'
         required: true
       responses:
         "200":
-          description: Utente aggiunto con successo
+          description: User added successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "202":
-          description: Utente già presente nel gruppo
+          description: User already in group
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Utente o gruppo non trovato
+          description: User or group not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/chats/{chat}:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/chats/{chat}:
     parameters:
-      - name: utente
-        in: path
-        required: true
-        description: Nickname dell'utente
-        schema:
-          type: string
-          example: "Carlo"
-          minLength: 1
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9._~-]+$'
-
-
-      - name: chat
-        in: path
-        required: true
-        description: ID della chat
-        schema:
-          type: integer
-          example: 1
-          minimum: 1
-          maximum: 1024
+    - name: user
+      in: path
+      required: true
+      description: username
+      schema:
+        type: string
+        example: "Carlo"
+        minLength: 1
+        maxLength: 1024
+        pattern: '^[a-zA-Z0-9._~-]+$'
+    - name: chat
+      in: path
+      required: true
+      description: Group ID
+      schema:
+        type: integer
+        example: 2
+        minimum: 1
+        maximum: 1024
     get:
       tags: ["Chat"]
-      summary: Ottieni messaggi chat (getConversation)
+      summary: "Get chat messages (getConversation)"
       description: |-
-        Restituisce i messaggi della chat specificata.
+        Returns messages from the specified chat.
       operationId: getConversation
       responses:
         "200":
-          description: Messaggi restituiti con successo
+          description: Messages retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaMessaggiChat'
+                $ref: '#/components/schemas/ChatMessageResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Chat non trovata
+          description: Chat not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
     post:
       tags: ["Chat"]
-      summary: Invia messaggio (sendMessage)
+      summary: "Send message (sendMessage)"
       description: |-
-        Invia un messaggio nella chat specificata.
+        Sends a message to the specified chat.
       operationId: sendMessage
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaMessaggio'
+              $ref: '#/components/schemas/MessageRequest'
         required: true
       responses:
         "200":
-          description: Messaggio inviato con successo
+          description: Message sent successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Chat non trovata
+          description: Chat not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
     delete:
-      tags: ["Gestione Gruppi"]
-      summary: Esci dal gruppo (leaveGroup)
+      tags: ["Group Management"]
+      summary: "Leave group (leaveGroup)"
       description: |-
-        L'utente esce dal gruppo specificato.
+        The user leaves the specified group.
       operationId: leaveGroup
       responses:
         "200":
-          description: Uscita dal gruppo avvenuta con successo
+          description: Successfully left the group
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Gruppo non trovato
+          description: Group not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/inoltro/{nuovachat}/messaggi/{messaggio}:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/forw/{target}/messages/{message}:
     parameters:
-      - name: utente
-        in: path
-        required: true
-        description: Nickname dell'utente
-        schema:
-          type: string
-          example: "Carlo"
-          minLength: 1
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9._~-]+$'
-
-
-      - name: nuovachat
-        in: path
-        required: true
-        description: ID della chat di destinazione
-        schema:
-          type: integer
-          example: 2
-          minimum: 1
-          maximum: 1024
-      - name: messaggio
-        in: path
-        required: true
-        description: ID del messaggio da inoltrare
-        schema:
-          type: integer
-          example: 2
-          minimum: 1
-          maximum: 1024
+    - name: user
+      in: path
+      required: true
+      description: Username
+      schema:
+        type: string
+        example: "Carlo"
+        minLength: 1
+        maxLength: 1024
+        pattern: '^[a-zA-Z0-9._~-]+$'
+    - name: target
+      in: path
+      required: true
+      description: Target chat ID
+      schema:
+        type: integer
+        example: 2
+        minimum: 1
+        maximum: 1024
+    - name: message
+      in: path
+      required: true
+      description: ID of the message to forward
+      schema:
+        type: integer
+        example: 2
+        minimum: 1
+        maximum: 1024
     post:
       tags: ["Chat"]
-      summary: Inoltra messaggio (forwardMessage)
+      summary: "Forward message (forwardMessage)"
       description: |-
-        Inoltra un messaggio a un'altra chat.
+        Forwards a message to another chat.
       operationId: forwardMessage
       responses:
         "200":
-          description: Messaggio inoltrato con successo
+          description: Message forwarded successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Messaggio o chat non trovati
+          description: Message or chat not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /inoltro/{utente}/a/{destinatario}/inoltro/messaggi/{messaggio}:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/forwnew/{target}/messages/{message}:
     parameters:
-      - name: utente
-        in: path
-        required: true
-        description: Nickname dell'utente inviante
-        schema:
-          type: string
-          example: "Carlo"
-          minLength: 1
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9._~-]+$'
-      - name: destinatario
-        in: path
-        required: true
-        description: Nickname dell'utente, ricevente
-        schema:
-          type: string
-          example: "Carlo"
-          minLength: 1
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9._~-]+$'
-      - name: messaggio
-        in: path
-        required: true
-        description: ID del messaggio da inoltrare
-        schema:
-          type: integer
-          example: 2
-          minimum: 1
-          maximum: 1024
+    - name: user
+      in: path
+      required: true
+      description: Username
+      schema:
+        type: string
+        example: "Carlo"
+        minLength: 1
+        maxLength: 1024
+        pattern: '^[a-zA-Z0-9._~-]+$'
+    - name: target
+      in: path
+      required: true
+      description: Target chat ID
+      schema:
+        type: integer
+        example: 2
+        minimum: 1
+        maximum: 1024
+    - name: message
+      in: path
+      required: true
+      description: ID of the message to forward
+      schema:
+        type: integer
+        example: 2
+        minimum: 1
+        maximum: 1024
     post:
       tags: ["Chat"]
-      summary: Inoltra messaggio a una nuova chat (forwardMessageToNewChat)
+      summary: "Forward message to new chat (forwardMessageToNewChat)"
       description: |-
-        Inoltra un messaggio ad una nuova chat, una chat non esistente.
+        Forwards a message to a new, non-existing chat.
       operationId: forwardMessageToNewChat
       responses:
         "200":
-          description: Messaggio inoltrato con successo
+          description: Message forwarded successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Messaggio o chat non trovati
+          description: Message not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/risposta/chats/{chat}/messaggi/{messaggio}:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/chats/{chat}/messages/{message}:
     parameters:
-      - name: utente
-        in: path
-        required: true
-        description: Nickname dell'utente
-        schema:
-          type: string
-          example: "Carlo"
-          minLength: 1
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9._~-]+$'
-
-      - name: chat
-        in: path
-        required: true
-        description: ID della chat in cui ci si trova
-        schema:
-          type: integer
-          example: 2
-          minimum: 1
-          maximum: 1024
-      - name: messaggio
-        in: path
-        required: true
-        description: ID del messaggio da inoltrare
-        schema:
-          type: integer
-          example: 2
-          minimum: 1
-          maximum: 1024
+    - name: user
+      in: path
+      required: true
+      description: username
+      schema:
+        type: string
+        example: "Carlo"
+        minLength: 1
+        maxLength: 1024
+        pattern: '^[a-zA-Z0-9._~-]+$'
+    - name: chat
+      in: path
+      required: true
+      description: Group ID
+      schema:
+        type: integer
+        example: 2
+        minimum: 1
+        maximum: 1024
+    - name: message
+      in: path
+      required: true
+      description: ID of the message to forward
+      schema:
+        type: integer
+        example: 2
+        minimum: 1
+        maximum: 1024
     post:
       tags: ["Chat"]
-      summary: Rispondi a messaggio (ansMessage)
+      summary: "Reply to message (ansMessage)"
       description: |-
-        Rispondi ad un messaggio a un messaggio.
+        Replies to an existing message in a chat.
       operationId: ansMessage
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaMessaggio'
+              $ref: '#/components/schemas/MessageRequest'
         required: true
       responses:
         "200":
-          description: Risposta aggiunta con successo
+          description: Reply added successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
+        "400":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+        "404":
+          description: Message or chat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+    delete:
+      tags: ["Chat"]
+      summary: Elimina Message (deleteMessage)
+      description: |-
+        Elimina un Message dalla chat.
+      operationId: deleteMessage
+      responses:
+        "200":
+          description: Message eliminato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
         "400":
           description: Errore lato client
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Messaggio o chat non trovati
+          description: Message non trovato
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
           description: Errore interno del server
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/utenti/gruppi/{gruppo}:     
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/userceck/groups/{group}:     
     parameters:
-    - name: utente
+    - name: user
       in: path
       required: true
-      description: Nickname dell'utente
+      description: username
       schema:
         type: string
         example: "Carlo"
         minLength: 1
-        maxLength: 50
+        maxLength: 1024
         pattern: '^[a-zA-Z0-9._~-]+$'
-
-    - name: gruppo
+    - name: group
       in: path
       required: true
-      description: ID della chat
+      description: Chat ID
       schema:
         type: number
         example: 2
         minimum: 1
         maximum: 1024
-        
     get:
       tags: ["Chat"]
-      summary: get Utenti presenti nel gruppo (usersInGroup)
+      summary: "Get group members (usersInGroup)"
       description: |-
-       Vedi chi sono gli utenti preesnti nel gruppo.
+        Retrieves the list of users present in the group.
       operationId: usersInGroup
       responses:
         "200":
-          description: Vengono restituiti correttamente gli utenti del gruppo
+          description: Group members retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaUtenti'
+                $ref: '#/components/schemas/UserResponse'
         "400":
-          description: Errore lato client, l'utente non ha accesso al gruppo
+          description: Client error - user doesn't have access to the group
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Messaggio non trovato
+          description: Group not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/chats/{chat}/messaggi/{messaggio}:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/messages/{message}:
     parameters:
-    - name: utente
+    - name: user
       in: path
       required: true
-      description: Nickname dell'utente
+      description: username
       schema:
         type: string
         example: "Carlo"
         minLength: 1
-        maxLength: 50
+        maxLength: 1024
         pattern: '^[a-zA-Z0-9._~-]+$'
-    - name: chat
+    - name: message
       in: path
       required: true
-      description: ID della chat
-      schema:
-        type: integer
-        example: 2
-        minimum: 1
-        maximum: 1024
-    - name: messaggio
-      in: path
-      required: true
-      description: ID del messaggio
-      schema:
-        type: integer
-        example: 2
-        minimum: 1
-        maximum: 1024
-    delete:
-      tags: ["Chat"]
-      summary: Elimina messaggio (deleteMessage)
-      description: |-
-        Elimina un messaggio dalla chat.
-      operationId: deleteMessage
-      responses:
-        "200":
-          description: Messaggio eliminato con successo
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RispostaGenerica'
-        "400":
-          description: Errore lato client
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-        "404":
-          description: Messaggio non trovato
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-        "500":
-          description: Errore interno del server
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/messaggi/{messaggio}:
-    parameters:
-    - name: utente
-      in: path
-      required: true
-      description: Nickname dell'utente
-      schema:
-        type: string
-        example: "Carlo"
-        minLength: 1
-        maxLength: 50
-        pattern: '^[a-zA-Z0-9._~-]+$'
-
-    - name: messaggio
-      in: path
-      required: true
-      description: ID del messaggio
+      description: ID of the message to forward
       schema:
         type: integer
         example: 2
@@ -912,304 +792,307 @@ paths:
         maximum: 1024
     post:
       tags: ["Chat"]
-      summary: Commenta messaggio (commentMessage)
+      summary: "Comment on message (commentMessage)"
       description: |-
-        Aggiunge un commento a un messaggio.
+        Adds a comment to an existing message.
       operationId: commentMessage
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaCommento'
+              $ref: '#/components/schemas/CommentRequest'
         required: true
       responses:
         "200":
-          description: Commento aggiunto con successo
+          description: Comment added successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Messaggio non trovato
+          description: Message not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
     delete:
       tags: ["Chat"]
-      summary: Elimina commento (deleteComment)
+      summary: "Delete comment (deleteComment)"
       description: |-
-        Elimina un commento da un messaggio.
+        Removes a comment from a message.
       operationId: deleteComment
       responses:
         "200":
-          description: Commento eliminato con successo
+          description: Comment deleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Commento non trovato
+          description: Comment not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/gruppi:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/groups:
     parameters:
-    - name: utente
+    - name: user
       in: path
       required: true
-      description: Nickname dell'utente
+      description: username
       schema:
         type: string
         example: "Carlo"
         minLength: 1
-        maxLength: 50
+        maxLength: 1024
         pattern: '^[a-zA-Z0-9._~-]+$'
     post:
-      tags: ["Creazione Gruppo"]
-      summary: Crea un gruppo (createGroup)
+      tags: ["Group Creation"]
+      summary: "Create group (createGroup)"
       description: |-
-        Modifica il nome del gruppo specificato.
+        Creates a new group with the specified name.
       operationId: createGroup
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaNomeGruppo'
+              $ref: '#/components/schemas/GroupNameRequest'
         required: true
       responses:
         "200":
-          description: Nome gruppo modificato con successo
+          description: Group created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Gruppo non trovato
+          description: User not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/gruppi/{chat}/nome:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/groups/{chat}/name:
     parameters:
-    - name: utente
+    - name: user
       in: path
       required: true
-      description: Nickname dell'utente
+      description: username
       schema:
         type: string
         example: "Carlo"
         minLength: 1
-        maxLength: 50
+        maxLength: 1024
         pattern: '^[a-zA-Z0-9._~-]+$'
     - name: chat
       in: path
       required: true
-      description: ID del gruppo
+      description: Group ID
       schema:
         type: integer
         example: 2
         minimum: 1
         maximum: 1024
     put:
-      tags: ["Gestione Gruppi"]
-      summary: Modifica nome gruppo (setGroupName)
+      tags: ["Group Management"]
+      summary: "Update group name (setGroupName)"
       description: |-
-        Modifica il nome del gruppo specificato.
+        Updates the name of the specified group.
       operationId: setGroupName
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaPerCreazioneGruppo'
+              $ref: '#/components/schemas/GroupCreationRequest'
         required: true
       responses:
         "200":
-          description: Nome gruppo modificata con successo
+          description: Group name updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Gruppo non trovato
+          description: Group not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
-  /wasachat/{utente}/gruppi/{chat}/foto:
+                $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}/groups/{chat}/photo:
     parameters:
-    - name: utente
+    - name: user
       in: path
       required: true
-      description: Nickname dell'utente
+      description: username
       schema:
         type: string
         example: "Carlo"
         minLength: 1
-        maxLength: 50
+        maxLength: 1024
         pattern: '^[a-zA-Z0-9._~-]+$'
     - name: chat
       in: path
       required: true
-      description: ID del gruppo
+      description: Group ID
       schema:
         type: integer
         example: 2
         minimum: 1
         maximum: 1024
     put:
-      tags: ["Gestione Gruppi"]
-      summary: Modifica foto gruppo (setGroupPhoto)
+      tags: ["Group Management"]
+      summary: "Update group photo (setGroupPhoto)"
       description: |-
-        Modifica la foto del gruppo specificato.
+        Updates the photo for the specified group.
       operationId: setGroupPhoto
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RichiestaFotoGruppo'
+              $ref: '#/components/schemas/GroupPhotoRequest'
         required: true
       responses:
         "200":
-          description: Foto gruppo modificata con successo
+          description: Group photo updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RispostaGenerica'
+                $ref: '#/components/schemas/GenericResponse'
         "400":
-          description: Errore lato client
+          description: Client error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "404":
-          description: Gruppo non trovato
+          description: Group not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
         "500":
-          description: Errore interno del server
+          description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErroreGenerico'
+                $ref: '#/components/schemas/GenericError'
 
 components:
   schemas:
-    RichiestaLogin:
+    LoginRequest:
       type: object
-      description: Dati richiesti per il login
+      description: Required login credentials
       required:
         - name
       properties:
         name:
           type: string
-          description: Nome utente per il login
+          description: Username for login
           example: "Carlo"
           minLength: 1
           maxLength: 50
           pattern: '^.*$'
 
-
-    RispostaIsGroup:
+    ResponseIsGroup:
       type: object
-      description: Indica se la conversazione è di gruppo e opzionalmente l'ID del gruppo se effettivamente è un gruppo
+      description: Indicates if the conversation is a group and optionally includes the group ID
       required:
         - is_group
       properties:
         is_group:
           type: boolean
-          description: Indica se la conversazione è un gruppo
+          description: Indicates if the conversation is a group
         group_id:
           type: integer
           format: int64
-          description: ID del gruppo (presente solo se è un gruppo
+          description: Group ID (present only if it's a group)
           minimum: 1
           maximum: 1024
-    
-    RispostaConversazioni:
-      description: Elenco delle conversazioni dell'utente
+
+    ConversationsResponse:
+      description: List of user's conversations
       required:
         - chats
       properties:
         chats:
           type: array
-          description: Lista delle conversazioni
+          description: List of conversations
           minItems: 0
           maxItems: 1024
           items:
-            $ref: '#/components/schemas/RiepilogoConversazione'
+            $ref: '#/components/schemas/Conversation'
 
-    RiepilogoConversazione:
+    Conversation:
       type: object
-      description: Dettagli di una singola conversazione
+      description: Details of a single conversation
+      required:
+        - name
+        - time
+        - isgroup
       properties:
         chat_id:
           type: integer
-          description: ID univoco della chat
+          description: Unique chat ID
           example: 21
           minimum: 1
           maximum: 1024
-        nome:
+        name:
           type: string
-          description: nome
-          example: "Peppe idraulico"
+          description: Conversation name
+          example: "james"
           minLength: 1
           maxLength: 100
           pattern: '^.*$'
-        foto:
+        photo:
           type: string
-          description: Contenuto base64 della foto
+          description: Base64 encoded photo content
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
@@ -1217,154 +1100,164 @@ components:
         time:
           type: string
           format: date-time
-          description: Data e ora dell'ultimo messaggio in formato ISO 8601
+          description: Timestamp of last message in ISO 8601 format
           minLength: 20
           maxLength: 30
           pattern: '^.*$'
-        ultimosnip:
+        lastsnip:
           type: string
-          description: Anteprima dell'ultimo messaggio
+          description: Preview of the last message
           example: "AE"
           minLength: 0
           maxLength: 1000
           pattern: '^.*$'
-        isgruppo:
+        lastphoto:
+          type: string
+          description: Base64 content of last message's photo
+          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          minLength: 1
+          maxLength: 1024
+          pattern: '^.*$'
+        isgroup:
           type: boolean
-          description: Indica se si tratta di una chat di gruppo
+          description: Indicates if this is a group chat
           example: false
 
-    RichiestaNomeUtente:
+    NameRequest:
       type: object
-      description: Richiesta per modificare il nome utente
+      description: Request to change username
       required:
-        - nome
+        - name
       properties:
-        nome:
+        name:
           type: string
-          description: nome
-          example: "Peppe idraulico"
+          description: New username
+          example: "james"
           minLength: 1
           maxLength: 100
           pattern: '^.*$'
 
-    RichiestaFotoProfilo:
+    PhotoRequest:
       type: object
-      description: Richiesta per modificare la foto profilo
+      description: Request to change profile picture
       required:
-        - foto
+        - photo
       properties:
-        foto:
+        photo:
           type: string
-          description: Contenuto base64 della foto
+          description: Base64 encoded photo content
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
 
-    RichiestaAggiungiUtente:
+    AddUserRequest:
       type: object
-      description: Richiesta per aggiungere un utente a un gruppo
+      description: Request to add user to group
       required:
-        - utente_da_aggiungere
+        - user_to_add
       properties:
-        utente_da_aggiungere:
+        user_to_add:
           type: string
-          description: Nickname dell'utente da aggiungere
+          description: Nickname of user to add
           example: "Luigi"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
 
-    RispostaMessaggiChat:
+    ChatMessageResponse:
       type: object
-      description: Elenco dei messaggi in una chat
+      description: List of messages in a chat
       required:
         - messages
       properties:
         messages:
           type: array
-          description: Lista dei messaggi
+          description: List of messages
           minItems: 0
           maxItems: 1024
           items:
-            $ref: '#/components/schemas/Messaggio'
+            $ref: '#/components/schemas/Message'
 
-    RispostaUtenti:
+    UserResponse:
       type: object
-      description: Elenco dei utenti in un gruppo
+      description: List of users in a group
       required:
-        - utenti
+        - users
       properties:
-        utenti:
+        users:
           type: array
-          description: Lista degli utenti nel gruppo
+          description: List of group members
           minItems: 0
           maxItems: 1024
           items:
-            $ref: '#/components/schemas/Utenti'
-    Utenti:
+            $ref: '#/components/schemas/User'
+
+    User:
       type: object
-      description: Utente, nome e immagine profilo
+      description: User details including name and profile picture
       required:
-        - nome
-        - foto
+        - name
+        - photo
       properties:
-        nome:
+        name:
           type: string
-          description: nome
-          example: "Peppe idraulico"
+          description: Username
+          example: "james"
           minLength: 1
           maxLength: 100
           pattern: '^.*$'
-        foto:
+        photo:
           type: string
-          description: Contenuto base64 della foto
+          description: Base64 encoded profile picture
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
-    Messaggio:
+
+    Message:
       type: object
-      description: Dettagli di un singolo messaggio
+      description: Details of a single message
       required:
         - message_id
-        - autore
-        - idautore
+        - author
+        - idauthor
         - time
-        - ricevuto
-        - letto
-        - commenti
-        - inoltrato
+        - rec
+        - read
+        - comments
+        - forw
       properties:
         message_id:
           type: integer
-          description: ID univoco del messaggio
+          description: Unique message ID
           example: 12
           minimum: 1
           maximum: 1024
-        idautore:
-          type: integer
-          description: ID univoco del autore
-          example: 12
-          minimum: 1
-          maximum: 1024
-        autore:
+        author:
           type: string
-          description: Nickname dell'autore
+          description: Author's nickname
+          example: "Marcolino"
+          minLength: 1
+          maxLength: 50
+          pattern: '^.*$'
+        idauthor:
+          type: string
+          description: Author's nickname
           example: "Marcolino"
           minLength: 1
           maxLength: 50
           pattern: '^.*$'
         text:
           type: string
-          description: Contenuto testuale del messaggio
-          example: "Sei libero sabato?"
+          description: Message text content
+          example: "Are you free on Saturday?"
           minLength: 1
           maxLength: 1000
           pattern: '^.*$'
-        foto:
+        photo:
           type: string
-          description: Contenuto base64 della foto
+          description: Base64 encoded photo content
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
@@ -1372,220 +1265,221 @@ components:
         time:
           type: string
           format: date-time
-          description: Timestamp del messaggio in formato ISO 8601
+          description: Message timestamp in ISO 8601 format
           example: "2025-03-15T14:30:00Z"
           minLength: 20
           maxLength: 30
           pattern: '^.*$'
-        ricevuto:
+        rec:
           type: boolean
-          description: Indica se il messaggio è stato ricevuto
+          description: Indicates if message was received
           example: true
-        letto:
+        read:
           type: boolean
-          description: Indica se il messaggio è stato letto
+          description: Indicates if message was read
           example: false
-        commenti:
+        comments:
           type: array
-          description: Lista dei commenti associati al messaggio
+          description: List of message comments
           minItems: 0
           maxItems: 100
           items:
-            $ref: '#/components/schemas/Commento'
-        inoltrato:
+            $ref: '#/components/schemas/Comment'
+        forw:
           type: boolean
-          description: Indica se il messaggio è stato inoltrato
+          description: Indicates if message was forwarded
           example: true
-        risposta:
+        ans:
           type: integer
-          description: ID del messaggio a cui si sta rispondendo
+          description: ID of message being replied to
           example: 9
           minimum: 1
           maximum: 1024
-    RichiestaMessaggio:
+
+    MessageRequest:
       type: object
-      description: Richiesta per inviare un messaggio
+      description: Request to send a message
       properties:
-        testo:
+        text:
           type: string
-          description: Contenuto testuale del messaggio
-          example: "Ti va di uscire insieme questo venerdì?"
+          description: Message text content
+          example: "Would you like to go out this Friday?"
           minLength: 1
           maxLength: 1000
           pattern: '^.*$'
-        foto:
+        photo:
           type: string
-          description: Contenuto base64 della foto
+          description: Base64 encoded photo content
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
-    RichiestaCommento:
+
+    CommentRequest:
       type: object
-      description: Richiesta per aggiungere un commento
+      description: Request to add a comment
       required:
-        - contenuto
+        - comment
       properties:
-        contenuto:
+        comment:
           type: string
-          description: Contenuto del commento (emoji)
+          description: Comment content (emoji)
           example: "👍"
           minLength: 1
           maxLength: 1000
           pattern: '^[\u0020-\u1FAFF]+$'
-    Commento:
+
+    Comment:
       type: object
-      description: Dettagli di un singolo commento
+      description: Details of a single comment
       required:
         - comment_id
-        - autore
-        - reazione
+        - author
+        - idauthor
+        - reaction
       properties:
         comment_id:
           type: integer
-          description: ID univoco del commento
+          description: Unique comment ID
           example: 2
           minimum: 1
           maximum: 1024
-        autore:
+        author:
           type: string
-          description: Nickname dell'autore
+          description: Author's nickname
           example: "Marcolino"
           minLength: 1
           maxLength: 50
           pattern: '^.*$'
-        reazione:
+        idauthor:
+          type: integer
+          description: Unique author ID
+          example: 2
+          minimum: 1
+          maximum: 1024
+        reaction:
           type: string
-          description: Contenuto del commento (emoji o testo breve)
+          description: Comment content (emoji or short text)
           example: "👍"
           minLength: 1
           maxLength: 10
           pattern: '^[\u0020-\u1FAFF]+$'
-    RichiestaPerCreazioneConversazionePrivata:
+
+    PrivateConversationRequest:
       type: object
-      description: Richiesta creare conversazioni private
+      description: Request to create private conversation
       required:
-        - nome
-        - foto
+        - name
+        - photo
       properties:
-        nome:
+        name:
           type: string
-          description: nome
-          example: "Peppe idraulico"
+          description: Username
+          example: "james"
           minLength: 1
           maxLength: 100
           pattern: '^.*$'
-        foto:
+        photo:
           type: string
-          description: Contenuto base64 della foto
+          description: Base64 encoded photo content
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
-    RichiestaPerCreazioneGruppo:
+
+    GroupCreationRequest:
       type: object
-      description: Richiesta per creare gruppi
+      description: Request to create group
       required:
-        - nome
-        - foto
+        - name
+        - photo
       properties:
-        nome:
+        name:
           type: string
-          description: nome
-          example: "Peppe idraulico"
+          description: Group name
+          example: "james"
           minLength: 1
           maxLength: 100
           pattern: '^.*$'
-        foto:
+        photo:
           type: string
-          description: Contenuto base64 della foto
+          description: Base64 encoded photo content
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
-    RichiestaNomeGruppo:
+
+    GroupNameRequest:
       type: object
-      description: Richiesta per modificare il nome di un gruppo
+      description: Request to change group name
       required:
-        - nome
+        - name
       properties:
-        nome:
+        name:
           type: string
-          description: nome
-          example: "Peppe idraulico"
+          description: New group name
+          example: "james"
           minLength: 1
           maxLength: 100
           pattern: '^.*$'
-    RichiestaFotoGruppo:
+
+    GroupPhotoRequest:
       type: object
-      description: Richiesta per modificare la foto di un gruppo
+      description: Request to change group photo
       required:
-        - foto
+        - photo
       properties:
-        foto:
+        photo:
           type: string
-          description: Contenuto base64 della foto
+          description: Base64 encoded photo content
           example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
-          
-    RispostaIdFromName:
+
+    GenericResponse:
       type: object
-      description: Risposta per la funzione idFromName
+      description: Generic response
       required:
-        - id
+        - code
+        - response
       properties:
-        id:
+        code:
           type: integer
-          description: id dell'utente cercato
-          example: 200
-          minLength: 1
-          maxLength: 1024
-          minimum: 1
-          maximum: 1024
-    
-    RispostaGenerica:
-      type: object
-      description: Risposta generica
-      required:
-        - codice
-        - risposta
-      properties:
-        codice:
-          type: integer
-          description: codice di risposta
+          description: Response code
           example: 200
           minLength: 1
           maxLength: 1024
           minimum: 200
           maximum: 299
-        risposta:
+        response:
           type: string
-          description: risposta 
-          example: "messaggio di successo"
+          description: Response message
+          example: "Success"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
-    ErroreGenerico:
+
+    GenericError:
       type: object
-      description: Errore
+      description: Error response
       required:
-        - codiceErrore
-        - errore
+        - errorCode
+        - error
       properties:
-        codiceErrore:
+        errorCode:
           type: integer
-          description: codice di errore
+          description: Error code
           example: 500
           minLength: 1
           maxLength: 1024
           minimum: 300
           maximum: 599
-        errore:
+        error:
           type: string
-          description: errore
+          description: Error message
           pattern: '^.*$'
-          example: "errore"
+          example: "Error occurred"
           minLength: 1
           maxLength: 1024
+    

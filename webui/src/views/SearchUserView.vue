@@ -3,7 +3,7 @@
   <div class="c">
     <h2>Search user</h2>
     <form @submit.prevent="searchUser">
-      <input type="text" v-model="utente" placeholder="Nickname" required/>
+      <input type="text" v-model="user" placeholder="Nickname" required/>
       <button type="submit" class="btn">Search</button>
     </form>
   </div>
@@ -13,28 +13,28 @@
 export default {
   data() {
     return {
-      utente: '', //modifica in user nel backend poi//
+      user: '',
+      nickname : this.$route.params.nickname,
     };
   },
   methods: {
     async searchUser() {
       try {
-        const nickname = this.$route.params.nickname;
-        const response = await this.$axios.post(`/wasachat/${nickname}/conversazioniprivate`, {
-          utente: this.utente.trim(),
+        const response = await this.$axios.post(`/wasachat/${this.nickname}/privateconversation`, {
+          user: this.user.trim(),
         });
 
         if (response.status >= 200 && response.status < 300) {
-          this.$router.push(`/wasachat/${nickname}/chats`);
+          this.$router.push(`/wasachat/${this.nickname}/chats`);
         } else {
-          const message = response.data.risposta;
+          const message = response.data.response;
           alert(message);
         }
       } catch (e) {
         if (e.response) {
-          const message = e.response.data.errore;
-          const codiceErrore = e.response.data.codiceErrore;
-          alert(`${message} (codice ${codiceErrore})`);
+          const message = e.response.data.error;
+          const errorCode = e.response.data.errorCode;
+          alert(`${message} (codice ${errorCode})`);
         } else {
           alert("Error: Network error.");
         }
@@ -43,8 +43,7 @@ export default {
     },
     
     goBack() {
-      const { nickname } = this.$route.params;
-      this.$router.push(`/wasachat/${nickname}/chats`);
+      this.$router.push(`/wasachat/${this.nickname}/chats`);
     },
   },
 };

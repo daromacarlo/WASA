@@ -52,12 +52,12 @@ export default {
     async createGroup() {
       this.error = null;
       try {
-        const response = await this.$axios.post(`/wasachat/${this.currentUser}/gruppi`, {
-          nome: this.name,
-          foto: this.photo,
+        const response = await this.$axios.post(`/wasachat/${this.currentUser}/groups`, {
+          name: this.name,
+          photo: this.photo,
         });
-        const message = response.data.risposta;
-        const codice = parseInt(response.data.codice);
+        const message = response.data.response;
+        const codice = parseInt(response.data.code);
         if (response.codice >= 200 && response.codice < 300) {
           this.$router.push(`/wasachat/${this.currentUser}/chats`);
           alert(message);
@@ -67,9 +67,9 @@ export default {
         }
       } catch (e) {
         if (e.response) {
-          const message = e.response.data.errore;
-          const codiceErrore = parseInt(e.response.data.codiceErrore);
-          alert(message + ` (codice ${codiceErrore})`);
+          const message = e.response.data.error;
+          const errorCode = parseInt(e.response.data.errorCode);
+          alert(message + ` (codice ${errorCode})`);
         } else {
           alert("Error: Network error.");
         }
@@ -77,9 +77,11 @@ export default {
         console.error(e);
       }
     },
+
     goBack() {
       this.$router.push(`/wasachat/${this.currentUser}/chats`);
-      },
+    },
+
   },
 };
 </script>

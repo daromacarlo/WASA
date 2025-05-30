@@ -28,8 +28,8 @@ export default {
     async login() {
       try {
         const response = await this.$axios.post("/wasachat", { nickname: this.nickname });
-        const message = response.data.risposta;
-        const codice = parseInt(response.data.codice);
+        const message = response.data.response;
+        const codice = parseInt(response.data.code);
         if (codice === 200) {
           this.$router.push(`/wasachat/${this.nickname}/chats`);
         } else {
@@ -37,9 +37,9 @@ export default {
         }
     } catch (e) {
         if (e.response) {
-          const message = e.response.data.errore;
-          const codiceErrore = parseInt(e.response.data.codiceErrore);
-          alert(message + ` (codice ${codiceErrore})`);
+          const message = e.response.data.error;
+          const errorCode = parseInt(e.response.data.errorCode);
+          alert(message + ` (codice ${errorCode})`);
         } else {
           alert("Error: Network error.");
         }

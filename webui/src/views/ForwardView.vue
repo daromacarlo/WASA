@@ -15,15 +15,16 @@
           <li v-for="chat in chats" :key="chat.chat_id" @click="forwardToChat(chat)">
             <div class="chat-item">
               <img
-                v-if="chat.foto"
-                :src="chat.foto"
+                v-if="chat.photo"
+                :src="chat.photo"
                 class="chat-photo"
                 @error="handleImageError"
               />
               <div v-else class="chat-photo-placeholder">👤</div>
               <div class="chat-info">
-                <p class="chat-name">{{ chat.nome }}</p>
-                <p v-if="chat.ultimosnip" class="chat-last-message">{{ chat.ultimosnip }}</p>
+                <p class="chat-name">{{ chat.name }}</p>
+                <p v-if="chat.lastsnip" class="chat-last-message">{{ chat.lastsnip }}</p>
+                <p v-if="chat.lastphoto" class="chat-last-message">{{"[img]" }}</p>
                 <p v-if="chat.time" class="chat-time">{{ formatTime(chat.time) }}</p>
               </div>
             </div>
@@ -84,16 +85,14 @@ export default {
   async loadChats() {
     try {
       this.loading = true;
-      const response = await this.$axios.get('/wasachat/' + this.currentNickname + '/chats');
-      
-      // Replace map with traditional loop
+      const response = await this.$axios.get(`/wasachat/${this.currentNickname}/chats`);
+    
       this.chats = [];
       for (let i = 0; i < response.data.length; i++) {
         const chat = response.data[i];
         
-        // Process photo if exists
-        if (chat.foto && !chat.foto.startsWith('data:image')) {
-          chat.foto = 'data:image/jpeg;base64,' + chat.foto;
+        if (chat.photo && !chat.photo.startsWith('data:image')) {
+          chat.photo = 'data:image/jpeg;base64,' + chat.photo;
         }
         
         this.chats.push(chat);
@@ -101,9 +100,9 @@ export default {
       
     } catch (e) {
       if (e.response && e.response.data) {
-        const message = e.response.data.errore;
-        const codiceErrore = parseInt(e.response.data.codiceErrore);
-        this.error = message + ' (codice ' + codiceErrore + ')';
+        const message = e.response.data.error;
+        const errorCode = parseInt(e.response.data.errorCode);
+        this.error = message + ' (code ' + errorCode + ')';
       } else {
         this.error = 'Error: Network error.';
       }
@@ -141,12 +140,12 @@ export default {
       if (this.currentMessageId) {
         try {
           const response = await this.$axios.post(
-            `/wasachat/${this.currentNickname}/inoltro/${destinationChatId}/messaggi/${this.currentMessageId}`
+            `/wasachat/${this.currentNickname}/forw/${destinationChatId}/messages/${this.currentMessageId}`
           );
-          const message = response.data.risposta;
-          const codice = parseInt(response.data.codice);
+          const message = response.data.response;
+          const code = parseInt(response.data.code);
 
-          if (codice >= 200 && codice < 300) {
+          if (code >= 200 && code < 300) {
             alert(message);
             this.goBack();
           } else {
@@ -154,9 +153,9 @@ export default {
           }
         } catch (e) {
           if (e.response) {
-            const message = e.response.data.errore;
-            const codiceErrore = parseInt(e.response.data.codiceErrore);
-            alert(message + ` (codice ${codiceErrore})`);
+            const message = e.response.data.error;
+            const errorCode = parseInt(e.response.data.errorCode);
+            alert(message + ` (code ${errorCode})`);
           } else {
             alert("Error: Network error.");
           }
@@ -166,37 +165,38 @@ export default {
       }
     },
 
-    async forwardToNewUser() {
-      
-      this.addingMember = true;
-      this.error = null;
+  async forwardToNewUser() {
+    this.addingMember = true;
+    this.error = null;
 
-      try {
-        const response = await this.$axios.post(
-          `/inoltro/${this.currentNickname}/a/${this.newMemberName}/inoltro/messaggi/${this.currentMessageId}`
-        );
-        const message = response.data.risposta;
-        const codice = parseInt(response.data.codice);
+    try {
+      const response = await this.$axios.post(
+        `/wasachat/${this.currentNickname}/forwnew/${this.newMemberName}/messages/${this.currentMessageId}`,
+        {}
+      );
 
-        if (codice >= 200 && codice < 300) {
-          alert(message);
-          this.closeNewChatModal();
-          this.goBack();
-        } else {
-          this.error = message;
-        }
-      } catch (e) {
-        if (e.response) {
-          const message = e.response.data.errore;
-          const codiceErrore = parseInt(e.response.data.codiceErrore);
-          alert(message + ` (codice ${codiceErrore})`);
-        } else {
-          alert("Error: Network error.");
-        }
-      } finally {
-        this.addingMember = false;
+      const message = response.data.response;
+      const code = parseInt(response.data.code);
+
+      if (code >= 200 && code < 300) {
+        alert(message);
+        this.closeNewChatModal();
+        this.goBack();
+      } else {
+        this.error = message;
       }
-    },
+    } catch (e) {
+      if (e.response) {
+        const message = e.response.data.error;
+        const errorCode = parseInt(e.response.data.errorCode);
+        alert(message + ` (code ${errorCode})`);
+      } else {
+        alert("Error: Network error.");
+      }
+    } finally {
+      this.addingMember = false;
+    }
+  },
 
     goBack() {
       this.$router.push(`/wasachat/${this.currentNickname}/chats/${this.currentChatId}`);
@@ -336,10 +336,11 @@ li {
   right: 0;
   bottom: 0;
   z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal-content {
-  background-color: white;
+  background-color: rgb(255, 255, 255);
   padding: 25px;
   border-radius: 8px;
   width: 90%;

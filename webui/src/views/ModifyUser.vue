@@ -10,7 +10,7 @@
     <div v-if="showModifyNameModal" class="modal">
       <div class="modal-content">
         <h3>Modify your Nickname</h3>
-        <form @submit.prevent="modifyGroupName">
+        <form @submit.prevent="modifyUserName">
           <input v-model="newNick" type="text" placeholder="Insert your new name:" class="modal-input" required/>
           <div class="modal-btn">
             <button class="btn">Save</button>
@@ -23,7 +23,7 @@
     <div v-if="showModifyPhotoModal" class="modal">
       <div class="modal-content">
         <h3>Modify your photo</h3>
-        <form @submit.prevent="modifyGroupPhoto">
+        <form @submit.prevent="modifyUserPhoto">
           <input type="file" accept="image/jpeg" class="modal-input" @change="handleFileUpload" required/>
           <div class="modal-btn">
             <button class="btn">Save</button>
@@ -96,50 +96,50 @@
     this.error = null;
   },
 
-  async modifyGroupName() {
-    try {
-      const newName = this.newNick.trim() 
-      const response = await this.$axios.put(
-        `/wasachat/${this.currentUser}/nome`,
-        { nome: this.newNick.trim() }
-      );
+  async modifyUserName() {
+  try {
+    const newName = this.newNick.trim();
+    const response = await this.$axios.put(
+      `/wasachat/${this.currentUser}/usersettings/name`,
+      { name: newName }
+    );
 
-      const codice = parseInt(response.data.codice);
-      const message = response.data.risposta || "";
+    const codice = parseInt(response.data.code);
+    const message = response.data.response || "";
 
-      if (codice >= 200 && codice < 300) {
-        alert(message)
-        this.closeModifyNameModal();
-        this.$router.push({
-          name: 'UserChats',
-          params: { nickname:newName }
-        });
-      } else {
-        alert(message);
-      }
+    if (codice >= 200 && codice < 300) {
+      alert(message);
+      this.closeModifyNameModal();
+      this.currentUser = newName;
+      this.$router.push({
+        name: 'UserChats',
+        params: { nickname: newName }
+      });
+    } else {
+      alert(message);
+    }
 
-    } catch (e) {
-      if (e.response && e.response.data) {
-        const message = e.response.data.errore;
-        const codiceErrore = e.response.data.codiceErrore
-        parseInt(e.response.data.codiceErrore)
-        alert(`${message} (codice ${codiceErrore})`);
-      } else {
-        alert("Error: Network error.");
-      }
-    } finally {
-      console.error(e);
+  } catch (e) {
+    if (e.response && e.response.data) {
+      const message = e.response.data.error;
+      const errorCode = e.response.data.errorCode;
+      alert(`${message} (codice ${errorCode})`);
+    } else {
+      alert("Error: Network error.");
+    }
+  } finally {
+    console.error(e);
     }
   },
 
-  async modifyGroupPhoto() {
+  async modifyUserPhoto() {
     try {
       const response = await this.$axios.put(
-        `/wasachat/${this.currentUser}/foto`,
-        { foto: this.newPhoto }
+        `/wasachat/${this.currentUser}/usersettings/photo`,
+        { photo: this.newPhoto }
       );
-      const message = response.data.risposta;
-      const codice = parseInt(response.data.codice);
+      const message = response.data.response;
+      const codice = parseInt(response.data.code);
 
       this.$router.push({ 
       name: 'UserChats', 
@@ -151,9 +151,9 @@
     }
   } catch (e) {
     if (e.response) {
-      const message = e.response.data.errore;
-      const codiceErrore = parseInt(e.response.data.codiceErrore);
-      alert(message + ` (codice ${codiceErrore})`);
+      const message = e.response.data.error;
+      const errorCode = parseInt(e.response.data.errorCode);
+      alert(message + ` (codice ${errorCode})`);
     } else {
       alert("Error: Network error.");
     }

@@ -35,63 +35,63 @@ import (
 	"errors"
 )
 
-// AppDatabase è una interfaccia ad alto livello del database.
 type AppDatabase interface {
-	// impostazioni
-	ImpostaFotoProfilo(nicknamePassato string, idfotoPassata int) error
-	ImpostaNome(nicknamePassato string, nuovoNickPassato string) (int, error)
-	ImpostaFotoGruppo(utenteChiamante string, idfotoPassata int, idgruppoPassato int) (int, error)
-	ImpostaNomeGruppo(utenteChiamante string, nomeGruppoPassato string, idgruppoPassato int) (int, error)
 
-	// utente
-	CreaUtente(nicknamePassato string, idfotoPassata int) error
-	IdUtenteDaNickname(nicknamePassato string) (int, int, error)
-	NicknameUtenteDaId(idPassato int) (string, int, error)
-	UsersInGroup(nicknamePassato string, chat int) ([]Profilo, int, error)
-	Login(nicknamePassato string) (string, error)
+	// settings
+	SetPhotoDB(nickname string, idPhoto int) error
+	SetNameDB(nickname string, newNickname string) (int, error)
+	SetGroupPhotoDB(callerUser string, idPhoto int, groupId int) (int, error)
+	SetGroupNameDB(callerUser string, newGroupName string, groupId int) (int, error)
 
-	// foto
-	CreaFoto(fotoPassata string) (int, error)
+	// user
+	CreateUser(nickname string, idPhoto int) error
+	IDFromNICK(nickname string) (int, int, error)
+	NICKFromID(idPassed int) (string, int, error)
+	UsersInGroup(nickname string, chat int) ([]Profile, int, error)
+	Login(nickname string) (string, error)
 
-	// messaggi
-	CreaMessaggioFotoDB(utentePassato string, conversazionePassata int, fotoPassata int) (int, int, error)
-	CreaMessaggioTestualeDB(utentePassato string, conversazionePassata int, testoPassato string) (int, int, error)
-	CreaStatoMessaggioPrivato(idmessaggioPassato int) error
-	LeggiMessaggiPrivati(utente2Passato string, conversazioneID int) error
-	CreaStatoMessaggioGruppo(idmessaggioPassato int) error
-	LeggiMessaggiGruppo(utente1Passato string, conversazioneID int) error
-	CheckLetturaMessaggiGruppo(conversazioneID int) error
-	EliminaMessaggio(utentePassato string, id_messaggio int, idchat int) error
-	CopiaMessaggioCambiandoOraEMitente(idMessaggio int, nuovoAutore string, chat int) (int, error)
-	InoltraMessaggio(utentePassato string, idChatNuova int, IdMessaggio int) (int, error)
-	ImpostaRisposta(IdMessaggio int, IdNuovoMessaggio int) error
-	RispondiMessaggioFoto(utentePassato string, idGruppoPassato int, IdMessaggio int, fotoPassato int) (int, error)
-	RispondiMessaggioTesto(utentePassato string, idGruppoPassato int, IdMessaggio int, testoPassato string) (int, error)
-	InoltraMessaggioANuovaChat(utente_Passato string, utente2_Passato string, IdMessaggio int) (int, error)
+	// photo
+	CreaFoto(passedPhoto string) (int, error)
 
-	// commenti
-	EliminaCommento(utentePassato string, idcommento int) error
-	AggiungiCommento(utentePassato string, messaggioPassato int, reazionePassata string) (int, error)
+	// messages
+	CreatePhotoMessageDB(userPassed string, chatId int, passedPhoto int) (int, int, error)
+	CreateTextMessageDB(userPassed string, chatId int, passedText string) (int, int, error)
+	CreatePrivateMessageStatus(messageId int) error
+	ReadPrivateMessage(user2 string, chatID int) error
+	CreateGroupMessageStatus(messageId int) error
+	ReadGroupMessages(user1 string, chatID int) error
+	CheckGroupMessageReadStatus(chatID int) error
+	DeleteMessage(userPassed string, messageId int, idchat int) error
+	CopyMessageChangingTimeAndSender(messageId int, newAuthor string, chat int) (int, error)
+	ForwardMessage(userPassed string, newChatId int, messageId int) (int, error)
+	setAns(messageId int, newMessageId int) error
+	AnsPhotoMessage(userPassed string, groupId int, messageId int, passedPhoto int) (int, error)
+	AnsTextMessage(userPassed string, groupId int, messageId int, passedText string) (int, error)
+	ForwardMessageToNewChat(userPassed string, user2 string, messageId int) (int, error)
 
-	// conversazione
-	CreaConversazioneDB() (int, error)
-	CreaGruppoDB(utenteChiamante string, nomeGruppoPassato string, idfotoPassata int) (int, error)
-	CreaConversazionePrivataDB(utente1_Passato string, utente2_Passato string) (int, int, error)
-	AggiungiAGruppoDB(idConversazione int, utenteChiamante string, utenteDaAggiungere string) (int, error)
-	LasciaGruppo(idConversazione int, utenteChiamante string) (int, error)
-	GetConversazioni(utentePassato string) ([]Conversazione, int, error)
-	GetConversazione(utentePassato string, conversazionePassata int) ([]MessageData, int, error)
-	GetConversazionePrivata(utente1Passato string, utente2Passato string) ([]MessageData, int, error)
-	GetConversazioneGruppo(utente1Passato string, idConversazione int) ([]MessageData, int, error)
+	// comments
+	DeleteComment(userPassed string, idcommento int) error
+	AddComment(userPassed string, messageId int, reaction string) (int, error)
+
+	// chat
+	CreateConversationDB() (int, error)
+	CreateGroupDB(callerUser string, nomeGruppoPassato string, idPhoto int) (int, error)
+	CreatePrivateChatDB(user1 string, user2 string) (int, int, error)
+	AddToGroupDB(chatId int, callerUser string, targetUser string) (int, error)
+	LeaveGroup(chatId int, callerUser string) (int, error)
+	GetConversationsDB(userPassed string) ([]Conversation, int, error)
+	GetChat(userPassed string, chatId int) ([]MessageData, int, error)
+	GetPrivateChat(user1 string, user2 string) ([]MessageData, int, error)
+	GetGroupChat(user1 string, chatId int) ([]MessageData, int, error)
 
 	// check
-	EsisteConversazione(idConversazione int) (bool, error)
-	EsisteConversazioneTraUtenti(utente1Passato string, utente2Passato string) (int, int, error)
-	UtenteCoinvoltoPrivato(utentePassato string, destinatarioPassato string) (int, int, error)
-	CercaConversazioneGruppo(conversazionePassata int) (int, int, error)
-	CercaConversazionePrivata(conversazioneID int, utentePassatoConvertito int) (int, int, error)
-	UtenteCoinvoltoGruppo(utentePassato string, conversazionePassata int) (int, int, error)
-	EsistenzaUtente(nicknamePassato string) (bool, error)
+	chatExistence(chatId int) (bool, error)
+	chatExistenceTraUtenti(user1 string, user2 string) (int, int, error)
+	UserInvolved(userPassed string, targetUser string) (int, int, error)
+	SearchGroup(chatId int) (int, int, error)
+	SearchPrivateConversation(chatID int, userPassed_converted int) (int, int, error)
+	UserInGroup(userPassed string, chatId int) (int, int, error)
+	UserExistence(nickname string) (bool, error)
 
 	// test
 	Ping() error
@@ -101,47 +101,45 @@ type appdbimpl struct {
 	c *sql.DB
 }
 
-// New returns a new instance of AppDatabase based on the SQLite connection `db`.
-// `db` is required - an error will be returned if `db` is `nil`.
 func New(db *sql.DB) (AppDatabase, error) {
 	if db == nil {
 		return nil, errors.New("database is required when building an AppDatabase")
 	}
 
-	if err := CreaTabellaUtente(db); err != nil {
+	if err := CreateTableUser(db); err != nil {
 		return nil, err
 	}
 	if err := CreaTabellaFoto(db); err != nil {
 		return nil, err
 	}
-	if err := CreaTabellaConversazione(db); err != nil {
+	if err := CreateTableChat(db); err != nil {
 		return nil, err
 	}
-	if err := CreaTabellaGruppo(db); err != nil {
+	if err := CreateTableGroup(db); err != nil {
 		return nil, err
 	}
-	if err := CreaTabellaConversazionePrivata(db); err != nil {
+	if err := CreateTablePrivateChat(db); err != nil {
 		return nil, err
 	}
-	if err := CreaTabellaMessaggio(db); err != nil {
+	if err := CreateTableMessages(db); err != nil {
 		return nil, err
 	}
-	if err := CreaTabellaCommento(db); err != nil {
+	if err := CreateTableComment(db); err != nil {
 		return nil, err
 	}
-	if err := CreaTabellaUtenteingruppo(db); err != nil {
+	if err := CreateTableUseringruppo(db); err != nil {
 		return nil, err
 	}
-	if err := CreaTabellaStatoMessaggioPrivato(db); err != nil {
+	if err := CreateTablePrivateMessageStatus(db); err != nil {
 		return nil, err
 	}
-	if err := CreaTabellaStatoMessaggioGruppo(db); err != nil {
+	if err := CreateTableMessagesStatusGroup(db); err != nil {
 		return nil, err
 	}
-	if err := CreaTabellaStatoMessaggioGruppoPersona(db); err != nil {
+	if err := CreateTableMessagesStatusGroupPersona(db); err != nil {
 		return nil, err
 	}
-	if err := CreaTabellaStatoMessaggioGruppoPersonaRicevimento(db); err != nil {
+	if err := CreateGroupMessageReceiptStatusTable(db); err != nil {
 		return nil, err
 	}
 

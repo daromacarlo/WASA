@@ -1,11 +1,19 @@
-FROM golang:1.19.4 AS builder
+FROM golang:1.19.4 AS backend-builder
+
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod tidy
 
 COPY . .
 RUN go build -o /webapi ./cmd/webapi
-FROM debian:latest
-WORKDIR /root/
-COPY --from=builder ./webapi .
+
+FROM debian:bullseye-slim
+
+WORKDIR /app
+COPY --from=backend-builder /webapi .
+
 CMD ["./webapi"]
+
+#to mount: docker build -f Dockerfile.backend -t wasa-backend .
+
+#to run with tester permisses: docker run --rm --user 1000 -p 3000:3000 wasa-backend

@@ -4106,11 +4106,11 @@ const (
 )
 
 type (
-	EraseInfo struct {
+	DeleteInfo struct {
 		Start  uint32
 		Length uint32
 	}
-	EraseInfo64 struct {
+	DeleteInfo64 struct {
 		Start  uint64
 		Length uint64
 	}
@@ -4138,14 +4138,14 @@ type (
 		Type      uint8
 		Flags     uint32
 		Size      uint32
-		Erasesize uint32
+		Deletesize uint32
 		Writesize uint32
 		Oobsize   uint32
 		_         uint64
 	}
 	RegionInfo struct {
 		Offset      uint32
-		Erasesize   uint32
+		Deletesize   uint32
 		Numblocks   uint32
 		Regionindex uint32
 	}

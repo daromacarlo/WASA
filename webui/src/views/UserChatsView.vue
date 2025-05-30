@@ -8,23 +8,23 @@
     </div>
 
     <div class="cc">
-      <h2>Your conversations:</h2>
+      <h1 class="t"> Your conversations:</h1>
       <ul v-if="chats.length > 0">
         <li v-for="chat in chats" :key="chat.chat_id" @click="viewChat(chat)">
           <div class="chat-item">
           <img
-              v-if="chat.foto"
-              :src="chat.foto"
+              v-if="chat.photo"
+              :src="chat.photo"
               class="chat-photo"
               @error="handleImageError"
             />
             <div v-else class="cpp">👤</div>
             <div class="chat-info">
-              <p class="chat-name">{{ chat.nome }}</p>
-              <p v-if="chat.ultimosnip" class="chat-last-message">{{ chat.ultimosnip }}</p>
+              <p class="chat-name">{{ chat.name }}</p>
+              <p v-if="chat.lastsnip" class="chat-last-message">{{ chat.lastsnip }}</p>
               <img
-              v-if="chat.ultimofoto"
-              :src="chat.ultimofoto"
+              v-if="chat.lastphoto"
+              :src="chat.lastphoto"
               class="photo-message"
               @error="handleImageError"
             />
@@ -44,36 +44,65 @@ export default {
     return {
       chats: [],
       error: null, 
-      nickname : this.$route.params.nickname
+      pollingInterval: null,
+      nickname : this.$route.params.nickname,
+      isLoading: false,
     };
   },
   async created() {
     await this.loadChats();
+    this.startPolling();
   },
-  methods: {
-  async loadChats() {
-    let error = null;
-    try {
-      const response = await this.$axios.get('/wasachat/' + this.nickname + '/chats');
-      
-      this.chats = [];
-      for (let i = 0; i < response.data.length; i++) {
-        this.chats.push(response.data[i]);
-      }
 
+  beforeDestroy() {
+  this.stopPolling();
+  },
+
+  beforeUnmount() {
+  this.stopPolling();
+  },
+
+  methods: {
+
+    startPolling() {
+    this.pollingInterval = setInterval(() => {
+      this.loadChats();
+    }, 10000); 
+  },
+
+
+  stopPolling() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  },
+
+  async loadChats() {
+    if (this.isLoading) return;
+    this.isLoading = true;
+    let error = null;
+
+    try {
+      const response = await this.$axios.get(`/wasachat/${this.nickname}/chats`);
+      if (Array.isArray(response.data)) {
+        this.chats = response.data;
+      } else {
+        console.warn("Unexpected response format", response.data);
+        this.chats = [];
+      }
     } catch (e) {
       error = e;
       if (e.response && e.response.data) {
-        var message = e.response.data.errore;
-        var codiceErrore = parseInt(e.response.data.codiceErrore);
-        alert(message + ' (codice ' + codiceErrore + ')');
+        const message = e.response.data.error;
+        const errorCode = parseInt(e.response.data.errorCode);
+        alert(`${message} (codice ${errorCode})`);
       } else {
         alert('Error: Network error');
       }
     } finally {
-      if (error) {
-        console.error(error);
-      }
+      if (error) console.error(error);
+      this.isLoading = false;
     }
   },
 
@@ -88,16 +117,19 @@ export default {
     },
 
     profileSettings() {
+      this.stopPolling()
       const nickname = this.$route.params.nickname;
       this.$router.push(`/wasachat/${nickname}/settings`);
     },
 
     createGroup() {
+      this.stopPolling()
       const nickname = this.$route.params.nickname;
       this.$router.push(`/wasachat/${nickname}/chats/creategroup`);
     },
 
     searchUser() {
+      this.stopPolling()
       const nickname = this.$route.params.nickname;
       this.$router.push(`/wasachat/${nickname}/chats/searchuser`);
     },
@@ -108,6 +140,7 @@ export default {
     },
 
     logout(){
+      this.stopPolling()
       this.$router.push(`/`)
     }
   },
@@ -116,6 +149,16 @@ export default {
 </script>
 
 <style scoped>
+
+.t {
+  font-size: 45px;
+  color: #666;
+  margin-bottom: 5px;
+  padding: 7px;
+  border: 1px solid #666;
+  border-radius: 90px;
+}
+
 .btn-c{
   text-align: center;
   background-color: rgb(209, 188, 230);

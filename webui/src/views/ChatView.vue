@@ -17,47 +17,47 @@
         class="message_item"
         @click="openMessageModal(message)"
         :class="{ 
-          'message_item_right': isCurrentUser(message.idautore),
-          'message_item_group': isGroup && !isCurrentUser(message.idautore)
+          'message_item_right': isCurrentUser(message.idauthor),
+          'message_item_group': isGroup && !isCurrentUser(message.idauthor)
         }"
       >
 
-        <div v-if="isGroup && !isCurrentUser(message.idautore)" class="message_sender">
-          {{ message.autore }}
+        <div v-if="isGroup && !isCurrentUser(message.idauthor)" class="message_sender">
+          {{ message.author }}
         </div>
 
-        <div v-if="message.risposta" class="message_reply-container">
+        <div v-if="message.ans" class="message_reply-container">
           <div class="message_reply-preview">
             <span class="reply-label">Answer to: </span>
-            <span class="reply-author">{{ getOriginalMessageAuthor(message.risposta) }}</span>
+            <span class="reply-author">{{ getOriginalMessageAuthor(message.ans) }}</span>
             <div class="reply-content">
-              {{ getOriginalMessageText(message.risposta) }}
+              {{ getOriginalMessageText(message.ans) }}
             </div>
           </div>
         </div>
 
-        <div v-if="message.inoltrato">
+        <div v-if="message.forw">
           <span class="forward_label">Forwarded</span>
         </div>
 
-        <div v-if="message.foto" class="message_photo-container">
+        <div v-if="message.photo" class="message_photo-container">
           <img
-            :src="message.foto"
+            :src="message.photo"
             class="message_photo"
             @error="handleImageError"
           />
           <div>
             <p v-if="message.time" class="message_time">{{ formatTime(message.time) }}</p>
-            <p v-if="isCurrentUser(message.idautore)" class="message_status">
-              {{ message.letto ? "read" : (message.ricevuto ? "received" : "sent") }}
+            <p v-if="isCurrentUser(message.idauthor)" class="message_status">
+              {{ message.read ? "read" : (message.rec ? "received" : "sent") }}
             </p>
-            <div v-if="message.commenti && message.commenti.length > 0" class="message_reactions">
+            <div v-if="message.comments && message.comments.length > 0" class="message_reactions">
               <div 
-                v-for="(comment, index) in message.commenti" 
+                v-for="(comment, index) in message.comments" 
                 :key="index" 
                 class="reaction_badge_text"
-                :title="comment.autore">
-                <span class="reaction_emoji_text">{{ comment.reazione }}</span>
+                :title="comment.author">
+                <span class="reaction_emoji_text">{{ comment.reaction }}</span>
               </div>
             </div>
           </div>
@@ -67,16 +67,16 @@
           <p class="message_text">{{ message.text }}</p>
           <div>
             <p v-if="message.time" class="message_time">{{ formatTime(message.time) }}</p>
-            <p v-if="isCurrentUser(message.idautore)" class="message_status">
-              {{ message.letto ? "read" : (message.ricevuto ? "received" : "sent") }}
+            <p v-if="isCurrentUser(message.idauthor)" class="message_status">
+              {{ message.read ? "read" : (message.rec ? "received" : "sent") }}
             </p>
-            <div v-if="message.commenti && message.commenti.length > 0" class="message_reactions">
+            <div v-if="message.comments && message.comments.length > 0" class="message_reactions">
               <div 
-                v-for="(comment, index) in message.commenti" 
+                v-for="(comment, index) in message.comments" 
                 :key="index" 
                 class="reaction_badge_photo"
-                :title="comment.autore">
-                <span class="reaction_emoji_photo">{{ comment.reazione }}</span>
+                :title="comment.author">
+                <span class="reaction_emoji_photo">{{ comment.reaction }}</span>
               </div>
             </div>
           </div>
@@ -134,7 +134,7 @@
         <button @click="openCommentMessageModal(selectedMessage)" class="modal_btn">Comment</button>
         <button @click="goToForwardView(selectedMessage)" class="modal_btn">Forward</button>
         <button 
-          v-if="selectedMessage && isCurrentUser(selectedMessage.idautore)" 
+          v-if="selectedMessage && isCurrentUser(selectedMessage.idauthor)" 
           @click="deleteMessage" 
           class="modal_btn_red"
         >
@@ -190,8 +190,9 @@
 export default {
   data() {
     return {
+      pollingInterval: null,
+      isLoading: false,
       messages: [],
-      loading: false,
       error: null,
       newMessage: "",
       newPhoto: null,
@@ -240,13 +241,36 @@ export default {
     this.currentUserId = response.data.id;
     await this.checkIfGroup();
     await this.loadMessages();
+    this.startPolling();
     this.scrollToBottom();
   } catch (error) {
     console.error("Error:", error);
   }
 },
 
+  beforeDestroy() {
+  this.stopPolling();
+  },
+
+  beforeUnmount() {
+  this.stopPolling();
+  },
+
+
   methods: {
+
+    startPolling() {
+    this.pollingInterval = setInterval(() => {
+      this.loadMessages();
+    }, 10000);
+  },
+
+  stopPolling() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  },
     
   scrollToBottom() {
   this.$nextTick(() => {
@@ -258,6 +282,7 @@ export default {
   },
 
   goHome(){
+    this.stopPolling()
     this.$router.push(`/wasachat/${this.currentUser}/chats`);
   },
 
@@ -332,7 +357,7 @@ export default {
   if (!originalMessage) {
     return "(Erased message)";
   }
-  if (originalMessage.foto) {
+  if (originalMessage.photo) {
     return "img";
   }
   if (originalMessage.text) {
@@ -356,7 +381,7 @@ export default {
       return "(Erased): ";
     }
     else{
-      return originalMessage.autore
+      return originalMessage.author
     } 
    },
 
@@ -411,9 +436,9 @@ export default {
       }
     } catch (error) {
       if (error.response) {
-        const messaggio = error.response.data.errore;
-        const codiceErrore = parseInt(error.response.data.codiceErrore);
-        alert(messaggio + ` (codice ${codiceErrore})`);
+        const message = error.response.data.error;
+        const codiceErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (codice ${codiceErrore})`);
       } else {
         alert("Error: Network error.");
       }
@@ -421,9 +446,9 @@ export default {
   },
 
   hasUserReacted(message, reaction) {
-  for (let i = 0; i < message.commenti.length; i++) {
-    if (message.commenti[i].autore == this.currentUser && 
-        message.commenti[i].reazione == reaction) {
+  for (let i = 0; i < message.comments.length; i++) {
+    if (message.comments[i].author == this.currentUser && 
+        message.comments[i].reaction == reaction) {
       return true;
       }
    }
@@ -431,8 +456,8 @@ export default {
   },
 
   hasUserCommented(message) {
-    for (let i = 0; i < message.commenti.length; i++) {
-      if (message.commenti[i].idautore == this.currentUserId) {
+    for (let i = 0; i < message.comments.length; i++) {
+      if (message.comments[i].idauthor == this.currentUserId) {
         return true;
       }
     }
@@ -442,9 +467,9 @@ export default {
   async deleteUserComment(message) {
   try {
     let userComment = null;
-    for (let i = 0; i < message.commenti.length; i++) {
-      if (message.commenti[i].idautore == this.currentUserId) {
-        userComment = message.commenti[i];
+    for (let i = 0; i < message.comments.length; i++) {
+      if (message.comments[i].idauthor == this.currentUserId) {
+        userComment = message.comments[i];
         break;
       }
     }
@@ -452,7 +477,7 @@ export default {
     if (!userComment) return;
 
     const response = await this.$axios.delete(
-      `/wasachat/${this.currentUser}/messaggi/${this.selectedMessage.message_id}`
+      `/wasachat/${this.currentUser}/messages/${this.selectedMessage.message_id}`
     );
 
     let messageIndex = -1;
@@ -465,25 +490,25 @@ export default {
 
     if (messageIndex !== -1) {
       const filteredComments = [];
-      for (let i = 0; i < this.messages[messageIndex].commenti.length; i++) {
-        if (this.messages[messageIndex].commenti[i].commento_id !== userComment.commento_id) {
-          filteredComments.push(this.messages[messageIndex].commenti[i]);
+      for (let i = 0; i < this.messages[messageIndex].comments.length; i++) {
+        if (this.messages[messageIndex].comments[i].commento_id !== userComment.commento_id) {
+          filteredComments.push(this.messages[messageIndex].comments[i]);
         }
       }
-      this.messages[messageIndex].commenti = filteredComments;
+      this.messages[messageIndex].comments = filteredComments;
     }
 
-    this.$router.go();
+    this.loadMessages();
     this.closeMessageModal();
   } catch (error) {
     if (error.response) {
-      const messaggio = error.response.data.errore;
-      const codiceErrore = parseInt(error.response.data.codiceErrore);
-      alert(messaggio + ` (codice ${codiceErrore})`);
+      const message = error.response.data.error;
+      const codiceErrore = parseInt(error.response.data.errorCode);
+      alert(message + ` (codice ${codiceErrore})`);
     } else {
       alert("Error: Network error.");
     }
-    this.$router.go();
+     this.loadMessages();
    }
   },
 
@@ -505,31 +530,31 @@ export default {
     }
     
     const response = await this.$axios.post(
-      `/wasachat/${this.currentUser}/messaggi/${messageId}`,
-      { reazione: hasReacted ? null : reaction }
+      `/wasachat/${this.currentUser}/messages/${messageId}`,
+      { reaction: hasReacted ? null : reaction }
     );
 
     for (let i = 0; i < this.messages.length; i++) {
       const msg = this.messages[i];
 
       if (msg.message_id == messageId) {
-        if (!msg.commenti) {
-          this.$set(this.messages[i], 'commenti', []);
+        if (!msg.comments) {
+          this.$set(this.messages[i], 'comments', []);
         }
 
         if (hasReacted) {
           const filteredComments = [];
-          for (let j = 0; j < msg.commenti.length; j++) {
-            const comment = msg.commenti[j];
-            if (!(comment.idautore == this.currentUserId && comment.reazione == reaction)) {
+          for (let j = 0; j < msg.comments.length; j++) {
+            const comment = msg.comments[j];
+            if (!(comment.idauthor == this.currentUserId && comment.reaction == reaction)) {
               filteredComments.push(comment);
             }
           }
-          this.messages[i].commenti = filteredComments;
+          this.messages[i].comments = filteredComments;
         } else {
-          this.messages[i].commenti.push({
-            idautore: this.currentUserId,
-            reazione: reaction,
+          this.messages[i].comments.push({
+            idauthor: this.currentUserId,
+            reaction: reaction,
             commento_id: Date.now()
           });
         }
@@ -537,63 +562,78 @@ export default {
       }
     }
 
-    this.$router.go();
+    this.loadMessages();
     this.closeCommentMessageModal();
 
   } catch (error) {
     if (error.response) {
-      const messaggio = error.response.data.errore;
-      const codiceErrore = parseInt(error.response.data.codiceErrore);
-      alert(messaggio + ' (codice ' + codiceErrore + ')');
+      const message = error.response.data.error;
+      const codiceErrore = parseInt(error.response.data.errorCode);
+      alert(message + ' (codice ' + codiceErrore + ')');
     } else {
       alert("Errore: Errore di rete.");
     }
-    this.$router.go();
+    this.loadMessages();
    }
   },
 
   async loadMessages() {
+    if (this.isLoading) return;
+    this.isLoading = true;
+
     try {
       const response = await this.$axios.get(`/wasachat/${this.currentUser}/chats/${this.chatId}`);
 
-      this.messages = [];
-      for (let index = 0; index < response.data.length; index++) {
-        const message = response.data[index];
-        
-        if (message.foto && !message.foto.startsWith("data:image")) {
-          message.foto = 'data:image/jpeg;base64,' + message.foto;
-        }
-        
-        if (!Array.isArray(message.commenti)) {
-          message.commenti = [];
-        }
-        
-        this.messages.push(message);
+      if (!Array.isArray(response.data)) {
+        console.warn("invalid format", response.data);
+        this.messages = [];
+        return;
       }
 
-  } catch (e) {
-    if (e.response && e.response.data) {
-      const messaggio = e.response.data.errore;
-      const codiceErrore = parseInt(e.response.data.codiceErrore);
-      alert(messaggio + ' (codice ' + codiceErrore + ')');
-    }
-    console.error(e);
+      var processedMessages = [];
+      for (var i = 0; i < response.data.length; i++) {
+        var message = response.data[i];
+
+        if (message.photo && typeof message.photo === 'string' && !message.photo.startsWith("data:image")) {
+          message.photo = 'data:image/jpeg;base64,' + message.photo;
+        }
+
+        if (!Array.isArray(message.comments)) {
+          message.comments = [];
+        }
+
+        processedMessages.push(message);
+      }
+
+      this.messages = processedMessages;
+
+    } catch (e) {
+      if (e.response && e.response.data) {
+        var message = e.response.data.error;
+        var codiceErrore = parseInt(e.response.data.errorCode);
+        alert(message + ' (codice ' + codiceErrore + ')');
+      } else {
+        alert('Error: Network error');
+      }
+      console.error(e);
+    } finally {
+      this.isLoading = false;
     }
   },
 
   async deleteMessage() {
     try {
       const response = await this.$axios.delete(
-        `/wasachat/${this.currentUser}/chats/${this.chatId}/messaggi/${this.selectedMessage.message_id}`
+        `/wasachat/${this.currentUser}/chats/${this.chatId}/messages/${this.selectedMessage.message_id}`
       );
-        this.$router.go()
+      this.loadMessages();
 
       this.closeMessageModal();
     } catch (error) {
       if (error.response) {
-        const messaggio = error.response.data.errore;
-        const codiceErrore = parseInt(error.response.data.codiceErrore);
-        alert(messaggio + ` (codice ${codiceErrore})`);
+        const message = error.response.data.error;
+        const codiceErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (codice ${codiceErrore})`);
       } else {
         alert("Error: Network error");
       }
@@ -603,19 +643,19 @@ export default {
   async sendMessage() {
     {
       const messageData = {
-        testo: this.newMessage.trim(),
-        foto: this.newPhoto || "",
+        text: this.newMessage.trim(),
+        photo: this.newPhoto || "",
       };
       try {
         const newMessage = {
           message_id: Date.now(),
-          autore: this.currentUser,
+          author: this.currentUser,
           text: this.newMessage.trim(),
-          foto: this.newPhoto || null,
+          photo: this.newPhoto || null,
           time: new Date().toISOString(),
-          letto: false,
-          ricevuto: false,
-          commenti: []
+          read: false,
+          rec: false,
+          comments: []
         };
         
         this.messages.push(newMessage);
@@ -631,9 +671,9 @@ export default {
         
       } catch (error) {
       if (error.response) {
-        const messaggio = error.response.data.errore;
-        const codiceErrore = parseInt(error.response.data.codiceErrore);
-        alert(messaggio + ` (codice ${codiceErrore})`);
+        const message = error.response.data.error;
+        const codiceErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (codice ${codiceErrore})`);
       } else {
         alert("Error: Network error.");
       }
@@ -643,26 +683,26 @@ export default {
 
   async sendReplyMessage() {
     const messageData = {
-      testo: this.ans.trim(),
-      foto: this.ansphoto || "",
+      text: this.ans.trim(),
+      photo: this.ansphoto || "",
     };
 
     try {
       const response = await this.$axios.post(
-        `/wasachat/${this.currentUser}/risposta/chats/${this.chatId}/messaggi/${this.selectedMessage.message_id}`,
+        `/wasachat/${this.currentUser}/chats/${this.chatId}/messages/${this.selectedMessage.message_id}`,
         messageData
       );
 
       const newReply = {
         message_id: response.data.message_id,
-        autore: this.currentUser,
+        author: this.currentUser,
         text: this.ans.trim(),
-        foto: this.ansphoto || null,
+        photo: this.ansphoto || null,
         time: new Date().toISOString(),
-        risposta: this.selectedMessage.message_id,
-        letto: false,
-        ricevuto: false,
-        commenti: []
+        ans: this.selectedMessage.message_id,
+        read: false,
+        rec: false,
+        comments: []
       };
       this.messages.push(newReply);
 
@@ -670,9 +710,9 @@ export default {
 
     } catch (error) {
       if (error.response) {
-        const messaggio = error.response.data.errore;
-        const codiceErrore = parseInt(error.response.data.codiceErrore);
-        alert(messaggio + ` (codice ${codiceErrore})`);
+        const message = error.response.data.error;
+        const codiceErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (codice ${codiceErrore})`);
       } else {
         alert("Error: Network error.");
       }
@@ -706,9 +746,9 @@ export default {
       });
             } catch (error) {
       if (error.response) {
-        const messaggio = error.response.data.errore;
-        const codiceErrore = parseInt(error.response.data.codiceErrore);
-        alert(messaggio + ` (codice ${codiceErrore})`);
+        const message = error.response.data.error;
+        const codiceErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (codice ${codiceErrore})`);
       } else {
         alert("Error: Network error.");
       }
@@ -722,18 +762,18 @@ export default {
       this.addingMember = true;
       
       const response = await this.$axios.put(
-        `/wasachat/${this.currentUser}/chats/gruppi/${this.chatId}/aggiungi`,
-        { utente_da_aggiungere: nickname.trim() }
+        `/wasachat/${this.currentUser}/groups/${this.chatId}/add`,
+        { user_to_add : nickname.trim() }
       );
       
-      alert(response.data.risposta);
+      alert(response.data.response);
       this.closeAddMemberModal();
       
     } catch (error) {
       if (error.response) {
-        const messaggio = error.response.data.errore;
-        const codiceErrore = parseInt(error.response.data.codiceErrore);
-        alert(messaggio + ` (codice ${codiceErrore})`);
+        const message = error.response.data.error;
+        const codiceErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (codice ${codiceErrore})`);
       } else {
         alert("Error: Network error.");
       }
@@ -843,7 +883,7 @@ export default {
   max-width: 60%;
   cursor: pointer;
   margin-right: auto;
-  background-color: var(--random-group-color, rgb(220, 213, 228)); 
+  background-color: rgb(220, 213, 228); 
   display: flex;
   align-items: flex-start;
   padding: 16px;
@@ -1066,11 +1106,11 @@ export default {
 }
 
 .message_reply-container {
-  border-left: 3px solid #000000;
-  padding-left: 8px;
+  padding: 11px;
   margin-bottom: 8px;
-  color: #666;
-  font-size: 0.9em;
+  font-size: 10px;
+  border: 1px solid #000000;
+  border-radius: 20px;
 }
 
 .reply-label {
@@ -1079,7 +1119,7 @@ export default {
 }
 
 .reply-author {
-  color: #000000;
+  color: rgb(125, 3, 240);
   margin-right: 10px;
 
 }

@@ -45,7 +45,6 @@ export default {
       showModifyPhotoModal: false,
       newGroupName: "",
       newGroupPhoto: "",
-      isProcessing: false,
       errorMsg: null,
       currentUser: this.$route.params.nickname,
       chatId: this.$route.params.chat
@@ -107,23 +106,22 @@ export default {
 
     async modifyGroupName() {
       try {
-        this.isProcessing = true;
         const response = await this.$axios.put(
-          `/wasachat/${this.currentUser}/gruppi/${this.chatId}/nome`,
-          { nome: this.newGroupName.trim() }
+          `/wasachat/${this.currentUser}/groups/${this.chatId}/name`,
+          { name: this.newGroupName.trim() }
         );
         
-        const message = response.data.risposta;
-        const codice = parseInt(response.data.codice);
+        const message = response.data.response;
+        const codice = parseInt(response.data.code);
 
         alert(message);
         this.closeModifyNameModal();
         
       } catch (e) {
         if (e.response) {
-          const message = e.response.data.errore;
-          const codiceErrore = parseInt(e.response.data.codiceErrore);
-          alert(message + ` (codice ${codiceErrore})`);
+          const message = e.response.data.error;
+          const errorCode = parseInt(e.response.data.errorCode);
+          alert(message + ` (codice ${errorCode})`);
         } else {
           alert("Error: Network error.");
         }
@@ -135,21 +133,21 @@ export default {
     async modifyGroupPhoto() {  
       try {
         const response = await this.$axios.put(
-          `/wasachat/${this.currentUser}/gruppi/${this.chatId}/foto`,
-          { foto: this.newGroupPhoto }
+          `/wasachat/${this.currentUser}/groups/${this.chatId}/photo`,
+          { photo: this.newGroupPhoto }
         );
 
-        const message = response.data.risposta;
-        const codice = parseInt(response.data.codice);
+        const message = response.data.response;
+        const codice = parseInt(response.data.code);
 
         alert(message);
         this.closeModifyPhotoModal();
         
       } catch (e) {
         if (e.response) {
-          const message = e.response.data.errore;
-          const codiceErrore = parseInt(e.response.data.codiceErrore);
-          alert(message + ` (codice ${codiceErrore})`);
+          const message = e.response.data.error;
+          const errorCode = parseInt(e.response.data.errorCode);
+          alert(message + ` (codice ${errorCode})`);
         } else {
           alert("Error: Network error.");
         }

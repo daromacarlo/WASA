@@ -1,13 +1,12 @@
-FROM node:lts AS builder
-WORKDIR /app
-COPY webui /app/webui
+FROM node:lts AS frontend-builder
 WORKDIR /app/webui
-
-
+COPY webui /app/webui
 RUN yarn install
+RUN yarn run build-prod
 
-RUN npm run build-prod
-FROM nginx:latest
-#servo i file a nginx
-COPY --from=builder /app/webui/dist /usr/share/nginx/html
+FROM nginxinc/nginx-unprivileged:stable
+COPY --from=frontend-builder /app/webui/dist /usr/share/nginx/html
 
+#to mount: docker build -f Dockerfile.frontend -t wasa-frontend .
+
+#to run with tester permisses: docker run --rm --user 1000 -p 3000:3000 wasa-backend

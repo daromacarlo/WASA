@@ -6,7 +6,6 @@ import (
 	"fmt"
 )
 
-// Function that creates the "chat" table if it doesn't exist
 func CreateTableChat(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS chat(
@@ -20,7 +19,6 @@ func CreateTableChat(db *sql.DB) error {
 	return nil
 }
 
-// Function that creates the "groups" table if it doesn't exist
 func CreateTableGroup(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS groups(
@@ -38,7 +36,6 @@ func CreateTableGroup(db *sql.DB) error {
 	return nil
 }
 
-// Function that creates the "user_in_group" table if it doesn't exist
 func CreateTableUseringruppo(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS user_in_group(
@@ -56,7 +53,6 @@ func CreateTableUseringruppo(db *sql.DB) error {
 	return nil
 }
 
-// Function that creates the "privconv" (private chat) table if it doesn't exist
 func CreateTablePrivateChat(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS privconv(

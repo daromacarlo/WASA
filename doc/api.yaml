@@ -19,6 +19,9 @@ tags:
     description: Group creation operations
   - name: Private Conversation Creation
     description: Private conversation creation operations
+security:
+  - bearerAuth: []
+
 paths:
   /check/{chat}:
       parameters:
@@ -83,7 +86,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: '#/components/schemas/LoginResponse'
         '400':
           description: Client-side error
           content:
@@ -1025,6 +1028,13 @@ paths:
                 $ref: '#/components/schemas/GenericError'
 
 components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      
   schemas:
     LoginRequest:
       type: object
@@ -1483,3 +1493,34 @@ components:
           minLength: 1
           maxLength: 1024
     
+    LoginResponse:
+      type: object
+      description: Generic response
+      required:
+        - code
+        - userid
+        - response
+      properties:
+        code:
+          type: integer
+          description: Response code
+          example: 200
+          minLength: 1
+          maxLength: 1024
+          minimum: 200
+          maximum: 299
+        userid:
+          type: integer
+          description: Id of the user logged
+          example: 200
+          minLength: 1
+          maxLength: 1024
+          minimum: 1
+          maximum: 1024
+        response:
+          type: string
+          description: Response message
+          example: "Success"
+          minLength: 1
+          maxLength: 1024
+          pattern: '^.*$'

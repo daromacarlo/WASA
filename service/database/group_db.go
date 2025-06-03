@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-// Adds a user to a group chat if conditions are met
 func (db *appdbimpl) AddToGroupDB(chatID int, callingUser string, targetUser string) (int, error) {
 	callingUserExists, err := db.UserExistence(callingUser)
 	if err != nil {
@@ -28,7 +27,7 @@ func (db *appdbimpl) AddToGroupDB(chatID int, callingUser string, targetUser str
 		return 500, fmt.Errorf("error checking existence of targetUser %s: %w", targetUser, err)
 	}
 	if !targetUserExists {
-		return 404, fmt.Errorf("targetUser %s does not exist", targetUser)
+		return 404, fmt.Errorf("Searched user %s does not exist", targetUser)
 	}
 
 	isTargetUserInGroup, errorCode, err := db.UserInGroup(targetUser, chatID)
@@ -65,7 +64,6 @@ func (db *appdbimpl) AddToGroupDB(chatID int, callingUser string, targetUser str
 	return 0, nil
 }
 
-// Removes a user from a group
 func (db *appdbimpl) LeaveGroup(chatId int, callingUser string) (int, error) {
 	excallingUser, err := db.UserExistence(callingUser)
 	if !errors.Is(err, nil) {
@@ -104,7 +102,6 @@ func (db *appdbimpl) LeaveGroup(chatId int, callingUser string) (int, error) {
 	return 0, nil
 }
 
-// Sets a new group profile picture
 func (db *appdbimpl) SetGroupPhotoDB(callingUser string, idPhoto int, idGroup int) (int, error) {
 	ex, err := db.chatExistence(idGroup)
 	if !errors.Is(err, nil) {
@@ -135,7 +132,6 @@ func (db *appdbimpl) SetGroupPhotoDB(callingUser string, idPhoto int, idGroup in
 	return 0, nil
 }
 
-// Updates the group name if different from the current one
 func (db *appdbimpl) SetGroupNameDB(callingUser string, nomeGruppo_passeed string, idGroup int) (int, error) {
 	ex, err := db.chatExistence(idGroup)
 	if !errors.Is(err, nil) {

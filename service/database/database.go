@@ -92,6 +92,7 @@ type AppDatabase interface {
 	SearchPrivateConversation(chatID int, userPassed_converted int) (int, int, error)
 	UserInGroup(userPassed string, chatId int) (int, int, error)
 	UserExistence(nickname string) (bool, error)
+	UserExistenceId(userId int) (bool, error)
 
 	// test
 	Ping() error

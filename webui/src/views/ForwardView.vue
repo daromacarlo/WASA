@@ -85,7 +85,11 @@ export default {
   async loadChats() {
     try {
       this.loading = true;
-      const response = await this.$axios.get(`/wasachat/${this.currentNickname}/chats`);
+      const response = await this.$axios.get(`/wasachat/${this.currentNickname}/chats`, 
+      {headers: {
+          Authorization: localStorage.getItem("token")
+         }
+      });
     
       this.chats = [];
       for (let i = 0; i < response.data.length; i++) {
@@ -140,7 +144,13 @@ export default {
       if (this.currentMessageId) {
         try {
           const response = await this.$axios.post(
-            `/wasachat/${this.currentNickname}/forw/${destinationChatId}/messages/${this.currentMessageId}`
+  `/wasachat/${this.currentNickname}/forw/${destinationChatId}/messages/${this.currentMessageId}`,
+            {},
+            {
+              headers: {
+                Authorization: localStorage.getItem("token")
+              }
+            }
           );
           const message = response.data.response;
           const code = parseInt(response.data.code);
@@ -171,9 +181,14 @@ export default {
 
     try {
       const response = await this.$axios.post(
-        `/wasachat/${this.currentNickname}/forwnew/${this.newMemberName}/messages/${this.currentMessageId}`,
-        {}
-      );
+  `/wasachat/${this.currentNickname}/forwnew/${this.newMemberName}/messages/${this.currentMessageId}`,
+          {},
+          {
+            headers: {
+              Authorization: localStorage.getItem("token")
+            }
+          }
+        );
 
       const message = response.data.response;
       const code = parseInt(response.data.code);

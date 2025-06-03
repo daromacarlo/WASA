@@ -6,7 +6,6 @@ import (
 	"fmt"
 )
 
-// CreateTablePrivateMessageStatus creates the table for private message status
 func CreateTablePrivateMessageStatus(db *sql.DB) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS private_state (
@@ -23,7 +22,6 @@ func CreateTablePrivateMessageStatus(db *sql.DB) error {
 	return nil
 }
 
-// CreatePrivateMessageStatus inserts a new private message status entry
 func (db *appdbimpl) CreatePrivateMessageStatus(messageID int) error {
 	_, err := db.c.Exec(
 		"INSERT INTO private_state (message, rec, read) VALUES (?, ?, ?)",
@@ -35,7 +33,6 @@ func (db *appdbimpl) CreatePrivateMessageStatus(messageID int) error {
 	return nil
 }
 
-// ReadPrivateMessage marks private messages as read and received
 func (db *appdbimpl) ReadPrivateMessage(recipient string, chatID int) error {
 	recipientID, _, err := db.IDFromNICK(recipient)
 	if !errors.Is(err, nil) {
@@ -57,7 +54,6 @@ func (db *appdbimpl) ReadPrivateMessage(recipient string, chatID int) error {
 	return nil
 }
 
-// CreateTableMessagesStatusGroup creates the table for group message status
 func CreateTableMessagesStatusGroup(db *sql.DB) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS group_state (
@@ -74,7 +70,6 @@ func CreateTableMessagesStatusGroup(db *sql.DB) error {
 	return nil
 }
 
-// CreateTableMessagesStatusGroupPersona creates the table for per-user group message read tracking
 func CreateTableMessagesStatusGroupPersona(db *sql.DB) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS group_state_user (
@@ -94,7 +89,6 @@ func CreateTableMessagesStatusGroupPersona(db *sql.DB) error {
 	return nil
 }
 
-// CreateGroupMessageReceiptStatusTable creates the table for group message receipt tracking
 func CreateGroupMessageReceiptStatusTable(db *sql.DB) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS group_state_user_rec (
@@ -114,7 +108,6 @@ func CreateGroupMessageReceiptStatusTable(db *sql.DB) error {
 	return nil
 }
 
-// CreateGroupMessageStatus inserts a new group message status entry
 func (db *appdbimpl) CreateGroupMessageStatus(messageID int) error {
 	_, err := db.c.Exec(
 		"INSERT INTO group_state (message, rec, read) VALUES (?, ?, ?)",
@@ -126,9 +119,7 @@ func (db *appdbimpl) CreateGroupMessageStatus(messageID int) error {
 	return nil
 }
 
-// ReadGroupMessages marks group messages as read by the user
 func (db *appdbimpl) ReadGroupMessages(user string, chatID int) error {
-	// Insert unread messages into group_state_user for tracking
 	userID, _, err := db.IDFromNICK(user)
 	if !errors.Is(err, nil) {
 		return fmt.Errorf("error converting nickname to ID: %w", err)
@@ -149,7 +140,6 @@ func (db *appdbimpl) ReadGroupMessages(user string, chatID int) error {
 	return nil
 }
 
-// CheckGroupMessageReadStatus verifies and updates read status for group messages
 func (db *appdbimpl) CheckGroupMessageReadStatus(chatID int) error {
 	_, err := db.c.Exec(`
 		UPDATE group_state
@@ -176,7 +166,6 @@ func (db *appdbimpl) CheckGroupMessageReadStatus(chatID int) error {
 	return nil
 }
 
-// CheckGroupMessageReceipt verifies and updates receipt status for group messages
 func (db *appdbimpl) CheckGroupMessageReceipt(chatID int) error {
 	_, err := db.c.Exec(`
 		UPDATE group_state
@@ -203,7 +192,6 @@ func (db *appdbimpl) CheckGroupMessageReceipt(chatID int) error {
 	return nil
 }
 
-// MarkPrivateMessagesAsReceived marks private messages as received
 func (db *appdbimpl) MarkPrivateMessagesAsReceived(user string, chatID int) error {
 	userID, _, err := db.IDFromNICK(user)
 	if !errors.Is(err, nil) {
@@ -224,7 +212,6 @@ func (db *appdbimpl) MarkPrivateMessagesAsReceived(user string, chatID int) erro
 	return nil
 }
 
-// MarkGroupMessagesAsReceived marks group messages as received by the user
 func (db *appdbimpl) MarkGroupMessagesAsReceived(user string, chatID int) error {
 	userID, _, err := db.IDFromNICK(user)
 	if !errors.Is(err, nil) {

@@ -18,28 +18,32 @@ export default {
       nickname: ''
     };
   },
-
   methods: {
-    async exit() {
-      this.$router.push("/");
-      return;
-      },
+  async exit() {
+    this.$router.push("/");
+  },
 
-    async login() {
+  async login() {
       try {
-        const response = await this.$axios.post("/wasachat", { nickname: this.nickname });
+        const response = await this.$axios.post("/wasachat", { 
+          nickname: this.nickname 
+        });
+        
         const message = response.data.response;
-        const codice = parseInt(response.data.code);
-        if (codice === 200) {
+        const code = parseInt(response.data.code);
+        
+        if (code === 200) {
+          localStorage.setItem('token', response.data.userid);
+          
           this.$router.push(`/wasachat/${this.nickname}/chats`);
         } else {
           alert(message);
         }
-    } catch (e) {
+      } catch (e) {
         if (e.response) {
           const message = e.response.data.error;
           const errorCode = parseInt(e.response.data.errorCode);
-          alert(message + ` (codice ${errorCode})`);
+          alert(message + ` (code ${errorCode})`);
         } else {
           alert("Error: Network error.");
         }
@@ -47,7 +51,7 @@ export default {
       }
     }
   }
-};
+}
 </script>
 
 <style scoped>

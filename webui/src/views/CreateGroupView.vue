@@ -55,10 +55,14 @@ export default {
         const response = await this.$axios.post(`/wasachat/${this.currentUser}/groups`, {
           name: this.name,
           photo: this.photo,
-        });
+        },{
+      headers: {
+          Authorization: localStorage.getItem("token")
+       }
+      });
         const message = response.data.response;
-        const codice = parseInt(response.data.code);
-        if (response.codice >= 200 && response.codice < 300) {
+        const code = parseInt(response.data.code);
+        if (response.code >= 200 && response.code < 300) {
           this.$router.push(`/wasachat/${this.currentUser}/chats`);
           alert(message);
         } else {
@@ -69,7 +73,7 @@ export default {
         if (e.response) {
           const message = e.response.data.error;
           const errorCode = parseInt(e.response.data.errorCode);
-          alert(message + ` (codice ${errorCode})`);
+          alert(message + ` (code ${errorCode})`);
         } else {
           alert("Error: Network error.");
         }

@@ -14,6 +14,6 @@ COPY --from=backend-builder /webapi .
 
 CMD ["./webapi"]
 
-#to mount: docker build -f Dockerfile.backend -t wasa-backend .
+#to mount: docker build -f Dockerfile.frontend -t wasa-frontend .
 
 #to run with tester permisses: docker run --rm --user 1000 -p 3000:3000 wasa-backend

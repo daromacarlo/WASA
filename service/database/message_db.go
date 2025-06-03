@@ -293,9 +293,7 @@ func (db *appdbimpl) AddComment(userPassed string, messageId int, reaction strin
 	return 0, nil
 }
 
-// DeleteComment deletes a specific comment of a user given the message ID
 func (db *appdbimpl) DeleteComment(user string, messageId int) error {
-	// Check if a comment exists from the specific user for this message
 	userPassed_converted, _, err := db.IDFromNICK(user)
 	if !errors.Is(err, nil) {
 		return fmt.Errorf("error converting nickname to id: %w", err)

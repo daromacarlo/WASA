@@ -37,7 +37,12 @@ export default {
   methods: {
     async loadChats() {
       try {
-        const response = await this.$axios.get(`/wasachat/${this.currentUser}/usercheck/groups/${this.chat}`);
+        const response = await this.$axios.get(`/wasachat/${this.currentUser}/usercheck/groups/${this.chat}`, 
+        {
+        headers: {
+          Authorization: localStorage.getItem("token")
+          }
+        });
         this.chats = response.data;
         const message = response.data.response;
         if (message) {
@@ -47,7 +52,7 @@ export default {
         if (e.response) {
           const message = e.response.data.error;
           const errorCode = parseInt(e.response.data.errorCode);
-          alert(message + ` (codice ${errorCode})`);
+          alert(message + ` (code ${errorCode})`);
         } else {
           alert("Error. Network error.");
         }

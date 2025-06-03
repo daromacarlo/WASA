@@ -10,6 +10,16 @@ import (
 )
 
 func (rt *_router) usersInGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
 	user := ps.ByName("user")
 	groupstr := ps.ByName("group")
 	group, err := strconv.Atoi(groupstr)
@@ -34,12 +44,23 @@ func (rt *_router) usersInGroup(w http.ResponseWriter, r *http.Request, ps httpr
 }
 
 func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	user := ps.ByName("user")
 	var input struct {
 		Photo string `json:"photo"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err = json.NewDecoder(r.Body).Decode(&input)
 	if !errors.Is(err, nil) {
 		CreateJsonError(w, "Error: not valid request", http.StatusBadRequest)
 		return
@@ -63,30 +84,54 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	CreateJsonResponse(w, "Photo updated ", http.StatusOK)
+	return
 }
 
 func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	UtenteChiamante := ps.ByName("user")
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
+	CallingUser := ps.ByName("user")
 	var input struct {
 		Name string `json:"name"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err = json.NewDecoder(r.Body).Decode(&input)
 	if !errors.Is(err, nil) {
 		CreateJsonError(w, "Error: not valid request", http.StatusBadRequest)
 		return
 	}
 
-	errorCode, err := rt.db.SetNameDB(UtenteChiamante, input.Name)
+	errorCode, err := rt.db.SetNameDB(CallingUser, input.Name)
 	if !errors.Is(err, nil) {
 		CreateJsonError(w, "Error during updating your name: "+err.Error(), errorCode)
 		return
 	}
 
 	CreateJsonResponse(w, "Name updated ", http.StatusOK)
+	return
 }
 
 func (rt *_router) idFromName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	nickname := ps.ByName("user")
 
 	id, errorCode, err := rt.db.IDFromNICK(nickname)

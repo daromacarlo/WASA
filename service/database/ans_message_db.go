@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-// setAns sets the 'ans' attribute in the message with the ID of the old message
 func (db *appdbimpl) setAns(messageId int, newMessageId int) error {
 	query := `
 		UPDATE message
@@ -19,7 +18,6 @@ func (db *appdbimpl) setAns(messageId int, newMessageId int) error {
 	return nil
 }
 
-// verifyConversation performs all common checks for both types of messages
 func (db *appdbimpl) verifyConversation(userPassed string, chatId int, messageIdAns int) (int, int, error) {
 	ex, err := db.VerifyMessageExistence(messageIdAns)
 	if !errors.Is(err, nil) {
@@ -64,7 +62,6 @@ func (db *appdbimpl) verifyConversation(userPassed string, chatId int, messageId
 	return chatID, 0, nil
 }
 
-// AnsTextMessage handles replying to a text message
 func (db *appdbimpl) AnsTextMessage(userPassed string, chatId int, messageId int, passedText string) (int, error) {
 	_, errorCode, err := db.verifyConversation(userPassed, chatId, messageId)
 	if !errors.Is(err, nil) {
@@ -81,7 +78,6 @@ func (db *appdbimpl) AnsTextMessage(userPassed string, chatId int, messageId int
 	return 0, nil
 }
 
-// AnsPhotoMessage handles replying to a photo message
 func (db *appdbimpl) AnsPhotoMessage(userPassed string, chatId int, messageId int, passedPhoto int) (int, error) {
 	_, errorCode, err := db.verifyConversation(userPassed, chatId, messageId)
 	if !errors.Is(err, nil) {

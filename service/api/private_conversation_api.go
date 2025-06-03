@@ -9,13 +9,24 @@ import (
 )
 
 func (rt *_router) createPrivateConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	var input struct {
 		User string `json:"user"`
 	}
 
 	CallingUser := ps.ByName("user")
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err = json.NewDecoder(r.Body).Decode(&input)
 	if !errors.Is(err, nil) {
 		CreateJsonError(w, "Invalid request format", http.StatusBadRequest)
 		return
@@ -38,4 +49,5 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, r *http.Requ
 	}
 
 	CreateJsonResponse(w, "Private conversation successfully created", http.StatusOK)
+	return
 }

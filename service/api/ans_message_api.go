@@ -10,6 +10,17 @@ import (
 )
 
 func (rt *_router) ansMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	var input struct {
 		Text  string `json:"text"`
 		Photo string `json:"photo"`
@@ -68,4 +79,5 @@ func (rt *_router) ansMessage(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	CreateJsonResponse(w, "Reply sent successfully", http.StatusOK)
+	return
 }

@@ -69,6 +69,20 @@ func (db *appdbimpl) UserExistence(nickname string) (bool, error) {
 	return count > 0, nil
 }
 
+func (db *appdbimpl) UserExistenceId(userId int) (bool, error) {
+	var count int
+
+	query := `SELECT COUNT(*) FROM user WHERE id = ?;`
+	err := db.c.QueryRow(query, userId).Scan(&count)
+	if !errors.Is(err, nil) {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, fmt.Errorf("unexpected error while checking user existence: %w", err)
+	}
+	return true, nil
+}
+
 func (db *appdbimpl) IDFromNICK(nickname string) (int, int, error) {
 	var id int
 	query := `SELECT id FROM user WHERE nickname = ?;`

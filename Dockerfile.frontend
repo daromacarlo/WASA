@@ -7,6 +7,7 @@ RUN yarn run build-prod
 FROM nginxinc/nginx-unprivileged:stable
 COPY --from=frontend-builder /app/webui/dist /usr/share/nginx/html
 
-#to mount: docker build -f Dockerfile.frontend -t wasa-frontend .
+#to mount: docker build -f Dockerfile.backend -t wasa-backend .
 
-#to run with tester permisses: docker run --rm --user 1000 -p 3000:3000 wasa-backend
+#to run with tester permisses: docker run --rm --user 1000 -p 80:8080 wasa-frontend
+

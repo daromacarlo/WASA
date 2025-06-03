@@ -22,8 +22,13 @@ export default {
       try {
         const response = await this.$axios.post(`/wasachat/${this.nickname}/privateconversation`, {
           user: this.user.trim(),
-        });
-
+        }, 
+        {
+        headers: {
+          Authorization: localStorage.getItem("token")
+            }
+          }
+        );  
         if (response.status >= 200 && response.status < 300) {
           this.$router.push(`/wasachat/${this.nickname}/chats`);
         } else {
@@ -34,7 +39,7 @@ export default {
         if (e.response) {
           const message = e.response.data.error;
           const errorCode = e.response.data.errorCode;
-          alert(`${message} (codice ${errorCode})`);
+          alert(`${message} (code ${errorCode})`);
         } else {
           alert("Error: Network error.");
         }

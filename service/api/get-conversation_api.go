@@ -10,6 +10,18 @@ import (
 )
 
 func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid"+err.Error(), 401)
+		return
+	}
+
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	callingUser := ps.ByName("user")
 	chatStr := ps.ByName("chat")
 

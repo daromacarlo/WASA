@@ -101,13 +101,18 @@
     const newName = this.newNick.trim();
     const response = await this.$axios.put(
       `/wasachat/${this.currentUser}/usersettings/name`,
-      { name: newName }
+      { name: newName },
+      {
+      headers: {
+        Authorization: localStorage.getItem("token"),
+        }
+      }
     );
 
-    const codice = parseInt(response.data.code);
+    const code = parseInt(response.data.code);
     const message = response.data.response || "";
 
-    if (codice >= 200 && codice < 300) {
+    if (code >= 200 && code < 300) {
       alert(message);
       this.closeModifyNameModal();
       this.currentUser = newName;
@@ -123,7 +128,7 @@
     if (e.response && e.response.data) {
       const message = e.response.data.error;
       const errorCode = e.response.data.errorCode;
-      alert(`${message} (codice ${errorCode})`);
+      alert(`${message} (code ${errorCode})`);
     } else {
       alert("Error: Network error.");
     }
@@ -136,16 +141,20 @@
     try {
       const response = await this.$axios.put(
         `/wasachat/${this.currentUser}/usersettings/photo`,
-        { photo: this.newPhoto }
+        { photo: this.newPhoto },
+  {
+    headers: {
+      Authorization: localStorage.getItem("token"), 
+    }}
       );
       const message = response.data.response;
-      const codice = parseInt(response.data.code);
+      const code = parseInt(response.data.code);
 
       this.$router.push({ 
       name: 'UserChats', 
       params: { nickname: this.currentUser } 
     });
-    if (codice == 200) {
+    if (code == 200) {
       alert(message);
       this.closeModifyPhotoModal();
     }
@@ -153,7 +162,7 @@
     if (e.response) {
       const message = e.response.data.error;
       const errorCode = parseInt(e.response.data.errorCode);
-      alert(message + ` (codice ${errorCode})`);
+      alert(message + ` (code ${errorCode})`);
     } else {
       alert("Error: Network error.");
     }

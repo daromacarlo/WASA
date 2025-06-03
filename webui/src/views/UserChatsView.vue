@@ -84,7 +84,12 @@ export default {
     let error = null;
 
     try {
-      const response = await this.$axios.get(`/wasachat/${this.nickname}/chats`);
+      const response = await this.$axios.get(`/wasachat/${this.nickname}/chats`,
+      {
+      headers: {
+          Authorization: localStorage.getItem("token")
+       }
+      });
       if (Array.isArray(response.data)) {
         this.chats = response.data;
       } else {
@@ -96,7 +101,7 @@ export default {
       if (e.response && e.response.data) {
         const message = e.response.data.error;
         const errorCode = parseInt(e.response.data.errorCode);
-        alert(`${message} (codice ${errorCode})`);
+        alert(`${message} (code ${errorCode})`);
       } else {
         alert('Error: Network error');
       }
@@ -118,25 +123,21 @@ export default {
 
     profileSettings() {
       this.stopPolling()
-      const nickname = this.$route.params.nickname;
-      this.$router.push(`/wasachat/${nickname}/settings`);
+      this.$router.push(`/wasachat/${this.nickname}/settings`);
     },
 
     createGroup() {
       this.stopPolling()
-      const nickname = this.$route.params.nickname;
-      this.$router.push(`/wasachat/${nickname}/chats/creategroup`);
+      this.$router.push(`/wasachat/${this.nickname}/chats/creategroup`);
     },
 
     searchUser() {
       this.stopPolling()
-      const nickname = this.$route.params.nickname;
-      this.$router.push(`/wasachat/${nickname}/chats/searchuser`);
+      this.$router.push(`/wasachat/${this.nickname}/chats/searchuser`);
     },
 
     viewChat(chat) {
-      const nickname = this.$route.params.nickname;
-        this.$router.push(`/wasachat/${nickname}/chats/${chat.chat_id}`);
+        this.$router.push(`/wasachat/${this.nickname}/chats/${chat.chat_id}`);
     },
 
     logout(){

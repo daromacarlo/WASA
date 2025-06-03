@@ -9,6 +9,17 @@ import (
 )
 
 func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	User := ps.ByName("user")
 	NewConvStr := ps.ByName("target")
 	IdMessageStr := ps.ByName("message")
@@ -32,9 +43,21 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	CreateJsonResponse(w, "Message successfully forwarded", http.StatusOK)
+	return
 }
 
 func (rt *_router) forwardMessageToNewChat(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	User := ps.ByName("user")
 	Target := ps.ByName("target")
 	IdMessageStr := ps.ByName("message")
@@ -52,4 +75,5 @@ func (rt *_router) forwardMessageToNewChat(w http.ResponseWriter, r *http.Reques
 	}
 
 	CreateJsonResponse(w, "Message successfully forwarded", http.StatusOK)
+	return
 }

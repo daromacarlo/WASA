@@ -10,13 +10,24 @@ import (
 )
 
 func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	var input struct {
 		Name  string `json:"name"`
 		Photo string `json:"photo"`
 	}
 	CallingUser := ps.ByName("user")
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err = json.NewDecoder(r.Body).Decode(&input)
 	if !errors.Is(err, nil) {
 		CreateJsonError(w, "Invalid request format", http.StatusBadRequest)
 		return
@@ -43,16 +54,28 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	CreateJsonResponse(w, "Group created", http.StatusOK)
+	return
 }
 
 func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	var input struct {
 		User string `json:"user_to_add"`
 	}
 	CallingUser := ps.ByName("user")
 	chatIdStr := ps.ByName("chat")
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err = json.NewDecoder(r.Body).Decode(&input)
 	if !errors.Is(err, nil) {
 		CreateJsonError(w, "Invalid request format", http.StatusBadRequest)
 		return
@@ -75,9 +98,21 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	CreateJsonResponse(w, "User successfully added to the group", http.StatusOK)
+	return
 }
 
 func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
 	CallingUser := ps.ByName("user")
 	chatIdStr := ps.ByName("chat")
 	chatId, err := strconv.Atoi(chatIdStr)
@@ -91,6 +126,7 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	CreateJsonResponse(w, "Successfully left the group", http.StatusOK)
+	return
 }
 
 func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -99,7 +135,18 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		Photo string `json:"photo"`
 	}
 	CallingUser := ps.ByName("user")
-	err := json.NewDecoder(r.Body).Decode(&input)
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+	err = json.NewDecoder(r.Body).Decode(&input)
 	if !errors.Is(err, nil) {
 		CreateJsonError(w, "Invalid request format", http.StatusBadRequest)
 		return
@@ -132,12 +179,23 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	CallingUser := ps.ByName("user")
 	idConvStr := ps.ByName("chat")
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
 
 	var input struct {
 		Name string `json:"name"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err = json.NewDecoder(r.Body).Decode(&input)
 	if !errors.Is(err, nil) {
 		CreateJsonError(w, "Invalid request format", http.StatusBadRequest)
 		return
@@ -158,8 +216,18 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 }
 
 func (rt *_router) isGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	chatParam := ps.ByName("chat")
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
 
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+	chatParam := ps.ByName("chat")
 	chatID, err := strconv.Atoi(chatParam)
 	if !errors.Is(err, nil) {
 		CreateJsonError(w, "Invalid chat ID", http.StatusBadRequest)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-// Function that creates a new chat and returns its ID
 func (db *appdbimpl) CreateConversationDB() (int, error) {
 	insertQuery := `INSERT INTO chat DEFAULT VALUES;`
 	result, err := db.c.Exec(insertQuery)
@@ -19,7 +18,6 @@ func (db *appdbimpl) CreateConversationDB() (int, error) {
 	return int(lastInsertID), nil
 }
 
-// Function that creates a group and adds the user who created it
 func (db *appdbimpl) CreateGroupDB(creatorNick string, groupName string, photoID int) (int, error) {
 	exists, err := db.UserExistence(creatorNick)
 	if !errors.Is(err, nil) {
@@ -59,7 +57,6 @@ func (db *appdbimpl) CreateGroupDB(creatorNick string, groupName string, photoID
 	return 0, nil
 }
 
-// Function that creates a private chat and returns the chat ID
 func (db *appdbimpl) CreatePrivateChatDB(nick1 string, nick2 string) (int, int, error) {
 	exists1, err := db.UserExistence(nick1)
 	if !errors.Is(err, nil) {

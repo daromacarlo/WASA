@@ -108,11 +108,16 @@ export default {
       try {
         const response = await this.$axios.put(
           `/wasachat/${this.currentUser}/groups/${this.chatId}/name`,
-          { name: this.newGroupName.trim() }
+          { name: this.newGroupName.trim() }, 
+          {
+         headers: {
+           Authorization: localStorage.getItem("token")
+            }
+          }
         );
         
         const message = response.data.response;
-        const codice = parseInt(response.data.code);
+        const code = parseInt(response.data.code);
 
         alert(message);
         this.closeModifyNameModal();
@@ -121,7 +126,7 @@ export default {
         if (e.response) {
           const message = e.response.data.error;
           const errorCode = parseInt(e.response.data.errorCode);
-          alert(message + ` (codice ${errorCode})`);
+          alert(message + ` (code ${errorCode})`);
         } else {
           alert("Error: Network error.");
         }
@@ -134,11 +139,16 @@ export default {
       try {
         const response = await this.$axios.put(
           `/wasachat/${this.currentUser}/groups/${this.chatId}/photo`,
-          { photo: this.newGroupPhoto }
+          { photo: this.newGroupPhoto }, 
+          {
+          headers: {
+            Authorization: localStorage.getItem("token")
+            }
+          }
         );
 
         const message = response.data.response;
-        const codice = parseInt(response.data.code);
+        const code = parseInt(response.data.code);
 
         alert(message);
         this.closeModifyPhotoModal();
@@ -147,7 +157,7 @@ export default {
         if (e.response) {
           const message = e.response.data.error;
           const errorCode = parseInt(e.response.data.errorCode);
-          alert(message + ` (codice ${errorCode})`);
+          alert(message + ` (code ${errorCode})`);
         } else {
           alert("Error: Network error.");
         }

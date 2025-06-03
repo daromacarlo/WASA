@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -30,5 +31,12 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		CreateJsonError(w, "invalid request. Nickname cannot be null. ", http.StatusBadRequest)
 		return
 	}
-	CreateJsonResponse(w, "success", http.StatusOK)
+
+	userId, code, err := rt.db.IDFromNICK(user)
+	if !errors.Is(err, nil) {
+		CreateJsonError(w, "Error during the conversion of the user: "+err.Error(), code)
+		return
+	}
+	w.Header().Set("Authorization", fmt.Sprintf("token: %d", userId))
+	CreateJsonAccessResponse(w, "success", userId, http.StatusOK)
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 )
 
-// Creates the photo table if it doesn't exist
 func CreaTabellaFoto(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS photo(
@@ -20,7 +19,6 @@ func CreaTabellaFoto(db *sql.DB) error {
 	return nil
 }
 
-// Inserts a new photo and returns its ID
 func (db *appdbimpl) CreaFoto(photo string) (int, error) {
 	insertQuery := `INSERT INTO photo (photo) VALUES (?);`
 	result, err := db.c.Exec(insertQuery, photo)

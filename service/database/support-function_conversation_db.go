@@ -33,7 +33,6 @@ func (db *appdbimpl) VerifyMessageExistence(messageId int) (bool, error) {
 	return count > 0, nil
 }
 
-// Returns true if a chat with the given ID exists, false otherwise
 func (db *appdbimpl) chatExistence(chatId int) (bool, error) {
 	var count int
 	query := `SELECT COUNT(*) FROM chat WHERE id = ?`
@@ -44,7 +43,6 @@ func (db *appdbimpl) chatExistence(chatId int) (bool, error) {
 	return count > 0, nil
 }
 
-// Returns the ID of the private chat between two users if it exists, otherwise 0
 func (db *appdbimpl) chatExistenceTraUtenti(user1 string, user2 string) (int, int, error) {
 	var chatId int
 
@@ -73,7 +71,6 @@ func (db *appdbimpl) chatExistenceTraUtenti(user1 string, user2 string) (int, in
 	return chatId, 0, nil
 }
 
-// Ensures a private chat exists between two users and returns its ID (creates it if not present)
 func (db *appdbimpl) UserInvolved(userPassed string, targetUser string) (int, int, error) {
 	ex, errorCode, err := db.chatExistenceTraUtenti(userPassed, targetUser)
 	if !errors.Is(err, nil) {
@@ -146,7 +143,6 @@ func (db *appdbimpl) SearchPrivateConversation(chatID int, userPassed_converted 
 	return chatPrivateID, 0, nil
 }
 
-// Checks if a user is in the group related to the given chat ID, returns group ID or 0
 func (db *appdbimpl) UserInGroup(userPassed string, chatId int) (int, int, error) {
 	idGroup, errorCode, err := db.SearchGroup(chatId)
 	if !errors.Is(err, nil) {
@@ -176,7 +172,6 @@ func (db *appdbimpl) UserInGroup(userPassed string, chatId int) (int, int, error
 	return 0, 401, fmt.Errorf("user is not in the group: %w", err)
 }
 
-// Checks if there is a group linked to the given chat ID, returns group ID or 0
 func (db *appdbimpl) SearchGroup(chatId int) (int, int, error) {
 	query := `SELECT id FROM groups WHERE chat = ?`
 	var idGroup int

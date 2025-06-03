@@ -5,7 +5,6 @@ import { RouterView } from 'vue-router'
 <template>
   <div class="container-fluid">
     <div class="row">
-      <!-- Rimosso il codice della barra laterale -->
       <main class="col-12 px-md-4">
         <RouterView />
       </main>
@@ -14,5 +13,4 @@ import { RouterView } from 'vue-router'
 </template>
 
 <style>
-/* Rimosso lo stile per la barra laterale */
 </style>

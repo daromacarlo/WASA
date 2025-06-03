@@ -10,6 +10,17 @@ import (
 )
 
 func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	var input struct {
 		Text  string `json:"text"`
 		Photo string `json:"photo"`
@@ -62,9 +73,21 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	CreateJsonResponse(w, "Text message sent successfully", http.StatusCreated)
+	return
 }
 
 func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	CallingUser := ps.ByName("user")
 	IDMessagestr := ps.ByName("message")
 	IDChatstr := ps.ByName("chat")
@@ -90,11 +113,22 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 }
 
 func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	var input struct {
 		Reaction string `json:"reaction"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err = json.NewDecoder(r.Body).Decode(&input)
 	if !errors.Is(err, nil) {
 		CreateJsonError(w, "Error while parsing the request body: "+err.Error(), http.StatusBadRequest)
 		return
@@ -116,9 +150,21 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	CreateJsonResponse(w, "Comment successfully added", http.StatusOK)
+	return
 }
 
 func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	token := r.Header.Get("Authorization")
+	exist, err := rt.VerifyToken(token)
+	if exist == false {
+		CreateJsonError(w, "Error: Token not valid", 401)
+		return
+	}
+	if err != nil {
+		CreateJsonError(w, "Error checking token", http.StatusInternalServerError)
+		return
+	}
+
 	CallingUser := ps.ByName("user")
 	IDMessagestr := ps.ByName("message")
 
@@ -135,4 +181,5 @@ func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	CreateJsonResponse(w, "Comment successfully deleted", http.StatusOK)
+	return
 }

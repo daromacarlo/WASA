@@ -237,7 +237,11 @@ export default {
   async created() {
 
   try {
-    const response = await this.$axios.get(`/wasachat/${this.currentUser}`);
+    const response = await this.$axios.get(`/wasachat/${this.currentUser}`, {
+    headers: {
+      Authorization: localStorage.getItem("token"), 
+      },
+    });
     this.currentUserId = response.data.id;
     await this.checkIfGroup();
     await this.loadMessages();
@@ -429,7 +433,11 @@ export default {
 
   async checkIfGroup() {
     try {
-      const response = await this.$axios.get(`/check/${this.chatId}`);
+      const response = await this.$axios.get(`/check/${this.chatId}`,{
+      headers: {
+          Authorization: localStorage.getItem("token")
+       }
+      });
       this.isGroup = response.data.is_group;
       if (this.isGroup) {
         this.groupId = response.data.group_id;
@@ -437,8 +445,8 @@ export default {
     } catch (error) {
       if (error.response) {
         const message = error.response.data.error;
-        const codiceErrore = parseInt(error.response.data.errorCode);
-        alert(message + ` (codice ${codiceErrore})`);
+        const codeErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (code ${codeErrore})`);
       } else {
         alert("Error: Network error.");
       }
@@ -477,7 +485,11 @@ export default {
     if (!userComment) return;
 
     const response = await this.$axios.delete(
-      `/wasachat/${this.currentUser}/messages/${this.selectedMessage.message_id}`
+      `/wasachat/${this.currentUser}/messages/${this.selectedMessage.message_id}`, {
+      headers: {
+          Authorization: localStorage.getItem("token")
+       }
+      }
     );
 
     let messageIndex = -1;
@@ -503,8 +515,8 @@ export default {
   } catch (error) {
     if (error.response) {
       const message = error.response.data.error;
-      const codiceErrore = parseInt(error.response.data.errorCode);
-      alert(message + ` (codice ${codiceErrore})`);
+      const codeErrore = parseInt(error.response.data.errorCode);
+      alert(message + ` (code ${codeErrore})`);
     } else {
       alert("Error: Network error.");
     }
@@ -531,7 +543,12 @@ export default {
     
     const response = await this.$axios.post(
       `/wasachat/${this.currentUser}/messages/${messageId}`,
-      { reaction: hasReacted ? null : reaction }
+      { reaction: hasReacted ? null : reaction },
+      {
+      headers: {
+          Authorization: localStorage.getItem("token")
+       }
+      }
     );
 
     for (let i = 0; i < this.messages.length; i++) {
@@ -568,8 +585,8 @@ export default {
   } catch (error) {
     if (error.response) {
       const message = error.response.data.error;
-      const codiceErrore = parseInt(error.response.data.errorCode);
-      alert(message + ' (codice ' + codiceErrore + ')');
+      const codeErrore = parseInt(error.response.data.errorCode);
+      alert(message + ' (code ' + codeErrore + ')');
     } else {
       alert("Errore: Errore di rete.");
     }
@@ -582,7 +599,11 @@ export default {
     this.isLoading = true;
 
     try {
-      const response = await this.$axios.get(`/wasachat/${this.currentUser}/chats/${this.chatId}`);
+      const response = await this.$axios.get(`/wasachat/${this.currentUser}/chats/${this.chatId}`, {
+      headers: {
+          Authorization: localStorage.getItem("token")
+       }
+      });
 
       if (!Array.isArray(response.data)) {
         console.warn("invalid format", response.data);
@@ -610,8 +631,8 @@ export default {
     } catch (e) {
       if (e.response && e.response.data) {
         var message = e.response.data.error;
-        var codiceErrore = parseInt(e.response.data.errorCode);
-        alert(message + ' (codice ' + codiceErrore + ')');
+        var codeErrore = parseInt(e.response.data.errorCode);
+        alert(message + ' (code ' + codeErrore + ')');
       } else {
         alert('Error: Network error');
       }
@@ -624,7 +645,11 @@ export default {
   async deleteMessage() {
     try {
       const response = await this.$axios.delete(
-        `/wasachat/${this.currentUser}/chats/${this.chatId}/messages/${this.selectedMessage.message_id}`
+        `/wasachat/${this.currentUser}/chats/${this.chatId}/messages/${this.selectedMessage.message_id}`, {
+      headers: {
+          Authorization: localStorage.getItem("token")
+          }
+        }
       );
       this.loadMessages();
 
@@ -632,8 +657,8 @@ export default {
     } catch (error) {
       if (error.response) {
         const message = error.response.data.error;
-        const codiceErrore = parseInt(error.response.data.errorCode);
-        alert(message + ` (codice ${codiceErrore})`);
+        const codeErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (code ${codeErrore})`);
       } else {
         alert("Error: Network error");
       }
@@ -664,7 +689,11 @@ export default {
         
         const response =  await this.$axios.post(
           `/wasachat/${this.currentUser}/chats/${this.chatId}`,
-          messageData
+          messageData, {
+          headers: {
+              Authorization: localStorage.getItem("token")
+           }
+          }
         );
 
         this.$router.go();
@@ -672,8 +701,8 @@ export default {
       } catch (error) {
       if (error.response) {
         const message = error.response.data.error;
-        const codiceErrore = parseInt(error.response.data.errorCode);
-        alert(message + ` (codice ${codiceErrore})`);
+        const codeErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (code ${codeErrore})`);
       } else {
         alert("Error: Network error.");
       }
@@ -690,7 +719,11 @@ export default {
     try {
       const response = await this.$axios.post(
         `/wasachat/${this.currentUser}/chats/${this.chatId}/messages/${this.selectedMessage.message_id}`,
-        messageData
+        messageData,{
+      headers: {
+          Authorization: localStorage.getItem("token")
+            }
+          }
       );
 
       const newReply = {
@@ -711,8 +744,8 @@ export default {
     } catch (error) {
       if (error.response) {
         const message = error.response.data.error;
-        const codiceErrore = parseInt(error.response.data.errorCode);
-        alert(message + ` (codice ${codiceErrore})`);
+        const codeErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (code ${codeErrore})`);
       } else {
         alert("Error: Network error.");
       }
@@ -739,7 +772,12 @@ export default {
 
   async quitGroup() {
     try {
-      const response = await this.$axios.delete(`/wasachat/${this.currentUser}/chats/${this.chatId}`);
+      const response = await this.$axios.delete(`/wasachat/${this.currentUser}/chats/${this.chatId}`,
+      {
+      headers: {
+          Authorization: localStorage.getItem("token")
+       }
+      });
       this.$router.push({ 
         name: 'UserChats', 
         params: { nickname: this.currentUser } 
@@ -747,8 +785,8 @@ export default {
             } catch (error) {
       if (error.response) {
         const message = error.response.data.error;
-        const codiceErrore = parseInt(error.response.data.errorCode);
-        alert(message + ` (codice ${codiceErrore})`);
+        const codeErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (code ${codeErrore})`);
       } else {
         alert("Error: Network error.");
       }
@@ -763,7 +801,12 @@ export default {
       
       const response = await this.$axios.put(
         `/wasachat/${this.currentUser}/groups/${this.chatId}/add`,
-        { user_to_add : nickname.trim() }
+        { user_to_add : nickname.trim() },
+        {
+        headers: {
+          Authorization: localStorage.getItem("token")
+         }
+        }
       );
       
       alert(response.data.response);
@@ -772,8 +815,8 @@ export default {
     } catch (error) {
       if (error.response) {
         const message = error.response.data.error;
-        const codiceErrore = parseInt(error.response.data.errorCode);
-        alert(message + ` (codice ${codiceErrore})`);
+        const codeErrore = parseInt(error.response.data.errorCode);
+        alert(message + ` (code ${codeErrore})`);
       } else {
         alert("Error: Network error.");
       }
@@ -1111,11 +1154,12 @@ export default {
   font-size: 10px;
   border: 1px solid #000000;
   border-radius: 20px;
+  margin-right: 20px;
 }
 
 .reply-label {
   font-weight: bold;
-  margin-right: 5px;
+  margin-right: 10px;
 }
 
 .reply-author {

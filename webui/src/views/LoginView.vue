@@ -1,10 +1,17 @@
 <template>
   <div class="login-view">
     <button class="exit_btn" @click="exit">Go Home</button>
+
     <div class="lc">
       <h1 class="t">Login/Register into WasaText</h1>
+      
       <form @submit.prevent="login">
-        <input class="input" v-model="nickname" placeholder="Insert your nickname:" required/>
+        <input
+          class="input"
+          v-model="nickname"
+          placeholder="Insert your nickname:"
+          required
+        />
         <button class="btn">Login/Register</button>
       </form>
     </div>

@@ -1,6 +1,7 @@
 <template>
   <div :class="isGroup ? 'messages_container_group' : 'messages_container_private'">
     <button @click="goHome()" title="Go Back" class="goBack_btn">Go Back</button>
+
     <div v-if="isGroup" class="group_header">
       <div class="group_actions">
         <button @click="showParticipants" title="Show participants" class="btn">Show participants</button>
@@ -14,21 +15,20 @@
       <li
         v-for="message in messages"
         :key="message.message_id"
-        class="message_item"
         @click="openMessageModal(message)"
-        :class="{ 
-          'message_item_right': isCurrentUser(message.idauthor),
-          'message_item_group': isGroup && !isCurrentUser(message.idauthor)
+        :class="{
+          message_item: true,
+          message_item_right: isCurrentUser(message.idauthor),
+          message_item_group: isGroup && !isCurrentUser(message.idauthor)
         }"
       >
-
         <div v-if="isGroup && !isCurrentUser(message.idauthor)" class="message_sender">
           {{ message.author }}
         </div>
 
         <div v-if="message.ans" class="message_reply-container">
           <div class="message_reply-preview">
-            <span class="reply-label">Answer to: </span>
+            <span class="reply-label">Answer to:</span>
             <span class="reply-author">{{ getOriginalMessageAuthor(message.ans) }}</span>
             <div class="reply-content">
               {{ getOriginalMessageText(message.ans) }}
@@ -51,12 +51,13 @@
             <p v-if="isCurrentUser(message.idauthor)" class="message_status">
               {{ message.read ? "read" : (message.rec ? "received" : "sent") }}
             </p>
-            <div v-if="message.comments && message.comments.length > 0" class="message_reactions">
-              <div 
-                v-for="(comment, index) in message.comments" 
-                :key="index" 
+            <div v-if="message.comments?.length" class="message_reactions">
+              <div
+                v-for="(comment, index) in message.comments"
+                :key="index"
                 class="reaction_badge_text"
-                :title="comment.author">
+                :title="comment.author"
+              >
                 <span class="reaction_emoji_text">{{ comment.reaction }}</span>
               </div>
             </div>
@@ -70,12 +71,13 @@
             <p v-if="isCurrentUser(message.idauthor)" class="message_status">
               {{ message.read ? "read" : (message.rec ? "received" : "sent") }}
             </p>
-            <div v-if="message.comments && message.comments.length > 0" class="message_reactions">
-              <div 
-                v-for="(comment, index) in message.comments" 
-                :key="index" 
+            <div v-if="message.comments?.length" class="message_reactions">
+              <div
+                v-for="(comment, index) in message.comments"
+                :key="index"
                 class="reaction_badge_photo"
-                :title="comment.author">
+                :title="comment.author"
+              >
                 <span class="reaction_emoji_photo">{{ comment.reaction }}</span>
               </div>
             </div>
@@ -83,10 +85,8 @@
         </div>
       </li>
     </ul>
-    
-<ul v-if="messages.length > 0" class="messages_list">
-</ul>
-<p v-else class="no_messages">No messages yet.</p>
+
+    <p v-else class="no_messages">No messages yet.</p>
 
     <div :class="isGroup ? 'message_input_group' : 'message_input_private'">
       <input
@@ -104,10 +104,10 @@
       <div class="modal_content">
         <h3>Add users to group</h3>
         <form @submit.prevent="addUserToGroup(newMemberName)">
-          <input 
-            v-model="newMemberName" 
-            type="text" 
-            placeholder="Insert a nickname" 
+          <input
+            v-model="newMemberName"
+            type="text"
+            placeholder="Insert a nickname"
             class="modal_input"
             required
           />
@@ -133,14 +133,14 @@
         <button @click="openanswereMessageModal(selectedMessage)" class="modal_btn">Answer</button>
         <button @click="openCommentMessageModal(selectedMessage)" class="modal_btn">Comment</button>
         <button @click="goToForwardView(selectedMessage)" class="modal_btn">Forward</button>
-        <button 
-          v-if="selectedMessage && isCurrentUser(selectedMessage.idauthor)" 
-          @click="deleteMessage" 
+        <button
+          v-if="selectedMessage && isCurrentUser(selectedMessage.idauthor)"
+          @click="deleteMessage"
           class="modal_btn_red"
         >
           Delete
         </button>
-        <button 
+        <button
           v-if="hasUserCommented(selectedMessage)"
           @click="deleteUserComment(selectedMessage)"
           class="modal_btn_red"
@@ -155,11 +155,11 @@
         <h3>Answer to message</h3>
         <button @click="closeanswereMessageModal" class="modal_btn_gray">Go Back</button>
         <input
-          v-model="ans"  
+          v-model="ans"
           type="text"
           placeholder="..."
           class="message_input_ans"
-          @keyup.enter="sendReplyMessage"  
+          @keyup.enter="sendReplyMessage"
         />
         <button @click="ansselectPhoto" class="modal_btn">Send photo</button>
         <button @click="sendReplyMessage" class="modal_btn">Send</button>
@@ -170,11 +170,11 @@
       <div class="modal_content">
         <h3>Comment message</h3>
         <div class="reactions-grid">
-          <button 
-            v-for="reaction in reactions" 
-            :key="reaction" 
+          <button
+            v-for="reaction in reactions"
+            :key="reaction"
             class="reaction_button"
-            :class="{reaction : hasUserReacted(selectedMessage, reaction) }"
+            :class="{ reaction: hasUserReacted(selectedMessage, reaction) }"
             @click="toggleReaction(reaction)"
           >
             {{ reaction }}
@@ -185,6 +185,7 @@
     </div>
   </div>
 </template>
+
 
 <script>
 export default {
@@ -251,10 +252,6 @@ export default {
     console.error("Error:", error);
   }
 },
-
-  beforeDestroy() {
-  this.stopPolling();
-  },
 
   beforeUnmount() {
   this.stopPolling();
@@ -890,8 +887,8 @@ export default {
 .messages_list {
   list-style-type: none;
   padding: 20px;
-  margin: 10px;
-  max-height: calc(100vh - 140px);
+  margin-bottom: 70px;
+  max-height: calc(100vh - 100px);
   overflow-y: auto;
   scroll-behavior: smooth;
   width: 100%;

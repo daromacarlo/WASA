@@ -2,11 +2,15 @@
   <div class="container">
     <button @click="goBack" class="goBack_btn">Go Back</button>
 
-    <h2 class="title">Partecipants</h2>
+    <h2 class="title">Participants</h2>
 
     <div class="participants-box">
       <ul v-if="chats.length > 0">
-        <li v-for="chat in chats" :key="chat.chat_id" class="participant-card">
+        <li
+          v-for="chat in chats"
+          :key="chat.chat_id"
+          class="participant-card"
+        >
           <div class="participant-info">
             <p class="participant-name">{{ chat.Nickname }}</p>
           </div>

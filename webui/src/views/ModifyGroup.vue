@@ -4,18 +4,42 @@
   <div class="c">
     <h1>Modify group</h1>
     <div class="bc">
-      <button @click="openModifyNameModal" class="btn" title="Modify name">Modify name</button>
-      <button @click="openModifyPhotoModal" class="btn" title="Modify photo">Modify photo</button>
+      <button
+        @click="openModifyNameModal"
+        class="btn"
+        title="Modify name"
+      >
+        Modify name
+      </button>
+      <button
+        @click="openModifyPhotoModal"
+        class="btn"
+        title="Modify photo"
+      >
+        Modify photo
+      </button>
     </div>
 
     <div v-if="showModifyNameModal" class="modal">
       <div class="modal-content">
         <h3>Modify group name</h3>
         <form @submit.prevent="modifyGroupName">
-          <input 
-            v-model="newGroupName" type="text" placeholder="Insert the new group name:" class="modal-input"required/>
+          <input
+            v-model="newGroupName"
+            type="text"
+            placeholder="Insert the new group name:"
+            class="modal-input"
+            required
+          />
           <div class="modal-btn">
-            <button type="submit" class="btn">Save</button><button type="button" @click="closeModifyNameModal" class="btn_gray">Go Back</button>
+            <button type="submit" class="btn">Save</button>
+            <button
+              type="button"
+              @click="closeModifyNameModal"
+              class="btn_gray"
+            >
+              Go Back
+            </button>
           </div>
         </form>
       </div>
@@ -25,11 +49,25 @@
       <div class="modal-content">
         <h3>Modify group photo</h3>
         <form @submit.prevent="modifyGroupPhoto">
-        <input type="file" accept="image/jpeg" class="modal-input"@change="handleFileUpload"required/>
-          <div v-if="errorMsg" class="error-message">{{ errorMsg }}</div>
+          <input
+            type="file"
+            accept="image/jpeg"
+            class="modal-input"
+            @change="handleFileUpload"
+            required
+          />
+          <div v-if="errorMsg" class="error-message">
+            {{ errorMsg }}
+          </div>
           <div class="modal-btn">
             <button type="submit" class="btn">Save</button>
-            <button type="button" @click="closeModifyPhotoModal" class="btn_gray">Go Back</button>
+            <button
+              type="button"
+              @click="closeModifyPhotoModal"
+              class="btn_gray"
+            >
+              Go Back
+            </button>
           </div>
         </form>
       </div>

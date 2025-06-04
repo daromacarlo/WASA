@@ -1,20 +1,46 @@
 <template>
   <button @click="goBack" class="goBack_btn">Go Back</button>
-    <div class="c">
-      <h1>Modify User Profile</h1>
-      <div class="bc">
-        <button @click="openModifyNameModal" class="btn" title="Insert your new nickname">Modify Nickname</button>
-        <button @click="openModifyPhotoModal" class="btn" title="Insert your new photo">Modify Photo</button>
+
+  <div class="c">
+    <h1>Modify User Profile</h1>
+
+    <div class="bc">
+      <button
+        @click="openModifyNameModal"
+        class="btn"
+        title="Insert your new nickname"
+      >
+        Modify Nickname
+      </button>
+      <button
+        @click="openModifyPhotoModal"
+        class="btn"
+        title="Insert your new photo"
+      >
+        Modify Photo
+      </button>
     </div>
 
     <div v-if="showModifyNameModal" class="modal">
       <div class="modal-content">
         <h3>Modify your Nickname</h3>
         <form @submit.prevent="modifyUserName">
-          <input v-model="newNick" type="text" placeholder="Insert your new name:" class="modal-input" required/>
+          <input
+            v-model="newNick"
+            type="text"
+            placeholder="Insert your new name:"
+            class="modal-input"
+            required
+          />
           <div class="modal-btn">
-            <button class="btn">Save</button>
-            <button @click="closeModifyNameModal" class="btn_gray">Go Back</button>
+            <button type="submit" class="btn">Save</button>
+            <button
+              type="button"
+              @click="closeModifyNameModal"
+              class="btn_gray"
+            >
+              Go Back
+            </button>
           </div>
         </form>
       </div>
@@ -24,17 +50,29 @@
       <div class="modal-content">
         <h3>Modify your photo</h3>
         <form @submit.prevent="modifyUserPhoto">
-          <input type="file" accept="image/jpeg" class="modal-input" @change="handleFileUpload" required/>
+          <input
+            type="file"
+            accept="image/jpeg"
+            class="modal-input"
+            @change="handleFileUpload"
+            required
+          />
           <div class="modal-btn">
-            <button class="btn">Save</button>
-            <button @click="closeModifyPhotoModal" class="btn_gray">Go Back</button>
+            <button type="submit" class="btn">Save</button>
+            <button
+              type="button"
+              @click="closeModifyPhotoModal"
+              class="btn_gray"
+            >
+              Go Back
+            </button>
           </div>
         </form>
       </div>
     </div>
   </div>
-
 </template>
+
   <script>
   export default {
     data() {

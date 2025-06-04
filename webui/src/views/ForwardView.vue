@@ -8,11 +8,16 @@
         <button @click="openNewChatModal" class="btn">New chat</button>
       </div>
     </div>
+
     <div class="c">
       <div class="chats-list">
         <h2>Select an existing chat:</h2>
         <ul v-if="chats.length > 0">
-          <li v-for="chat in chats" :key="chat.chat_id" @click="forwardToChat(chat)">
+          <li
+            v-for="chat in chats"
+            :key="chat.chat_id"
+            @click="forwardToChat(chat)"
+          >
             <div class="chat-item">
               <img
                 v-if="chat.photo"
@@ -23,9 +28,13 @@
               <div v-else class="chat-photo-placeholder">👤</div>
               <div class="chat-info">
                 <p class="chat-name">{{ chat.name }}</p>
-                <p v-if="chat.lastsnip" class="chat-last-message">{{ chat.lastsnip }}</p>
-                <p v-if="chat.lastphoto" class="chat-last-message">{{"[img]" }}</p>
-                <p v-if="chat.time" class="chat-time">{{ formatTime(chat.time) }}</p>
+                <p v-if="chat.lastsnip" class="chat-last-message">
+                  {{ chat.lastsnip }}
+                </p>
+                <p v-if="chat.lastphoto" class="chat-last-message">[img]</p>
+                <p v-if="chat.time" class="chat-time">
+                  {{ formatTime(chat.time) }}
+                </p>
               </div>
             </div>
           </li>
@@ -37,10 +46,10 @@
     <div v-if="showAddMemberModal" class="modal">
       <div class="modal-content">
         <h3>Search a user</h3>
-        <input 
-          v-model="newMemberName" 
-          type="text" 
-          placeholder="Insert the name of the user:" 
+        <input
+          v-model="newMemberName"
+          type="text"
+          placeholder="Insert the name of the user:"
           class="modal-input"
           required
           @keyup.enter="forwardToNewUser"
@@ -66,9 +75,6 @@ export default {
       newMemberName: "",
       addingMember: false,
       error: null,
-      currentNickname : "",
-      currentChatId : "",
-      currentMessageId : "",
       currentNickname : this.$route.params.nickname,
       currentChatId : this.$route.params.chat,
       currentMessageId : this.$route.params.message,

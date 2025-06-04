@@ -105,6 +105,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
+  /wasachat/{user}:
+    parameters:
+    - name: user
+      in: path
+      required: true
+      description: username
+      schema:
+        type: string
+        example: "Carlo"
+        minLength: 1
+        maxLength: 1024
+        pattern: '^[a-zA-Z0-9._~-]+$'
+    get:
+      tags: ["User Profile"]
+      summary: "get id from NIckname (idFromName)"
+      description: |-
+        Returns id of an user from his nickname.
+      operationId: idFromName
+      responses:
+        "200":
+          description: Home screen displayed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/idFromNameResponse'
+        "400":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
   /wasachat/{user}/chats:
     parameters:
     - name: user
@@ -720,7 +763,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
-  /wasachat/{user}/userceck/groups/{group}:     
+  /wasachat/{user}/usercheck/groups/{group}:     
     parameters:
     - name: user
       in: path
@@ -1085,7 +1128,7 @@ components:
       required:
         - name
         - time
-        - isgroup
+        - is_group
       properties:
         chat_id:
           type: integer
@@ -1128,7 +1171,7 @@ components:
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
-        isgroup:
+        is_group:
           type: boolean
           description: Indicates if this is a group chat
           example: false
@@ -1252,12 +1295,11 @@ components:
           maxLength: 50
           pattern: '^.*$'
         idauthor:
-          type: string
-          description: Author's nickname
-          example: "Marcolino"
-          minLength: 1
-          maxLength: 50
-          pattern: '^.*$'
+          type: integer
+          description: Unique author ID
+          example: 2
+          minimum: 1
+          maximum: 1024
         text:
           type: string
           description: Message text content
@@ -1334,10 +1376,10 @@ components:
         comment:
           type: string
           description: Comment content (emoji)
-          example: "👍"
+          example: "pollice in su"
           minLength: 1
           maxLength: 1000
-          pattern: '^[\u0020-\u1FAFF]+$'
+          pattern: '^.*$'
 
     Comment:
       type: object
@@ -1370,10 +1412,10 @@ components:
         reaction:
           type: string
           description: Comment content (emoji or short text)
-          example: "👍"
+          example: "pollice in su"
           minLength: 1
           maxLength: 10
-          pattern: '^[\u0020-\u1FAFF]+$'
+          pattern: '^.*$'
 
     PrivateConversationRequest:
       type: object
@@ -1492,6 +1534,21 @@ components:
           example: "Error occurred"
           minLength: 1
           maxLength: 1024
+          
+    idFromNameResponse:
+      type: object
+      description: response of idFromNameFunction
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          description: userID
+          example: 200
+          minLength: 1
+          maxLength: 1024
+          minimum: 200
+          maximum: 299
     
     LoginResponse:
       type: object

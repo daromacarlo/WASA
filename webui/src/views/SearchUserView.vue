@@ -1,13 +1,20 @@
 <template>
   <button @click="goBack" class="exit_btn">Go Back</button>
+
   <div class="c">
     <h2>Search user</h2>
     <form @submit.prevent="searchUser">
-      <input type="text" v-model="user" placeholder="Nickname" required/>
+      <input
+        type="text"
+        v-model="user"
+        placeholder="Nickname"
+        required
+      />
       <button type="submit" class="btn">Search</button>
     </form>
   </div>
 </template>
+
 
 <script>
 export default {

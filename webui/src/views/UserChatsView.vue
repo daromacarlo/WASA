@@ -1,18 +1,18 @@
 <template>
   <div>
-    <div class="btn-c">  
-    <button class="btn" @click="createGroup">Create group</button>
-    <button class="btn" @click="searchUser">Search user</button>
-    <button class="btn" @click="profileSettings">Modify profile</button>
-    <button class="exit_btn" @click="logout">logout</button>
+    <div class="btn-c">
+      <button class="btn" @click="createGroup">Create group</button>
+      <button class="btn" @click="searchUser">Search user</button>
+      <button class="btn" @click="profileSettings">Modify profile</button>
+      <button class="exit_btn" @click="logout">Logout</button>
     </div>
 
     <div class="cc">
-      <h1 class="t"> Your conversations:</h1>
+      <h1 class="t">Your conversations:</h1>
       <ul v-if="chats.length > 0">
         <li v-for="chat in chats" :key="chat.chat_id" @click="viewChat(chat)">
           <div class="chat-item">
-          <img
+            <img
               v-if="chat.photo"
               :src="chat.photo"
               class="chat-photo"
@@ -23,17 +23,17 @@
               <p class="chat-name">{{ chat.name }}</p>
               <p v-if="chat.lastsnip" class="chat-last-message">{{ chat.lastsnip }}</p>
               <img
-              v-if="chat.lastphoto"
-              :src="chat.lastphoto"
-              class="photo-message"
-              @error="handleImageError"
-            />
+                v-if="chat.lastphoto"
+                :src="chat.lastphoto"
+                class="photo-message"
+                @error="handleImageError"
+              />
               <p v-if="chat.time" class="chat-time">{{ formatTime(chat.time) }}</p>
             </div>
           </div>
         </li>
       </ul>
-      <p v-else class = "no_conversations"> No conversations yet.</p>
+      <p v-else class="no_conversations">No conversations yet.</p>
     </div>
   </div>
 </template>
@@ -52,10 +52,6 @@ export default {
   async created() {
     await this.loadChats();
     this.startPolling();
-  },
-
-  beforeDestroy() {
-  this.stopPolling();
   },
 
   beforeUnmount() {

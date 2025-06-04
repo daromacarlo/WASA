@@ -1,15 +1,26 @@
 <template>
-    <button @click="goBack" class="goBack_btn">Go Back
- </button>
+  <button @click="goBack" class="goBack_btn">Go Back</button>
+
   <div class="cc">
-    <h2>Crete your group</h2>
+    <h2>Create your group</h2>
     <form @submit.prevent="createGroup">
-      <input type="text" v-model="name" placeholder="Group Name" required/>
-      <input type="file" @change="handleFileUpload" accept="image/jpeg" required/>
+      <input
+        type="text"
+        v-model="name"
+        placeholder="Group Name"
+        required
+      />
+      <input
+        type="file"
+        @change="handleFileUpload"
+        accept="image/jpeg"
+        required
+      />
       <button type="submit" class="btn">Create group</button>
     </form>
   </div>
 </template>
+
 
 <script>
 export default {

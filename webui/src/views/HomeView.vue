@@ -1,16 +1,39 @@
 <template>
   <div class="h">
-    
     <div class="c">
       <h1 class="t">WasaText</h1>
 
-      <button class="btn" @click="openLink('https://wasa-enroll.sapienzaapps.it/dashboard/#/')">WASA Enroll</button>
-      <button class="btn" @click="openLink('https://github.com/CarloDaRomadev')">My GitHub</button>
-      <button class="btn" @click="openLink('http://gamificationlab.uniroma1.it/en/wasa/')">WASA Course</button>
-      <button class="btn" @click="loginRegister">Login/Register</button>
+      <button
+        class="btn"
+        @click="openLink('https://wasa-enroll.sapienzaapps.it/dashboard/#/')"
+      >
+        WASA Enroll
+      </button>
+
+      <button
+        class="btn"
+        @click="openLink('https://github.com/CarloDaRomadev')"
+      >
+        My GitHub
+      </button>
+
+      <button
+        class="btn"
+        @click="openLink('http://gamificationlab.uniroma1.it/en/wasa/')"
+      >
+        WASA Course
+      </button>
+
+      <button
+        class="btn"
+        @click="loginRegister"
+      >
+        Login/Register
+      </button>
     </div>
   </div>
 </template>
+
 
 <script>
 export default {

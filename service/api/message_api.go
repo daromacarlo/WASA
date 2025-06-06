@@ -45,12 +45,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		CreateJsonError(w, "Error: the message must contain at least a photo or some text", http.StatusBadRequest)
 		return
 	}
-	/*
-		if len(input.Text) > 0 && len(input.Photo) > 0 {
-			CreateJsonError(w, "Error: the message cannot contain both text and photo", http.StatusBadRequest)
-			return
-		}
-	*/
+
 	if len(input.Text) != 0 && len(input.Photo) != 0 {
 		idPhoto, err := rt.db.CreaFoto(input.Photo)
 		if !errors.Is(err, nil) {

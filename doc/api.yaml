@@ -875,10 +875,10 @@ paths:
                 $ref: '#/components/schemas/GenericError'
     delete:
       tags: ["Chat"]
-      summary: "Delete comment (deleteComment)"
+      summary: "Delete comment (uncommentMessage)"
       description: |-
         Removes a comment from a message.
-      operationId: deleteComment
+      operationId: uncommentMessage
       responses:
         "200":
           description: Comment deleted successfully
@@ -1146,7 +1146,7 @@ components:
         photo:
           type: string
           description: Base64 encoded photo content
-          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          example: "longstr"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
@@ -1167,7 +1167,7 @@ components:
         lastphoto:
           type: string
           description: Base64 content of last message's photo
-          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          example: "longstr"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
@@ -1199,7 +1199,7 @@ components:
         photo:
           type: string
           description: Base64 encoded photo content
-          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          example: "longstr"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
@@ -1263,7 +1263,7 @@ components:
         photo:
           type: string
           description: Base64 encoded profile picture
-          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          example: "longstr"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
@@ -1310,7 +1310,7 @@ components:
         photo:
           type: string
           description: Base64 encoded photo content
-          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          example: "longstr"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
@@ -1355,14 +1355,14 @@ components:
         text:
           type: string
           description: Message text content
-          example: "Would you like to go out this Friday?"
+          example: "elo"
           minLength: 1
           maxLength: 1000
           pattern: '^.*$'
         photo:
           type: string
           description: Base64 encoded photo content
-          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          example: "longstr"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
@@ -1376,7 +1376,7 @@ components:
         comment:
           type: string
           description: Comment content (emoji)
-          example: "pollice in su"
+          example: "like"
           minLength: 1
           maxLength: 1000
           pattern: '^.*$'
@@ -1412,7 +1412,7 @@ components:
         reaction:
           type: string
           description: Comment content (emoji or short text)
-          example: "pollice in su"
+          example: "like"
           minLength: 1
           maxLength: 10
           pattern: '^.*$'
@@ -1434,7 +1434,7 @@ components:
         photo:
           type: string
           description: Base64 encoded photo content
-          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          example: "longstr"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
@@ -1456,7 +1456,7 @@ components:
         photo:
           type: string
           description: Base64 encoded photo content
-          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          example: "longstr"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'
@@ -1484,7 +1484,7 @@ components:
         photo:
           type: string
           description: Base64 encoded photo content
-          example: "fasfgasdkjfvashfadsfvhjfasfbashbvdfj--"
+          example: "longstr"
           minLength: 1
           maxLength: 1024
           pattern: '^.*$'

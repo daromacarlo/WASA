@@ -54,7 +54,6 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	CreateJsonResponse(w, "Group created", http.StatusOK)
-	return
 }
 
 func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -98,7 +97,6 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	CreateJsonResponse(w, "User successfully added to the group", http.StatusOK)
-	return
 }
 
 func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -126,7 +124,6 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	CreateJsonResponse(w, "Successfully left the group", http.StatusOK)
-	return
 }
 
 func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -254,6 +251,5 @@ func (rt *_router) isGroup(w http.ResponseWriter, r *http.Request, ps httprouter
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		CreateJsonError(w, "Error encoding the response", http.StatusInternalServerError)
-		return
 	}
 }

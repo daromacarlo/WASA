@@ -43,7 +43,6 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	CreateJsonResponse(w, "Message successfully forwarded", http.StatusOK)
-	return
 }
 
 func (rt *_router) forwardMessageToNewChat(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -75,5 +74,4 @@ func (rt *_router) forwardMessageToNewChat(w http.ResponseWriter, r *http.Reques
 	}
 
 	CreateJsonResponse(w, "Message successfully forwarded", http.StatusOK)
-	return
 }

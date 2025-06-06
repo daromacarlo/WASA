@@ -56,6 +56,7 @@ type AppDatabase interface {
 	// messages
 	CreatePhotoMessageDB(userPassed string, chatId int, passedPhoto int) (int, int, error)
 	CreateTextMessageDB(userPassed string, chatId int, passedText string) (int, int, error)
+	CreatePhotoTextMessageDB(userPassed string, chatId int, passedPhoto int, passedText string) (int, int, error)
 	CreatePrivateMessageStatus(messageId int) error
 	ReadPrivateMessage(user2 string, chatID int) error
 	CreateGroupMessageStatus(messageId int) error
@@ -67,6 +68,7 @@ type AppDatabase interface {
 	setAns(messageId int, newMessageId int) error
 	AnsPhotoMessage(userPassed string, groupId int, messageId int, passedPhoto int) (int, error)
 	AnsTextMessage(userPassed string, groupId int, messageId int, passedText string) (int, error)
+	AnsPhotoTextMessage(userPassed string, groupId int, messageId int, passedPhoto int, passedString string) (int, error)
 	ForwardMessageToNewChat(userPassed string, user2 string, messageId int) (int, error)
 
 	// comments

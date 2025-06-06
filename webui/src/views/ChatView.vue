@@ -40,32 +40,19 @@
           <span class="forward_label">Forwarded</span>
         </div>
 
-        <div v-if="message.photo" class="message_photo-container">
-          <img
-            :src="message.photo"
-            class="message_photo"
-            @error="handleImageError"
-          />
-          <div>
-            <p v-if="message.time" class="message_time">{{ formatTime(message.time) }}</p>
-            <p v-if="isCurrentUser(message.idauthor)" class="message_status">
-              {{ message.read ? "read" : (message.rec ? "received" : "sent") }}
-            </p>
-            <div v-if="message.comments?.length" class="message_reactions">
-              <div
-                v-for="(comment, index) in message.comments"
-                :key="index"
-                class="reaction_badge_text"
-                :title="comment.author"
-              >
-                <span class="reaction_emoji_text">{{ comment.reaction }}</span>
-              </div>
-            </div>
+        <div class="message_content">
+          <div v-if="message.photo" class="message_photo-container">
+            <img
+              :src="message.photo"
+              class="message_photo"
+              @error="handleImageError"
+            />
           </div>
-        </div>
 
-        <div v-else class="message_text-container">
-          <p class="message_text">{{ message.text }}</p>
+          <div v-if="message.text" class="message_text-container">
+            <p class="message_text">{{ message.text }}</p>
+          </div>
+
           <div>
             <p v-if="message.time" class="message_time">{{ formatTime(message.time) }}</p>
             <p v-if="isCurrentUser(message.idauthor)" class="message_status">
@@ -75,10 +62,12 @@
               <div
                 v-for="(comment, index) in message.comments"
                 :key="index"
-                class="reaction_badge_photo"
+                :class="message.photo ? 'reaction_badge_photo' : 'reaction_badge_text'"
                 :title="comment.author"
               >
-                <span class="reaction_emoji_photo">{{ comment.reaction }}</span>
+                <span :class="message.photo ? 'reaction_emoji_photo' : 'reaction_emoji_text'">
+                  {{ comment.reaction }}
+                </span>
               </div>
             </div>
           </div>
@@ -185,7 +174,6 @@
     </div>
   </div>
 </template>
-
 
 <script>
 export default {
@@ -710,7 +698,7 @@ export default {
   async sendReplyMessage() {
     const messageData = {
       text: this.ans.trim(),
-      photo: this.ansphoto || "",
+      photo: this.ansphoto,
     };
 
     try {

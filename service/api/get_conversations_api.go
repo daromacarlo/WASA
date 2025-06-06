@@ -35,6 +35,5 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(list); err != nil {
 		CreateJsonError(w, "Error while encoding JSON response: "+err.Error(), http.StatusInternalServerError)
-		return
 	}
 }

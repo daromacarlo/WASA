@@ -16,10 +16,8 @@ func CreateTableMessages(db *sql.DB) error {
 			chat INTEGER NOT NULL,
 			forw BOOL NOT NULL default FALSE,
 			ans INTEGER default NULL,
-			-- One of the two
 			text TEXT,
 			photo INTEGER,
-			--
 			time TIME,
 			FOREIGN KEY (photo) REFERENCES photo(id),
 			FOREIGN KEY (author) REFERENCES user(nickname),
@@ -110,6 +108,84 @@ func (db *appdbimpl) insertMessage(chatId int, userPassed string, passedText str
 
 	if !errors.Is(err, nil) {
 		return 0, fmt.Errorf("error creating new message: %w", err)
+	}
+
+	lastInsertID, err := result.LastInsertId()
+	if !errors.Is(err, nil) {
+		return 0, fmt.Errorf("error retrieving last message ID: %w", err)
+	}
+
+	if isGroup {
+		err = db.CreateGroupMessageStatus(int(lastInsertID))
+	} else {
+		err = db.CreatePrivateMessageStatus(int(lastInsertID))
+	}
+
+	if !errors.Is(err, nil) {
+		return 0, fmt.Errorf("error creating message status: %w", err)
+	}
+
+	return int(lastInsertID), nil
+}
+
+func (db *appdbimpl) CreatePhotoTextMessageDB(userPassed string, chatId int, passedPhoto int, passedText string) (int, int, error) {
+	ex, err := db.chatExistence(chatId)
+	if !errors.Is(err, nil) {
+		return 0, 500, fmt.Errorf("error during existence check: %w", err)
+	}
+	if !ex {
+		return 0, 404, fmt.Errorf("error, chat does not exist")
+	}
+	userPassed_converted, errorCode, err := db.IDFromNICK(userPassed)
+	if !errors.Is(err, nil) {
+		return 0, errorCode, fmt.Errorf("error converting nickname to id: %w", err)
+	}
+	isGroup, errorCode, err := db.SearchGroup(chatId)
+	if !errors.Is(err, nil) {
+		return 0, errorCode, fmt.Errorf("error during chat type check: %w", err)
+	}
+
+	var messageId int
+	if isGroup > 0 {
+		involved, errorCode, err := db.UserInGroup(userPassed, chatId)
+		if !errors.Is(err, nil) {
+			return 0, errorCode, fmt.Errorf("error checking user participation in group: %w", err)
+		}
+		if involved == 0 {
+			return 0, 401, fmt.Errorf("user is not a member of the group")
+		}
+		messageId, err = db.insertMessagePhotoText(chatId, userPassed, passedPhoto, passedText, true)
+		if !errors.Is(err, nil) {
+			return 0, 500, fmt.Errorf("error inserting message: %w", err)
+		}
+
+	} else {
+		PrivateChatId, errorCode, err := db.SearchPrivateConversation(chatId, userPassed_converted)
+		if !errors.Is(err, nil) {
+			return 0, errorCode, fmt.Errorf("error during chat verification: %w", err)
+		}
+		if PrivateChatId == 0 {
+			return 0, 401, fmt.Errorf("user is not involved in the private chat")
+		}
+		messageId, err = db.insertMessagePhotoText(chatId, userPassed, passedPhoto, passedText, false)
+		if !errors.Is(err, nil) {
+			return 0, 500, fmt.Errorf("error inserting message: %w", err)
+		}
+	}
+
+	return messageId, 0, nil
+}
+
+func (db *appdbimpl) insertMessagePhotoText(chatId int, userPassed string, passedPhoto int, passedText string, isGroup bool) (int, error) {
+	userPassed_converted, _, err := db.IDFromNICK(userPassed)
+	if !errors.Is(err, nil) {
+		return 0, fmt.Errorf("error converting nickname to id: %w", err)
+	}
+	insertQuery := `INSERT INTO message (author, idauthor, chat, photo, text, time) VALUES (?, ?, ?, ?, ?, ?);`
+	result, err := db.c.Exec(insertQuery, userPassed, userPassed_converted, chatId, passedPhoto, passedText, time.Now())
+
+	if !errors.Is(err, nil) {
+		return 0, fmt.Errorf(": %w", err)
 	}
 
 	lastInsertID, err := result.LastInsertId()

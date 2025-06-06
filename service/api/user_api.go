@@ -39,7 +39,6 @@ func (rt *_router) usersInGroup(w http.ResponseWriter, r *http.Request, ps httpr
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(list); err != nil {
 		CreateJsonError(w, "Error during the creation of JSON response: "+err.Error(), http.StatusInternalServerError)
-		return
 	}
 }
 
@@ -84,7 +83,6 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	CreateJsonResponse(w, "Photo updated ", http.StatusOK)
-	return
 }
 
 func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -117,7 +115,6 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	CreateJsonResponse(w, "Name updated ", http.StatusOK)
-	return
 }
 
 func (rt *_router) idFromName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -146,6 +143,5 @@ func (rt *_router) idFromName(w http.ResponseWriter, r *http.Request, ps httprou
 	}{ID: id})
 	if err != nil {
 		http.Error(w, "Failed to encode JSON response: "+err.Error(), http.StatusInternalServerError)
-		return
 	}
 }

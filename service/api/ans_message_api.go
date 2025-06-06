@@ -52,9 +52,25 @@ func (rt *_router) ansMessage(w http.ResponseWriter, r *http.Request, ps httprou
 		CreateJsonError(w, "Error: The message must contain at least a photo or some text", http.StatusBadRequest)
 		return
 	}
+	/*
+		if len(input.Text) > 0 && len(input.Photo) > 0 {
+			CreateJsonError(w, "Error: The message cannot contain both text and a photo", http.StatusBadRequest)
+			return
+		}
+	*/
 
 	if len(input.Text) > 0 && len(input.Photo) > 0 {
-		CreateJsonError(w, "Error: The message cannot contain both text and a photo", http.StatusBadRequest)
+		idPhoto, err := rt.db.CreaFoto(input.Photo)
+		if !errors.Is(err, nil) {
+			CreateJsonError(w, "Error while uploading the photo for the reply: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		errorCode, err := rt.db.AnsPhotoTextMessage(user, Conv, IdMessage, idPhoto, input.Text)
+		if !errors.Is(err, nil) {
+			CreateJsonError(w, "Error while replying with photo and text: "+err.Error(), errorCode)
+			return
+		}
+		CreateJsonResponse(w, "Reply with photo and text sent successfully", http.StatusOK)
 		return
 	}
 
@@ -79,5 +95,4 @@ func (rt *_router) ansMessage(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	CreateJsonResponse(w, "Reply sent successfully", http.StatusOK)
-	return
 }

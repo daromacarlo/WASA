@@ -49,5 +49,4 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, r *http.Requ
 	}
 
 	CreateJsonResponse(w, "Private conversation successfully created", http.StatusOK)
-	return
 }

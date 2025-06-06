@@ -45,9 +45,24 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		CreateJsonError(w, "Error: the message must contain at least a photo or some text", http.StatusBadRequest)
 		return
 	}
-
-	if len(input.Text) > 0 && len(input.Photo) > 0 {
-		CreateJsonError(w, "Error: the message cannot contain both text and photo", http.StatusBadRequest)
+	/*
+		if len(input.Text) > 0 && len(input.Photo) > 0 {
+			CreateJsonError(w, "Error: the message cannot contain both text and photo", http.StatusBadRequest)
+			return
+		}
+	*/
+	if len(input.Text) != 0 && len(input.Photo) != 0 {
+		idPhoto, err := rt.db.CreaFoto(input.Photo)
+		if !errors.Is(err, nil) {
+			CreateJsonError(w, "Error while saving the photo in the message: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		errorCode, _, err := rt.db.CreatePhotoTextMessageDB(CallingUser, Conv, idPhoto, input.Text)
+		if !errors.Is(err, nil) {
+			CreateJsonError(w, "Error while saving the message with photo and text: "+err.Error(), errorCode)
+			return
+		}
+		CreateJsonResponse(w, "Photo and text message sent successfully", http.StatusCreated)
 		return
 	}
 
@@ -73,7 +88,6 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	CreateJsonResponse(w, "Text message sent successfully", http.StatusCreated)
-	return
 }
 
 func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -150,10 +164,9 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	CreateJsonResponse(w, "Comment successfully added", http.StatusOK)
-	return
 }
 
-func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *_router) uncommentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	token := r.Header.Get("Authorization")
 	exist, err := rt.VerifyToken(token)
 	if exist == false {
@@ -181,5 +194,4 @@ func (rt *_router) deleteComment(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	CreateJsonResponse(w, "Comment successfully deleted", http.StatusOK)
-	return
 }

@@ -45,6 +45,5 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(list); err != nil {
 		CreateJsonError(w, "Error while encoding the JSON response: "+err.Error(), http.StatusInternalServerError)
-		return
 	}
 }

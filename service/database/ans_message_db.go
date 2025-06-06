@@ -93,3 +93,19 @@ func (db *appdbimpl) AnsPhotoMessage(userPassed string, chatId int, messageId in
 	}
 	return 0, nil
 }
+
+func (db *appdbimpl) AnsPhotoTextMessage(userPassed string, chatId int, messageId int, passedPhoto int, passedString string) (int, error) {
+	_, errorCode, err := db.verifyConversation(userPassed, chatId, messageId)
+	if !errors.Is(err, nil) {
+		return errorCode, err
+	}
+	newMessageId, errorCode, err := db.CreatePhotoTextMessageDB(userPassed, chatId, passedPhoto, passedString)
+	if !errors.Is(err, nil) {
+		return errorCode, fmt.Errorf("error inserting photo and text message for user '%s': %w", userPassed, err)
+	}
+	err = db.setAns(messageId, newMessageId)
+	if !errors.Is(err, nil) {
+		return 500, fmt.Errorf("error setting answer for message with ID %d (reply to %d): %w", newMessageId, messageId, err)
+	}
+	return 0, nil
+}

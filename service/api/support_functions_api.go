@@ -56,6 +56,7 @@ func CreateJsonAccessResponse(w http.ResponseWriter, message string, userId int,
 		"code":     strconv.Itoa(code),
 	})
 }
+
 func (rt *_router) VerifyToken(token string) (bool, error) {
 	if token == "" {
 		return false, fmt.Errorf("Error: token not valid - empty token")
@@ -67,7 +68,7 @@ func (rt *_router) VerifyToken(token string) (bool, error) {
 
 	exists, err := rt.db.UserExistenceId(token_i)
 	if err != nil {
-		return false, fmt.Errorf("Error: failed to verify user existence - DB error: %v", err)
+		return false, fmt.Errorf("Error: failed to verify user existence - DB error: %w", err)
 	}
 
 	if !exists {

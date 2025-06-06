@@ -34,7 +34,7 @@ func (rt *_router) Handler() http.Handler {
 
 	// DELETE
 	rt.router.DELETE("/wasachat/:user/chats/:chat", rt.leaveGroup)
-	rt.router.DELETE("/wasachat/:user/messages/:message", rt.deleteComment)
+	rt.router.DELETE("/wasachat/:user/messages/:message", rt.uncommentMessage)
 	rt.router.DELETE("/wasachat/:user/chats/:chat/messages/:message", rt.deleteMessage)
 
 	return rt.router

@@ -58,17 +58,16 @@ func CreateJsonAccessResponse(w http.ResponseWriter, message string, userId int,
 }
 
 func (rt *_router) VerifyToken(token string) (bool, error) {
-	if token == "" {
+	if token == " " {
 		return false, fmt.Errorf("Error: token not valid - empty token")
 	}
 	token_i, err := strconv.Atoi(token)
 	if err != nil {
-		return false, fmt.Errorf("Error: invalid token format - %v is not a valid integer", token)
-	}
 
+	}
 	exists, err := rt.db.UserExistenceId(token_i)
 	if err != nil {
-		return false, fmt.Errorf("Error: failed to verify user existence - DB error: %w", err)
+		return false, fmt.Errorf("Error: failed to verify user existence: %w", err)
 	}
 
 	if !exists {

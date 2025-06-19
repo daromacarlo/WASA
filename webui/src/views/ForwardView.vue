@@ -3,7 +3,7 @@
     <button @click="goBack" class="goBack_btn">Go Back</button>
 
     <div class="c">
-      <h1>Forward message</h1>
+      <h1>Forward message to a new chat:</h1>
       <div class="bc">
         <button @click="openNewChatModal" class="btn">New chat</button>
       </div>
@@ -11,7 +11,7 @@
 
     <div class="c">
       <div class="chats-list">
-        <h2>Select an existing chat:</h2>
+        <h2>Forward message to an existing chat:</h2>
         <ul v-if="chats.length > 0">
           <li
             v-for="chat in chats"

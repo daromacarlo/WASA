@@ -10,4 +10,3 @@ COPY --from=frontend-builder /app/webui/dist /usr/share/nginx/html
 #to mount: docker build -f Dockerfile.backend -t wasa-backend .
 
 #to run with tester permisses: docker run --rm --user 1000 -p 80:8080 wasa-frontend
-

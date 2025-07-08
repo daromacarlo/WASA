@@ -1,5 +1,21 @@
 # WasaText
 
+[![Università di Roma La Sapienza](https://img.shields.io/badge/university-La%20Sapienza-maroon)](https://www.uniroma1.it/)
+[![Corso](https://img.shields.io/badge/course-Web%20and%20Software%20Architecture-orange)](https://corsidilaurea.uniroma1.it/it/view-course-details/2023/30027/20230113131042/c5bbbcfa-2298-4182-b66d-b625fc525307/7d8a1191-6d13-47a5-a2cd-eecb1876c238/3d9e27c4-5329-411f-85b1-46a0636e0934)
+
+Questo progetto è pubblico e condiviso con l'intento di essere utile a chiunque voglia modificarlo e riutilizzarlo per il proprio lavoro o per fini didattici. Sei libero di copiarlo, distribuirlo e adattarlo come preferisci (tanto io l'esame l'ho fatto).
+
+Questi sono i voti parziali del mio progetto:
+
+![immagine](https://github.com/user-attachments/assets/e0a25378-b3a6-4668-9cd6-e3d380cdb6c8)
+
+
+# Fantastic decaffeinated coffee
+[![Go](https://img.shields.io/badge/language-Go-00ADD8)](https://golang.org/)
+[![Vue.js](https://img.shields.io/badge/frontend-Vue.js-41B883)](https://vuejs.org/)
+[![Yarn](https://img.shields.io/badge/package%20manager-Yarn-2C8EBB)](https://yarnpkg.com/)
+[![OpenAPI](https://img.shields.io/badge/API-OpenAPI%203.0-yellow)](https://swagger.io/specification/)
+[![Docker](https://img.shields.io/badge/container-Docker-2496ED)](https://www.docker.com/)
 ## Project structure
 
 * `cmd/` contains all executables; Go programs here should only do "executable-stuff", like reading options from the CLI/env, etc.

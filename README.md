@@ -9,6 +9,7 @@ Questi sono i voti parziali del mio progetto:
 
 ![immagine](https://github.com/user-attachments/assets/e0a25378-b3a6-4668-9cd6-e3d380cdb6c8)
 
+<sub><i>last update 10/07/2025</i></sub>
 
 # Fantastic decaffeinated coffee
 [![Go](https://img.shields.io/badge/language-Go-00ADD8)](https://golang.org/)
@@ -119,8 +120,6 @@ Some errors in the code are somehow not shown in `vite` development mode. To pre
 yarn run build-prod
 yarn run preview
 ```
-
-<sub><i>last update 10/07/2025</i></sub>
 
 ## License
 

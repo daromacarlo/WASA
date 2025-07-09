@@ -120,6 +120,8 @@ yarn run build-prod
 yarn run preview
 ```
 
+<sub><i>last update 10/07/2025</i></sub>
+
 ## License
 
 See [LICENSE](LICENSE).
